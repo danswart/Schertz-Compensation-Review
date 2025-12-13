@@ -1,0 +1,82 @@
+---
+title: "Spreadsheet Organization"
+format: html
+---
+
+Excel filename: FY20 Earnings.xlsx
+
+Column headings:   NAME	DEPARTMENT	JOB TITLE	HIRE DATE	TERMINATION DATE	 REGULAR EARNINGS	 OVERTIME EARNINGS	 ADDITIONAL EARNINGS1	 TOTAL EARNINGS
+
+First Row Contents:  Browne, James	City Management Office	City Manager	01/02/2019	01/02/2023	$147,460.74		$0.00	$147,460.74
+
+
+
+Excel filename: FY21 Earnings.xlsx
+
+Column headings:   NAME	HOME DEPARTMENT	JOB TITLE	HIRE DATE	TERMINATION DATE	 REGULAR EARNINGS	 OVERTIME EARNINGS	 ADDITIONAL EARNINGS1	 TOTAL EARNINGS
+
+First Row Contents: Browne, James	City Management Office	City Manager	01/02/2019	01/02/2023	$185,752.92		$210.00	$185,962.92
+
+
+
+Excel filename:  FY22 Earnings
+
+Column headings:   NAME	DEPARTMENT	JOB TITLE	HIRE DATE	TERMINATION DATE	REGULAR EARNINGS	OVERTIME EARNINGS	ADDITIONAL EARNINGS1	TOTAL EARNINGS
+
+First Row Contents:  Browne, James	City Management Office	City Manager	01/02/2019	01/02/2023	$196,741.88		$2,080.00	$198,821.88
+
+
+
+
+Excel filename:  FY23Employee_Comp_FY23.xlsx
+
+Column headings:   LAST NAME	FIRST NAME	HOME DEPARTMENT	JOB TITLE	"EMPLOYEE 
+CATEGORY"	HIRE DATE	"SEPARATION 
+DATE"	"FY24 
+ANNUAL 
+SALARY1"	"FY24 
+LEAVE 
+PAYOUT2"	"FY24 
+REGULAR 
+EARNINGS3"	"FY24 
+OVERTIME
+EARNINGS4"	"FY24 
+ADDITIONAL"	"FY24 
+DEPLOYMENT"	"ARBITRATION/ 
+SETTLEMENTS"	"FY24
+TOTAL 
+EARNINGS7"	"FY24 
+ADDITIONAL.1"	"FY24 
+TOTAL 
+COMPENSATION9"	
+
+First Row Contents:   Gutierrez	Rafael	City Council	Mayor	Civilian	11/21/2016		N/A		$          4,978.29	$                      ‐	$          2,489.59	$                      ‐		$           7,467.88	$              571.28	$                8,039.16
+
+
+
+Excel filename:  FY24Employee_Comp_FY24.xlsx
+
+Column headings:   LAST NAME	FIRST NAME	HOME DEPARTMENT	JOB TITLE	"EMPLOYEE 
+CATEGORY"	HIRE DATE	"SEPARATION 
+DATE"	"FY24 
+ANNUAL 
+SALARY1"	"FY24 
+LEAVE 
+PAYOUT2"	"FY24 
+REGULAR 
+EARNINGS3"	"FY24 
+OVERTIME
+EARNINGS4"	"FY24 
+ADDITIONAL"	"FY24 
+DEPLOYMENT"	"ARBITRATION/ 
+SETTLEMENTS"	"FY24
+TOTAL 
+EARNINGS7"	"FY24 
+ADDITIONAL.1"	"FY24 
+TOTAL 
+COMPENSATION9"
+
+Contents of First Row:   Brown	Timothy	City Council	Council Member	Civilian	11/20/2018				$     3,412.24	$               ‐	$     1,263.60	$                   ‐		$     4,675.84	$     1,124.13	$                5,799.97
+
+
+

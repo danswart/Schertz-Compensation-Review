@@ -1,0 +1,819 @@
+---
+title: "Schertz Compensation Data Harmonization"
+author: "Compensation Review Project"
+date: today
+format: html
+editor: source
+---
+
+## Overview
+
+This workflow combines FY20-FY24 employee compensation data from five Excel files with varying structures into a single, analysis-ready long-format dataset.
+
+**Key challenges addressed:**
+
+-   No unique employee ID field (composite key required)
+-   Inconsistent column naming across years
+-   Name format varies: "Last, First" (FY20-22) vs separate columns (FY23-24)
+-   Middle initials present in FY23-24 but not FY20-22
+-   Unicode character variations (hyphens, dashes, non-breaking spaces)
+-   Column name variations: "TERMINATION DATE" vs "SEPARATION DATE"
+-   FY23-24 files have additional compensation categories
+
+```{r}
+#| label: setup
+#| message: false
+
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(janitor)
+library(flextable)
+```
+
+
+
+## Step 1: Define File Paths and Import
+
+```{r}
+#| label: define-paths
+
+# Base path to raw data
+data_path <- file.path(
+  path.expand("~"), 
+  "R Working Directory", 
+  "Schertz Compensation Review", 
+  "data_raw"
+)
+
+# File names (verified from actual directory listing)
+file_names <- c(
+  fy20 = "FY20 Earnings.xlsx",
+  fy21 = "FY21 Earnings.xlsx",
+  fy22 = "FY22 Earnings.xlsx",
+  fy23 = "FY23Employee_Comp_FY23.xlsx",
+  fy24 = "FY24Employee_Comp_FY24_All.xlsx"
+)
+
+# Build full paths
+file_paths <- file.path(data_path, file_names)
+names(file_paths) <- names(file_names)
+
+# Verify all files exist
+file_status <- file.exists(file_paths)
+if (!base::all(file_status)) {
+  missing <- names(file_paths)[!file_status]
+  stop("Missing files: ", base::paste(missing, collapse = ", "))
+} else {
+  base::cat("All files found.\n")
+}
+```
+
+
+
+```{r}
+#| label: import-raw
+
+# Import each file as text to preserve original values
+raw_data <- base::list()
+
+raw_data$fy20 <- readxl::read_excel(file_paths["fy20"], col_types = "text") |> 
+  janitor::clean_names()
+
+raw_data$fy21 <- readxl::read_excel(file_paths["fy21"], col_types = "text") |> 
+  janitor::clean_names()
+
+raw_data$fy22 <- readxl::read_excel(file_paths["fy22"], col_types = "text") |> 
+  janitor::clean_names()
+
+raw_data$fy23 <- readxl::read_excel(file_paths["fy23"], col_types = "text") |> 
+  janitor::clean_names()
+
+raw_data$fy24 <- readxl::read_excel(file_paths["fy24"], col_types = "text") |> 
+  janitor::clean_names()
+
+# Show row counts
+base::cat("Rows per file:\n")
+base::sapply(raw_data, nrow)
+```
+
+
+
+## Step 2: Inspect Column Structures
+
+```{r}
+#| label: inspect-columns
+
+# View column names for each year
+base::cat("=== FY20 columns ===\n")
+names(raw_data$fy20)
+
+base::cat("\n=== FY21 columns ===\n")
+names(raw_data$fy21)
+
+base::cat("\n=== FY22 columns ===\n")
+names(raw_data$fy22)
+
+base::cat("\n=== FY23 columns ===\n")
+names(raw_data$fy23)
+
+base::cat("\n=== FY24 columns ===\n")
+names(raw_data$fy24)
+```
+
+
+
+## Step 3: Define Helper Functions
+
+```{r}
+#| label: helper-functions
+
+# Fix non-breaking spaces and other invisible Unicode spaces
+fix_spaces <- function(x) {
+  x |>
+    # Non-breaking space (common in Excel exports)
+    stringr::str_replace_all("\u00A0", " ") |>
+    # Other Unicode spaces that might sneak in
+    stringr::str_replace_all("\u2007", " ") |>
+    stringr::str_replace_all("\u202F", " ") |>
+    # Clean up any resulting multiple spaces
+    stringr::str_squish()
+}
+
+# Parse currency strings to numeric
+parse_currency <- function(x) {
+  x |>
+    stringr::str_replace("^N/A$", NA_character_) |>
+    stringr::str_remove_all("\\$") |>
+    stringr::str_remove_all(",") |>
+    stringr::str_remove_all("\\s") |>
+    stringr::str_replace("^-$", "0") |>
+    stringr::str_replace("^$", NA_character_) |>
+    base::as.numeric()
+}
+
+# Parse dates - handles both Excel serial numbers and text formats
+parse_flex_date <- function(x) {
+  # Try Excel serial number first (5-digit numbers)
+  serial_dates <- base::suppressWarnings(base::as.numeric(x))
+  is_serial <- !base::is.na(serial_dates) & serial_dates > 30000 & serial_dates < 50000
+  
+  result <- base::as.Date(base::rep(NA, base::length(x)))
+  
+  # Convert Excel serial numbers (origin is 1899-12-30)
+  result[is_serial] <- base::as.Date(serial_dates[is_serial], origin = "1899-12-30")
+  
+  # Try m/d/Y format for text dates
+  text_dates <- base::suppressWarnings(
+    base::as.Date(x[!is_serial], format = "%m/%d/%Y")
+  )
+  result[!is_serial] <- text_dates
+  
+  result
+}
+
+# Standardize names for matching across years
+standardize_name <- function(x) {
+  x |>
+    # First fix any invisible space characters
+    fix_spaces() |>
+    # Normalize Unicode hyphens/dashes to regular hyphen
+    stringr::str_replace_all("[\u2010\u2011\u2012\u2013\u2014\u2015\u2212]", "-") |>
+    # Remove middle initials (single letter + optional period at end of string)
+    stringr::str_remove("\\s+[A-Z]\\.?$") |>
+    # Remove trailing periods
+    stringr::str_remove("\\.$") |>
+    # Standardize Jr/Sr/II/III case and spacing
+    stringr::str_replace("\\bjr\\b", "Jr") |>
+    stringr::str_replace("\\bsr\\b", "Sr") |>
+    stringr::str_replace("\\bJr,", "Jr.,") |>
+    # Clean whitespace
+    stringr::str_squish()
+}
+```
+
+
+
+## Step 4: Standardize Each Year's Data
+
+Each year gets standardized to the same column schema:
+
+-   `name_original`: Name as it appears in source file
+-   `department`: Department name
+-   `job_title`: Job title
+-   `hire_date`: Hire date (text, converted later)
+-   `separation_date`: Termination/separation date (text, converted later)
+-   `regular_earnings`: Regular earnings (text, converted later)
+-   `overtime_earnings`: Overtime earnings (text, converted later)
+-   `additional_earnings`: Additional earnings (text, converted later)
+-   `fiscal_year`: FY20, FY21, etc.
+
+```{r}
+#| label: standardize-fy20
+
+std_fy20 <- raw_data$fy20 |>
+  dplyr::transmute(
+    name_original       = name,
+    department          = department,
+    job_title           = job_title,
+    hire_date           = hire_date,
+    separation_date     = termination_date,
+    regular_earnings    = regular_earnings,
+    overtime_earnings   = overtime_earnings,
+    additional_earnings = additional_earnings1,
+    fiscal_year         = "FY20"
+  )
+```
+
+
+
+```{r}
+#| label: standardize-fy21
+
+std_fy21 <- raw_data$fy21 |>
+  dplyr::transmute(
+    name_original       = name,
+    department          = home_department,
+    job_title           = job_title,
+    hire_date           = hire_date,
+    separation_date     = termination_date,
+    regular_earnings    = regular_earnings,
+    overtime_earnings   = overtime_earnings,
+    additional_earnings = additional_earnings1,
+    fiscal_year         = "FY21"
+  )
+```
+
+
+```{r}
+#| label: standardize-fy22
+
+std_fy22 <- raw_data$fy22 |>
+  dplyr::transmute(
+    name_original       = name,
+    department          = department,
+    job_title           = job_title,
+    hire_date           = hire_date,
+    separation_date     = termination_date,
+    regular_earnings    = regular_earnings,
+    overtime_earnings   = overtime_earnings,
+    additional_earnings = additional_earnings1,
+    fiscal_year         = "FY22"
+  )
+```
+
+
+```{r}
+#| label: standardize-fy23
+
+# FY23 has separate name columns and different earnings column names
+# First identify the correct column names
+fy23_cols <- names(raw_data$fy23)
+base::cat("FY23 earnings-related columns:\n")
+fy23_cols[stringr::str_detect(fy23_cols, "regular|overtime|additional")]
+
+std_fy23 <- raw_data$fy23 |>
+  dplyr::transmute(
+    name_original       = base::paste0(last_name, ", ", first_name),
+    department          = home_department,
+    job_title           = job_title,
+    hire_date           = hire_date,
+    separation_date     = separation_date,
+    # Select first matching column for each earnings type
+    regular_earnings    = dplyr::pick(dplyr::matches("regular_earnings|^fy\\d+_regular")) |> 
+      dplyr::pull(1),
+    overtime_earnings   = dplyr::pick(dplyr::matches("overtime_earnings|^fy\\d+_overtime")) |> 
+      dplyr::pull(1),
+    additional_earnings = dplyr::pick(dplyr::matches("^fy\\d+_additional$|additional_earnings")) |> 
+      dplyr::pull(1),
+    fiscal_year         = "FY23"
+  )
+```
+
+
+```{r}
+#| label: standardize-fy24
+
+# FY24 has same structure as FY23
+fy24_cols <- names(raw_data$fy24)
+base::cat("FY24 earnings-related columns:\n")
+fy24_cols[stringr::str_detect(fy24_cols, "regular|overtime|additional")]
+
+std_fy24 <- raw_data$fy24 |>
+  dplyr::transmute(
+    name_original       = base::paste0(last_name, ", ", first_name),
+    department          = home_department,
+    job_title           = job_title,
+    hire_date           = hire_date,
+    separation_date     = separation_date,
+    regular_earnings    = dplyr::pick(dplyr::matches("regular_earnings|^fy\\d+_regular")) |> 
+      dplyr::pull(1),
+    overtime_earnings   = dplyr::pick(dplyr::matches("overtime_earnings|^fy\\d+_overtime")) |> 
+      dplyr::pull(1),
+    additional_earnings = dplyr::pick(dplyr::matches("^fy\\d+_additional$|additional_earnings")) |> 
+      dplyr::pull(1),
+    fiscal_year         = "FY24"
+  )
+```
+
+
+
+## Step 5: Combine All Years
+
+```{r}
+#| label: combine-all
+
+comp_combined <- dplyr::bind_rows(
+  std_fy20,
+  std_fy21,
+  std_fy22,
+  std_fy23,
+  std_fy24
+)
+
+base::cat("Combined dataset:", base::nrow(comp_combined), "rows\n")
+base::cat("Columns:", base::paste(names(comp_combined), collapse = ", "), "\n\n")
+base::cat("Rows by fiscal year:\n")
+base::table(comp_combined$fiscal_year)
+```
+
+
+
+## Step 6: Clean and Transform Data
+
+```{r}
+#| label: clean-data
+
+comp_clean <- comp_combined |>
+  # First fix invisible characters across ALL text columns
+  dplyr::mutate(
+    dplyr::across(dplyr::where(is.character), fix_spaces)
+  ) |>
+  dplyr::mutate(
+    # Standardize names for matching
+    name_std = standardize_name(name_original),
+    
+    # Parse currency fields
+    regular_earnings = parse_currency(regular_earnings),
+    overtime_earnings = parse_currency(overtime_earnings),
+    additional_earnings = parse_currency(additional_earnings),
+    
+    # Parse date fields
+    hire_date = parse_flex_date(hire_date),
+    separation_date = parse_flex_date(separation_date),
+    
+    # Clean department for key
+    dept_std = department |>
+      stringr::str_to_lower() |>
+      stringr::str_squish()
+  )
+
+# Verify all expected columns present
+base::cat("Columns after cleaning:\n")
+names(comp_clean)
+
+# Show NA counts in earnings
+base::cat("\nNA counts in earnings columns:\n")
+comp_clean |>
+  dplyr::summarise(
+    regular_na = base::sum(base::is.na(regular_earnings)),
+    overtime_na = base::sum(base::is.na(overtime_earnings)),
+    additional_na = base::sum(base::is.na(additional_earnings))
+  )
+```
+
+
+```{r}
+#| label: verify-space-fix
+
+# Verify non-breaking spaces are fixed in job titles
+base::cat("Verifying job title cleanup - City Manager across all years:\n")
+comp_clean |>
+  dplyr::filter(stringr::str_detect(job_title, "City Manager")) |>
+  dplyr::distinct(job_title, fiscal_year) |>
+  dplyr::arrange(job_title, fiscal_year)
+```
+
+
+## Step 7: Check for Name Variations Requiring Manual Review
+
+```{r}
+#| label: check-name-variations
+
+# After standardization, check what case variations remain
+case_variations <- comp_clean |>
+  dplyr::distinct(name_std) |>
+  dplyr::mutate(name_lower = stringr::str_to_lower(name_std)) |>
+  dplyr::group_by(name_lower) |>
+  dplyr::filter(dplyr::n() > 1) |>
+  dplyr::arrange(name_lower) |>
+  dplyr::ungroup()
+
+if (base::nrow(case_variations) > 0) {
+  base::cat("Names still differing by case after standardization:\n")
+  base::print(case_variations)
+} else {
+  base::cat("No case-only variations remain after standardization.\n")
+}
+```
+
+
+```{r}
+#| label: check-similar-names
+
+# Find potentially similar names (likely same person with typos/variations)
+unique_names <- base::unique(comp_clean$name_std)
+
+similar_pairs <- base::data.frame(
+  name1 = character(),
+  name2 = character(),
+  distance = integer(),
+  stringsAsFactors = FALSE
+)
+
+# Only check edit distance 1-2 (tighter filter for real suspects)
+for (i in base::seq_along(unique_names)) {
+  for (j in base::seq_along(unique_names)) {
+    if (j > i) {
+      d <- utils::adist(unique_names[i], unique_names[j])
+      if (d >= 1 && d <= 2) {
+        similar_pairs <- base::rbind(similar_pairs, base::data.frame(
+          name1 = unique_names[i],
+          name2 = unique_names[j],
+          distance = base::as.integer(d)
+        ))
+      }
+    }
+  }
+}
+
+if (base::nrow(similar_pairs) > 0) {
+  base::cat("\nPotentially similar names to review (edit distance 1-2):\n")
+  similar_pairs |>
+    dplyr::arrange(distance, name1) |>
+    dplyr::as_tibble() |>
+    print(n = 100)
+} else {
+  base::cat("\nNo similar name pairs found.\n")
+}
+```
+
+
+## Step 8: Apply Manual Name Corrections
+
+Based on the similarity check above, apply corrections for known duplicates. Add additional corrections as needed after reviewing the output.
+
+```{r}
+#| label: manual-corrections
+
+# Define name corrections (pattern -> replacement)
+# Add more rows as you identify issues from the similarity check
+name_corrections <- dplyr::tribble(
+  ~pattern,              ~replacement,
+  "Pitts jr,",           "Pitts Jr.,",
+  "Dammann, Aa$",        "Dammann, Aaron",
+  "McGuire, Mich$",      "McGuire, Michael",
+  "Hernandez, Joe$",     "Hernandez, Joseph",
+  "Hernandez, Jose$",    "Hernandez, Joseph",
+  "Perez, Jerremy",      "Perez, Jerry"
+  # Add more corrections here as you identify them
+)
+
+# Apply corrections
+comp_corrected <- comp_clean
+
+for (i in base::seq_len(base::nrow(name_corrections))) {
+  comp_corrected <- comp_corrected |>
+    dplyr::mutate(
+      name_std = stringr::str_replace(
+        name_std, 
+        name_corrections$pattern[i], 
+        name_corrections$replacement[i]
+      )
+    )
+}
+
+# Show what was changed
+changes_made <- comp_clean |>
+  dplyr::select(name_original, name_std_old = name_std) |>
+  dplyr::bind_cols(
+    comp_corrected |> dplyr::select(name_std_new = name_std)
+  ) |>
+  dplyr::filter(name_std_old != name_std_new) |>
+  dplyr::distinct()
+
+if (base::nrow(changes_made) > 0) {
+  base::cat("Manual corrections applied:\n")
+  base::print(changes_made)
+} else {
+  base::cat("No manual corrections matched.\n")
+}
+```
+
+
+
+## Step 9: Create Composite Employee Key
+
+```{r}
+#| label: create-key
+
+comp_keyed <- comp_corrected |>
+  dplyr::mutate(
+    # Create composite key from standardized name + department + hire date
+    employee_key = base::paste(
+      stringr::str_to_lower(name_std),
+      dept_std,
+      hire_date,
+      sep = "|"
+    )
+  )
+
+base::cat("Unique employee keys:", dplyr::n_distinct(comp_keyed$employee_key), "\n")
+```
+
+
+```{r}
+#| label: check-duplicate-keys
+
+# Check for duplicate keys within same fiscal year (data quality issue)
+dup_within_year <- comp_keyed |>
+  dplyr::group_by(fiscal_year, employee_key) |>
+  dplyr::filter(dplyr::n() > 1) |>
+  dplyr::ungroup()
+
+if (base::nrow(dup_within_year) > 0) {
+  base::cat("WARNING: Found", base::nrow(dup_within_year), 
+            "duplicate key instances within fiscal years.\n")
+  base::cat("Review these records:\n\n")
+  
+  dup_within_year |>
+    dplyr::select(fiscal_year, name_original, name_std, department, job_title, hire_date) |>
+    dplyr::arrange(employee_key, fiscal_year) |>
+    flextable::flextable() |>
+    flextable::autofit() |>
+    flextable::set_caption("Duplicate Keys Within Fiscal Year")
+} else {
+  base::cat("No duplicate keys within fiscal years. Composite key is valid.\n")
+}
+```
+
+
+```{r}
+#| label: check-key-coverage
+
+# How many employees appear in multiple years?
+key_year_counts <- comp_keyed |>
+  dplyr::group_by(employee_key) |>
+  dplyr::summarise(
+    n_years = dplyr::n_distinct(fiscal_year),
+    years = base::paste(base::sort(base::unique(fiscal_year)), collapse = ", "),
+    .groups = "drop"
+  )
+
+base::cat("Employee coverage across years:\n")
+base::table(key_year_counts$n_years) |> 
+  base::as.data.frame() |>
+  stats::setNames(c("Years_Present", "Employee_Count"))
+```
+
+
+
+## Step 10: Pivot to Long Format
+
+```{r}
+#| label: pivot-long
+
+comp_long <- comp_keyed |>
+  tidyr::pivot_longer(
+    cols = c(regular_earnings, overtime_earnings, additional_earnings),
+    names_to = "earnings_type",
+    values_to = "amount"
+  ) |>
+  dplyr::mutate(
+    earnings_type = earnings_type |>
+      stringr::str_remove("_earnings$") |>
+      stringr::str_to_title()
+  )
+
+base::cat("Long format:", base::nrow(comp_long), "rows\n")
+base::cat("Columns:", base::paste(names(comp_long), collapse = ", "), "\n")
+```
+
+
+
+```{r}
+#| label: preview-long
+
+comp_long |>
+  dplyr::filter(!base::is.na(amount)) |>
+  dplyr::slice_head(n = 15) |>
+  dplyr::select(employee_key, name_std, department, job_title, fiscal_year, earnings_type, amount) |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Long Format Preview")
+```
+
+
+
+## Step 11: Prepare Final Dataset
+
+```{r}
+#| label: final-dataset
+
+comp_final <- comp_long |>
+  dplyr::select(
+    employee_key,
+    name = name_std,
+    name_original,
+    department,
+    job_title,
+    hire_date,
+    separation_date,
+    fiscal_year,
+    earnings_type,
+    amount
+  ) |>
+  dplyr::arrange(name, fiscal_year, earnings_type)
+
+# Summary
+base::cat("=== Final Dataset Summary ===\n")
+base::cat("Total rows:", base::nrow(comp_final), "\n")
+base::cat("Unique employees:", dplyr::n_distinct(comp_final$employee_key), "\n")
+base::cat("Fiscal years:", base::paste(base::unique(comp_final$fiscal_year), collapse = ", "), "\n")
+base::cat("Earnings types:", base::paste(base::unique(comp_final$earnings_type), collapse = ", "), "\n")
+base::cat("\nColumns in final dataset:\n")
+names(comp_final)
+```
+
+
+```{r}
+#| label: verify-job-titles
+
+# Verify job_title is present and populated
+base::cat("Sample job titles:\n")
+comp_final |>
+  dplyr::distinct(job_title) |>
+  dplyr::slice_head(n = 20) |>
+  dplyr::pull(job_title)
+
+base::cat("\n\nCity Manager example (should show all years with data):\n")
+comp_final |>
+  dplyr::filter(job_title == "City Manager") |>
+  dplyr::filter(earnings_type == "Regular") |>
+  dplyr::select(name, job_title, fiscal_year, amount) |>
+  flextable::flextable() |>
+  flextable::autofit()
+```
+
+
+## Step 12: Validation Summary
+
+```{r}
+#| label: validation-by-year
+
+# Total earnings by fiscal year
+validation_totals <- comp_final |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::summarise(
+    employees = dplyr::n_distinct(employee_key),
+    total_compensation = base::sum(amount, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  dplyr::mutate(
+    total_formatted = base::format(total_compensation, big.mark = ",", scientific = FALSE)
+  )
+
+validation_totals |>
+  dplyr::select(fiscal_year, employees, total_formatted) |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Totals by Fiscal Year")
+```
+
+
+```{r}
+#| label: validation-by-type
+
+# Breakdown by earnings type and year
+validation_detail <- comp_final |>
+  dplyr::group_by(fiscal_year, earnings_type) |>
+  dplyr::summarise(
+    n_nonzero = base::sum(!base::is.na(amount) & amount > 0),
+    total = base::sum(amount, na.rm = TRUE),
+    mean = base::mean(amount, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  dplyr::mutate(
+    total = base::format(base::round(total, 0), big.mark = ","),
+    mean = base::format(base::round(mean, 0), big.mark = ",")
+  )
+
+validation_detail |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Earnings by Type and Year")
+```
+
+
+```{r}
+#| label: validation-separations
+
+# Check separation dates
+separations_by_year <- comp_final |>
+  dplyr::filter(!base::is.na(separation_date)) |>
+  dplyr::distinct(employee_key, name, separation_date) |>
+  dplyr::mutate(sep_year = base::format(separation_date, "%Y")) |>
+  dplyr::count(sep_year, name = "separations")
+
+base::cat("Separations by calendar year:\n")
+separations_by_year |>
+  flextable::flextable() |>
+  flextable::autofit()
+```
+
+
+## Step 13: Export
+
+```{r}
+#| label: export
+
+# Define output path
+output_path <- file.path(
+  path.expand("~"),
+  "R Working Directory",
+  "Schertz Compensation Review",
+  "data_clean"
+)
+
+# Create directory if needed
+if (!base::dir.exists(output_path)) {
+  base::dir.create(output_path, recursive = TRUE)
+}
+
+# Save as RDS (preserves data types)
+saveRDS(
+  comp_final,
+  file = file.path(output_path, "compensation_long.rds")
+)
+
+# Save as CSV for portability
+readr::write_csv(
+  comp_final,
+  file = file.path(output_path, "compensation_long.csv")
+)
+
+base::cat("Data exported to:", output_path, "\n")
+base::cat("Files created:\n")
+base::cat("  - compensation_long.rds\n")
+base::cat("  - compensation_long.csv\n")
+```
+
+
+## Example Analysis: City Manager Compensation Over Time
+
+```{r}
+#| label: example-plot
+#| fig-width: 8
+#| fig-height: 5
+
+library(ggplot2)
+
+# Plot City Manager regular earnings over time
+comp_final |>
+  dplyr::filter(
+    job_title == "City Manager",
+    earnings_type == "Regular"
+  ) |>
+  ggplot2::ggplot(ggplot2::aes(x = fiscal_year, y = amount, group = name, color = name)) +
+  ggplot2::geom_line(linewidth = 1) +
+  ggplot2::geom_point(size = 3) +
+  ggplot2::scale_y_continuous(labels = scales::dollar_format()) +
+  ggplot2::labs(
+    title = "City Manager Regular Earnings by Fiscal Year",
+    x = "Fiscal Year",
+    y = "Regular Earnings",
+    color = "Employee"
+  ) +
+  ggplot2::theme_minimal()
+```
+
+
+
+## Notes
+
+1.  **Invisible characters**: FY23-24 Excel files contained non-breaking spaces (`\u00A0`) instead of regular spaces in some fields. The `fix_spaces()` function normalizes these across all text columns.
+
+2.  **Composite key**: Employees are identified by standardized name + department + hire date. Department transfers will create separate keys.
+
+3.  **Name standardization**: Middle initials are stripped, Unicode hyphens normalized, and Jr/Sr case standardized. Original names preserved in `name_original` column.
+
+4.  **Manual corrections**: Step 8 contains a table for manual name corrections. Add rows as you identify issues from the similarity check.
+
+5.  **Missing values**: Empty earnings cells become NA. These represent employees without that compensation type, not data errors.
+
+6.  **Job title**: Preserved from source files for filtering and analysis (e.g., City Manager, Police Chief).
+
+7.  **Separation date**: Standardized from "termination_date" (FY20-22) and "separation_date" (FY23-24). Use to identify employees who have left.
+
+8.  **FY23-24 additional earnings**: These files contain more granular categories (leave payout, deployment, etc.) that are collapsed here. Review source files if you need that detail.

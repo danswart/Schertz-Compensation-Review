@@ -1,0 +1,146 @@
+# Current as of: 2025-08-25
+
+#####  NO INLINE COMMENTS!  #####
+
+# Bookdown files-if book rendered in cloud uncomment these
+/*.pdf
+_site
+temp.Rmd
+*_files
+figures
+_main.*
+crc
+
+# History files
+.Rhistory
+.Rapp.history
+
+# Session Data files
+.RDataTmp
+
+# User-specific files
+.Ruserdata
+*.tobedeleted
+
+# Example code in package build process
+*-Ex.R
+
+# Output files from R CMD build
+/*.tar.gz
+
+# Output files from R CMD check
+/*.Rcheck/
+
+# RStudio files
+.Rproj.user/
+
+# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
+.httr-oauth
+
+
+# Ignore R/knitr/Quarto cache directories
+*_cache/
+*_cache/**
+cache_data/
+cache_data/**
+*.Rhistory
+*.RData
+*.Rproj.user
+
+
+# Specific cache patterns
+**/*_cache/
+**/cache_data/
+
+# Temporary files created by R markdown
+*.utf8.md
+*.knit.md
+
+# R Environment Variables
+.Renviron
+
+# pkgdown sites
+docs/
+/doc/
+
+# translation temp files
+po/*~
+
+# RStudio Connect folder
+rsconnect/
+.Rdata
+
+# Built vignettes
+inst/doc
+
+# Package metadata
+Meta/
+/Meta/
+
+# R profile (local settings)
+.Rprofile
+
+# Package management
+renv/
+packrat/
+
+# Logs
+*.log
+
+
+# Large temporary data files
+temp-*.rds
+temp-*.RDS
+
+# Raw data (if large)
+data-raw/
+raw-data/
+
+# Auto-generated plots
+Rplots.pdf
+
+# Secrets/credentials
+.secrets/
+.env
+
+# macOS
+.DS_Store
+
+
+# Windows
+Thumbs.db
+
+# Quarto
+.quarto
+/.quarto/
+_freeze/
+
+
+
+# Rendered output (be selective)
+
+*.html
+!header.html
+!vignettes/*.html
+!giscus.html
+
+
+
+
+
+# ------------------------
+# Large data files (naming convention: large_*)
+# These are typically big temporary or downloaded datasets that should not be versioned
+large_*.rds
+large_*.RDS
+large_*.csv
+large_*.xlsx
+
+
+
+
+
+
+annual_budgets/
+.Rproj.user
+.RData
