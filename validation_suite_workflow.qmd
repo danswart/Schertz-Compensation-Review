@@ -1,0 +1,78 @@
+---
+title: "Validation Suite Workflow"
+format: typst
+---
+
+# Packages that help (but don't solve it entirely)
+
+## There's no single "harmonize my messy Excel files" package, but several help with pieces:
+
+### For Excel-specific messiness:
+
+- ***tidyxl*** reads Excel files preserving cell-level detail (formatting, formulas, merged cells). Useful when readxl can't handle the structure. 
+
+- ***unheadr*** helps with the common problem of multi-row headers and Excel files that weren't designed for data analysis.
+
+
+### For data validation: 
+
+- ***pointblank*** lets you define expectations and generates reports on violations. Great for catching issues systematically. 
+
+- ***assertr*** adds assertions to pipelines so they fail loudly when assumptions are violated. 
+
+- ***validate*** is another validation framework with a different syntax.
+
+
+### For string matching problems:
+
+- ***stringdist*** provides multiple string distance algorithms (we used base R's adist, but this is more flexible). 
+
+- ***fuzzyjoin*** lets you join tables on inexact matches—useful when you're trying to link records across files.
+
+
+### For general cleaning:
+
+- ***janitor*** (which we used) has clean_names() plus remove_empty(), get_dupes(), and other utilities.
+
+
+## What I'd actually recommend for large/recurring projects
+
+First, build a validation suite. Before you even try to combine files, write code that profiles each one—unique values in key columns, character encoding checks, value distributions. Something like:
+
+profile_text_column <- function(x, col_name) {
+  tibble::tibble(
+    column = col_name,
+    n_unique = dplyr::n_distinct(x),
+    n_na = sum(is.na(x)),
+    has_nbsp = any(stringr::str_detect(x, "\u00A0"), na.rm = TRUE),
+    has_unicode_hyphen = any(stringr::str_detect(x, "[\u2010-\u2015]"), na.rm = TRUE),
+    max_nchar = max(nchar(x), na.rm = TRUE),
+    sample_values = paste(utils::head(unique(x), 5), collapse = " | ")
+  )
+}
+
+
+
+Run this on every text column of every file before combining. It'll surface issues before they bite you.
+
+
+Second, treat schema mapping as data. Instead of hardcoding column mappings in each standardization step, define them in a lookup table:
+
+
+
+column_map <- tribble(
+  ~source_file, ~source_col,        ~target_col,
+  "fy20",       "termination_date", "separation_date",
+  "fy21",       "termination_date", "separation_date",
+  "fy23",       "separation_date",  "separation_date",
+  # etc.
+)
+
+
+This makes the mapping explicit and auditable.
+
+
+Third, build an "anomaly log." When your cleaning code encounters something unexpected, log it rather than silently fixing or failing. After the run, you can review what was encountered.
+
+
+
