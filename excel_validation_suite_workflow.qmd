@@ -1,0 +1,883 @@
+---
+title: "Schertz Compensation Data Pipeline"
+subtitle: ""
+description: ""
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+  - name: "Claude Sonnet 4.5"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
+format:
+  html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: false     # Fast for drafts. Override for sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 12
+    fig-height: 10
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    fig-width: 12
+    fig-height: 10
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
+execute:
+  echo: true
+  message: false
+  warning: false
+  eval: true
+  fig-width: 12
+  fig-height: 10
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+
+# install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
+
+# census_api_key("95496766c51541ee6f402c1e1a8658581285b759", install = TRUE, overwrite = TRUE)
+
+
+# # load libraries - NOT NEEDED
+
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+
+#
+# # Sample Code:
+# flextable::flextable(violations) |>
+ #  flextable::set_header_labels(
+ #    Variable = "Variable",
+ #    Measurement = "Measurement",
+ #    Likely_Impact = "Likely Impact"
+ #  ) |>
+#    flextable::add_header_lines(values = "Frequent Violations of Scientific Method in Current So-Called 'Equity' Research") |>
+#   flextable::color(i = 1, color = "blue", part = "header") |>
+#   flextable::italic(i = 1, part = "header") |>
+#   flextable::align(i = 1, align = "center", part = "header") |>
+#   flextable::fontsize(i = 1, size = 14, part = "header") |>
+#   flextable::bg(i = 1, bg = "white", part = "header") |>
+#   flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+#   flextable::bold(i = 1:2, part = "header") |>
+#   flextable::bold(i = 1:7, j = 1, part = "body") |>
+#   ftExtra::colformat_md() |> 
+#   flextable::autofit()
+  
+
+# Flextable built-in themes:
+  # flextable::theme_alafoli()	|>  # BLAH
+  # flextable::theme_apa()  # THIS IS NICE
+  # flextable::theme_booktabs() |>  # NICE, MORE COMPACT
+  # flextable::theme_box() |>   # OK, INCLUDES CELL BORDERS
+  # flextable::theme_tron() |>  # 'DARK MODE' BLUE TEXT
+  # flextable::theme_tron_legacy() |>   # 'DARK MODE' YELLOW TEXT
+  # flextable::theme_vader() |>    # 'DARK MODE' WHITE TEXT
+  # flextable::theme_vanilla() |>   # NOT SPECIAL
+  # flextable::theme_zebra()	|>
+  #
+
+# Flextable titles:
+  # flextable::colformat_double(j = c("Mean", "SD", "N"), big.mark = ",", digits = 1) |>
+  # flextable::flextable(variance_comparison) |>
+  #  flextable::add_header_lines(values = "The Within-Group vs Between-Group Variance Problem") |>
+
+# Flextable Title theming at table-level:
+  #  flextable::color(i = 1, color = "blue", part = "header") |>
+  #  flextable::italic(i = 1, part = "header") |>
+  #  flextable::align(i = 1, align = "center", part = "header") |>
+  #  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  #  flextable::bg(i = 1, bg = "white", part = "header") |>
+
+# Flextable standard table background colors:
+  #  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  
+
+# Flextable reading markdown:
+  #  ftExtra::colformat_md() |> 
+
+# Flextable auto-sizing cell widths:
+  #  flextable::autofit() 
+ 
+ # Flextable background based on SPECIFIC cell contents:
+  #
+  # flextable::bg(i = ~ Impact_on_Validity == "High", j = "Impact_on_Validity", bg = "#ffcccc") |>
+ # flextable::bg(i = ~ Impact_on_Validity == "Medium", j = "Impact_on_Validity", bg = "#ffffcc") |>
+  #
+  # 
+  # Apply yellow background to any cell containing "Yes":
+
+  # for (col in base::names(hypotheses_data)) {
+  #   yes_rows <- base::which(hypotheses_data[[col]] == "Yes")
+  #   if (base::length(yes_rows) > 0) {
+  #     ft <- ft |>
+  #       flextable::bg(i = yes_rows, j = col, bg = "yellow", part = "body")
+  #   }
+  # } 
+  #
+  # Apply to last row of table:
+  #
+  #
+
+
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 20,
+        fill = "yellow",
+        lineheight = 1.0,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 18,
+        fill = "yellow",
+        lineheight = 1.0,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.5, 0, 15.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 16,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 14,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 14),
+        # ggplot2::element_blank(),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 14,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 14),
+        # ggplot2::element_blank(),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = ggplot2::rel(1.1),
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+
+
+  
+# Set seed for reproducibility
+base::set.seed(123)
+
+```
+
+## Overview
+
+This workflow processes FY20-FY24 employee compensation data using a modular, audit-ready pipeline.
+
+**Pipeline Components:**
+
+-   `schertz_config.R` - Configuration: files, mappings, corrections, key entities
+-   `schertz_profiler.R` - Tools for examining new files before incorporating
+-   `schertz_processing.R` - Core cleaning and transformation functions
+-   `schertz_reconciliation.R` - Audit/validation checkpoints and reporting
+
+**Reconciliation Checkpoints:**
+
+-   **A**: Source Reconciliation - row counts and totals match Excel files
+-   **B**: Name Variation Scan - detect spelling inconsistencies
+-   **C**: Key Validation - composite keys are unique and valid
+-   **D**: Completeness Verification - key entities present, totals match published
+
+
+
+
+
+```{r}
+#| label: load libraries
+#| message: false
+
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(janitor)
+library(purrr)
+library(flextable)
+library(ggplot2)
+library(scales)
+
+```
+
+```{r}
+#| label: source-pipeline-components
+
+# Source pipeline components
+# Update these paths if files are in a different location
+source("schertz_config.R")
+source("schertz_profiler.R")
+source("schertz_processing.R")
+source("schertz_reconciliation.R")
+
+```
+
+
+
+## Step 0: Profile a New File (When Adding New Data)
+
+**Use this section when you receive a new fiscal year's data.** Skip to Step 1 for regular pipeline runs.
+
+```{r}
+#| label: profile-for new-files
+#| eval: false
+
+# ============================================================
+# UNCOMMENT AND RUN WHEN PROFILING A NEW FILE
+# ============================================================
+
+# profile_results <- profile_new_file("FY25_Earnings.xlsx")
+
+# After reviewing output:
+# 1. Check for invisible character issues (handled automatically)
+# 2. Note similar names that need manual corrections
+# 3. Determine structure_type ("early" or "late")
+# 4. Add to file_registry in schertz_config.R
+# 5. Add corrections to name_corrections in config
+```
+
+
+
+## Step 1: Verify Configuration
+
+```{r}
+#| label: verify-config
+
+# Current file registry
+base::cat("=== FILE REGISTRY ===\n\n")
+print(file_registry)
+
+# Verify files exist
+base::cat("\n=== FILE STATUS ===\n\n")
+file_check <- purrr::map_dfr(
+  base::seq_len(base::nrow(file_registry)),
+  function(i) {
+    filepath <- base::file.path(paths$data_raw, file_registry$filename[i])
+    dplyr::tibble(
+      fiscal_year = file_registry$fiscal_year[i],
+      filename = file_registry$filename[i],
+      exists = base::file.exists(filepath)
+    )
+  }
+)
+print(file_check)
+
+if (!base::all(file_check$exists)) {
+  stop("Missing files! Cannot proceed.")
+}
+
+# Current corrections
+base::cat("\n=== NAME CORRECTIONS (", base::nrow(name_corrections), " rules) ===\n\n")
+print(name_corrections)
+
+# Key entities to verify
+base::cat("\n=== KEY ENTITIES TO VERIFY (", base::nrow(key_entities), ") ===\n\n")
+print(key_entities)
+```
+
+
+
+## Step 2: Run Pipeline
+
+The pipeline runs in stages, preserving intermediate outputs for reconciliation:
+
+1.  **Import**: Read all Excel files, standardize column names
+2.  **Clean**: Fix invisible characters, parse dates/currency, standardize names
+3.  **Corrections & Keys**: Apply manual corrections, create composite employee keys
+4.  **Pivot**: Transform to long format (one row per employee/year/earnings type)
+5.  **Finalize**: Select and arrange final columns
+
+
+```{r}
+#| label: run-pipeline
+
+# Run pipeline with intermediate outputs
+pipeline_results <- run_pipeline_with_intermediates(
+  registry = file_registry,
+  corrections = name_corrections,
+  data_path = paths$data_raw
+)
+
+# Extract results
+combined_df <- pipeline_results$combined
+cleaned_df <- pipeline_results$cleaned
+final_df <- pipeline_results$final
+```
+
+
+
+## Step 3: Run Reconciliation
+
+This is the critical audit step. All four checkpoints must pass (or have acceptable warnings) before using the data.
+
+```{r}
+#| label: run-reconciliation
+
+# Run all reconciliation checkpoints
+reconciliation <- run_reconciliation(
+  combined_df = combined_df,
+  cleaned_df = cleaned_df,
+  final_df = final_df,
+  registry = file_registry,
+  corrections = name_corrections,
+  entities = key_entities,
+  external = external_totals
+)
+```
+
+
+
+### Checkpoint A: Source Reconciliation
+
+Row counts and totals must match source Excel files exactly.
+
+```{r}
+#| label: checkpoint-a-details
+
+reconciliation$checkpoint_a$details |>
+  dplyr::mutate(
+    source_total = scales::dollar(source_total, accuracy = 1),
+    imported_total = scales::dollar(imported_total, accuracy = 1),
+    total_diff = scales::dollar(total_diff, accuracy = 1)
+  ) |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Checkpoint A: Source File Reconciliation")
+```
+
+
+
+### Checkpoint B: Name Variations
+
+Review any similar names that might represent the same person.
+
+```{r}
+#| label: checkpoint-b-details
+
+reconciliation$checkpoint_b$summary |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Checkpoint B: Name Variation Summary")
+```
+
+
+
+```{r}
+#| label: checkpoint-b-similar-names
+
+if (base::nrow(reconciliation$checkpoint_b$similar_names) > 0) {
+  reconciliation$checkpoint_b$similar_names |>
+    dplyr::slice_head(n = 30) |>
+    flextable::flextable() |>
+    flextable::autofit() |>
+    flextable::set_caption("Similar Name Pairs (first 30)")
+} else {
+  base::cat("No similar name pairs found.")
+}
+```
+
+
+
+### Checkpoint C: Key Validation
+
+Composite keys must be unique within each fiscal year.
+
+```{r}
+#| label: checkpoint-c-details
+
+reconciliation$checkpoint_c$summary |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Checkpoint C: Key Validation Summary")
+```
+
+
+```{r}
+#| label: checkpoint-c-coverage
+
+reconciliation$checkpoint_c$coverage_summary |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Employee Coverage Across Fiscal Years")
+```
+
+
+
+### Checkpoint D: Completeness Verification
+
+Key entities must be present in expected years.
+
+```{r}
+#| label: checkpoint-d-entities
+
+if (base::nrow(reconciliation$checkpoint_d$entity_check) > 0) {
+  reconciliation$checkpoint_d$entity_check |>
+    flextable::flextable() |>
+    flextable::autofit() |>
+    flextable::set_caption("Checkpoint D: Key Entity Verification")
+} else {
+  base::cat("No key entities defined in configuration.")
+}
+```
+
+
+```{r}
+#| label: checkpoint-d-totals
+
+reconciliation$checkpoint_d$our_totals |>
+  dplyr::mutate(
+    total_compensation = scales::dollar(total_compensation, accuracy = 1)
+  ) |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Calculated Totals by Fiscal Year")
+```
+
+
+
+### Overall Status
+
+```{r}
+#| label: overall-status
+
+overall_summary <- dplyr::tibble(
+  Checkpoint = c("A: Source Reconciliation",
+                 "B: Name Variations", 
+                 "C: Key Validation",
+                 "D: Completeness",
+                 "OVERALL"),
+  Status = c(
+    base::ifelse(reconciliation$checkpoint_a$pass, "PASS", "FAIL"),
+    base::ifelse(reconciliation$checkpoint_b$pass, 
+                 base::ifelse(reconciliation$checkpoint_b$has_warnings, "PASS (warnings)", "PASS"),
+                 "FAIL"),
+    base::ifelse(reconciliation$checkpoint_c$pass, "PASS", "FAIL"),
+    base::ifelse(reconciliation$checkpoint_d$pass, "PASS", "FAIL"),
+    base::ifelse(reconciliation$overall_pass, "PASS", "FAIL")
+  )
+)
+
+overall_summary |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::bold(i = 5) |>
+  flextable::set_caption("Reconciliation Summary")
+```
+
+
+
+## Step 4: Generate Reconciliation Report
+
+Save an HTML report as audit evidence.
+
+```{r}
+#| label: generate-report
+
+# Create reports directory if needed
+if (!base::dir.exists(paths$reports)) {
+  base::dir.create(paths$reports, recursive = TRUE)
+}
+
+# Generate HTML report
+report_path <- generate_reconciliation_report(
+  reconciliation,
+  output_path = paths$reports,
+  test_mode = report_settings$test_mode
+)
+
+base::cat("Report saved to:", report_path)
+```
+
+
+
+## Step 5: Export Data
+
+Only proceed if reconciliation passed (or you've reviewed and accepted warnings).
+
+```{r}
+#| label: export-decision
+
+if (!reconciliation$overall_pass) {
+  warning("RECONCILIATION FAILED - Review issues before exporting!")
+  base::cat("\nProceeding with export for review purposes, but data may have issues.\n")
+}
+```
+
+
+```{r}
+#| label: export-data
+
+# Create output directory
+output_dir <- base::ifelse(
+  report_settings$test_mode,
+  paths$output_test,
+  paths$data_clean
+)
+
+if (!base::dir.exists(output_dir)) {
+  base::dir.create(output_dir, recursive = TRUE)
+}
+
+# Filename suffix
+test_suffix <- base::ifelse(report_settings$test_mode, "_TEST", "")
+
+# Save as RDS
+rds_path <- base::file.path(output_dir, base::paste0("compensation_long", test_suffix, ".rds"))
+saveRDS(final_df, file = rds_path)
+
+# # Save as CSV
+# csv_path <- base::file.path(output_dir, base::paste0("compensation_long", test_suffix, ".csv"))
+# readr::write_csv(final_df, file = csv_path)
+# 
+# base::cat("Data exported to:", output_dir, "\n")
+# base::cat("Files:\n")
+# base::cat("  -", base::basename(rds_path), "\n")
+# base::cat("  -", base::basename(csv_path), "\n")
+```
+
+
+
+## Step 6: Quick Validation Plots
+
+Verify the data visually before analysis.
+
+
+
+### City Manager Compensation Over Time
+
+```{r}
+#| label: plot-city-manager
+#| fig-width: 8
+#| fig-height: 5
+
+final_df |>
+  dplyr::filter(
+    job_title == "City Manager",
+    earnings_type == "Regular"
+  ) |>
+  ggplot2::ggplot(ggplot2::aes(x = fiscal_year, y = amount, 
+                                group = name, color = name)) +
+  ggplot2::geom_line(linewidth = 1) +
+  ggplot2::geom_point(size = 3) +
+  ggplot2::scale_y_continuous(labels = scales::dollar_format()) +
+  ggplot2::labs(
+    title = "City Manager Regular Earnings by Fiscal Year",
+    x = "Fiscal Year",
+    y = "Regular Earnings",
+    color = "Employee"
+  ) 
+```
+
+
+
+### Total Compensation Growth
+
+```{r}
+#| label: plot-total-growth
+#| fig-width: 8
+#| fig-height: 5
+
+reconciliation$checkpoint_d$our_totals |>
+  ggplot2::ggplot(ggplot2::aes(x = fiscal_year, y = total_compensation, group = 1)) +
+  ggplot2::geom_line(linewidth = 1.5, color = "steelblue") +
+  ggplot2::geom_point(size = 4, color = "steelblue") +
+  ggplot2::geom_text(
+    ggplot2::aes(label = scales::dollar(total_compensation, scale = 1e-6, suffix = "M")),
+    vjust = -1
+  ) +
+  ggplot2::scale_y_continuous(
+    labels = scales::dollar_format(scale = 1e-6, suffix = "M"),
+    limits = c(0, NA)
+  ) +
+  ggplot2::labs(
+    title = "Total Employee Compensation by Fiscal Year",
+    subtitle = "City of Schertz",
+    x = "Fiscal Year",
+    y = "Total Compensation"
+  ) 
+```
+
+
+
+### Year-over-Year Growth Rate
+
+```{r}
+#| label: plot-growth-rate
+#| fig-width: 8
+#| fig-height: 5
+
+growth_data <- reconciliation$checkpoint_d$our_totals |>
+  dplyr::arrange(fiscal_year) |>
+  dplyr::mutate(
+    prior_total = dplyr::lag(total_compensation),
+    growth_rate = (total_compensation - prior_total) / prior_total,
+    growth_pct = growth_rate * 100
+  )
+
+growth_data |>
+  dplyr::filter(!base::is.na(growth_rate)) |>
+  ggplot2::ggplot(ggplot2::aes(x = fiscal_year, y = growth_pct)) +
+  ggplot2::geom_col(fill = "steelblue") +
+  ggplot2::geom_text(
+    ggplot2::aes(label = base::paste0(base::round(growth_pct, 1), "%")),
+    vjust = -0.5
+  ) +
+  ggplot2::geom_hline(yintercept = 0, linetype = "dashed") +
+  ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+  ggplot2::labs(
+    title = "Year-over-Year Compensation Growth",
+    subtitle = "City of Schertz",
+    x = "Fiscal Year",
+    y = "Growth Rate (%)"
+  ) 
+```
+
+
+
+
+------------------------------------------------------------------------
+
+
+## Appendix: Adding a New Fiscal Year
+
+When you receive FY25 (or any future year) data:
+
+
+
+### 1. Place file in data_raw
+
+```         
+~/R Working Directory/Schertz Compensation Review/data_raw/FY25_Earnings.xlsx
+```
+
+
+
+### 2. Profile the new file
+
+```{r}
+#| eval: false
+
+profile_results <- profile_new_file("FY25_Earnings.xlsx")
+```
+
+Review output for: - Invisible character warnings - Similar names needing correction - Structure type match
+
+
+
+### 3. Update configuration
+
+Edit `schertz_config.R`:
+
+```{r}
+#| eval: false
+
+# Add to file_registry:
+file_registry <- dplyr::tribble(
+  ~fiscal_year, ~filename,                         ~structure_type,
+  # ... existing entries ...
+  "FY25",       "FY25_Earnings.xlsx",              "late"   # <-- NEW
+)
+
+# Add new key entities if known:
+key_entities <- dplyr::tribble(
+  # ... existing entries ...
+  "NewPerson, Name", "Some Position", "FY25", "Note"   # <-- NEW
+)
+
+# Add any name corrections discovered:
+name_corrections <- dplyr::tribble(
+  # ... existing corrections ...
+  "Pattern$", "Corrected", "FY25 issue"   # <-- NEW
+)
+```
+
+
+
+### 4. Run the full pipeline
+
+Re-run this entire workflow. The pipeline rebuilds everything from scratch.
+
+
+
+### 5. Validate
+
+-   Check reconciliation report
+-   Verify new FY appears in totals
+-   Verify key entities are present
+-   Check for new similar name warnings
+
+
+

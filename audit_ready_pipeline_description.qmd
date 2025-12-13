@@ -1,0 +1,52 @@
+---
+title: "Audit-Ready Pipeline"
+format: html
+---
+
+## Overview
+
+This workflow processes FY20-FY24 employee compensation data using a modular, audit-ready pipeline.
+
+**Pipeline Components:**
+
+-   `schertz_config.R` - Configuration: files, mappings, corrections, key entities
+-   `schertz_profiler.R` - Tools for examining new files before incorporating
+-   `schertz_processing.R` - Core cleaning and transformation functions
+-   `schertz_reconciliation.R` - Audit/validation checkpoints and reporting
+
+**Reconciliation Checkpoints:**
+
+-   **A**: Source Reconciliation - row counts and totals match Excel files
+-   **B**: Name Variation Scan - detect spelling inconsistencies
+-   **C**: Key Validation - composite keys are unique and valid
+-   **D**: Completeness Verification - key entities present, totals match published
+
+
+
+Setup:
+
+Create a pipeline/ folder in your project
+
+* Put all five files there
+* Source them from within that folder, or adjust paths in the QMD
+
+What Happens When You Run It:
+
+* Pipeline processes all five Excel files
+
+* Reconciliation runs all four checkpoints
+
+* HTML report is generated in reports/ folder (with _TEST suffix)
+
+* Data exports to output/ folder (with _TEST suffix)
+
+* Quick validation plots confirm data looks right
+
+
+The Key Entities Section (schertz_config.R) is where you add the people you know should appear—City Managers, Mayor, Council Members, Department Heads. 
+
+If Stephen Williams ever disappears from City Manager in FY23-24, the pipeline will flag it before you present anything.
+
+When you're confident everything works, change test_mode = FALSE in the config to output production files without the _TEST suffix.
+
+Give it a run and let me know what breaks!
