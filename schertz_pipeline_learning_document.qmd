@@ -3,7 +3,7 @@ title: "Schertz Compensation Data Pipeline - Documented Version"
 author: "Compensation Review Project"
 date: today
 format: html
-editor: visual
+editor: source
 ---
 
 ## Introduction
@@ -12,7 +12,7 @@ This document explains each component of the compensation data pipeline. It's de
 
 The pipeline has one job: take five messy Excel files and produce a single, clean, audit-ready dataset—while proving nothing was lost or corrupted along the way.
 
----
+------------------------------------------------------------------------
 
 ## Setup: Loading Libraries and Source Files
 
@@ -35,15 +35,15 @@ library(scales)    # Formatting for axes (dollar_format, percent, etc.)
 
 # Source our custom pipeline components
 # These are the four R files that contain our functions
-source("schertz_config.R")        # Configuration: what files, what corrections
-source("schertz_profiler.R")      # Tools for examining new files
-source("schertz_processing.R")    # Core data transformation functions
+source("schertz_config.R")         # Configuration: what files, what corrections
+source("schertz_profiler.R")       # Tools for examining new files
+source("schertz_processing.R")     # Core data transformation functions
 source("schertz_reconciliation.R") # Validation and audit reporting
 ```
 
 **What this does**: Loads all the R packages we need, then loads our four custom files that contain the pipeline functions. The `source()` function runs an R script and makes all its functions available to use.
 
----
+------------------------------------------------------------------------
 
 ## Step 1: Verify Configuration
 
@@ -96,15 +96,15 @@ base::cat("\n=== KEY ENTITIES TO VERIFY (", base::nrow(key_entities), ") ===\n\n
 print(key_entities)
 ```
 
-**What this does**: 
+**What this does**:
 
-- `file_registry` is a table in the config that lists each Excel file and its structure type
-- `purrr::map_dfr()` loops through each file and checks if it exists, returning results as a data frame
-- `file.path()` safely combines folder path and filename (handles Mac/Windows differences)
-- `file.exists()` returns TRUE/FALSE for whether the file is there
-- `stop()` halts execution with an error message—we want to fail loudly if files are missing
+-   `file_registry` is a table in the config that lists each Excel file and its structure type
+-   `purrr::map_dfr()` loops through each file and checks if it exists, returning results as a data frame
+-   `file.path()` safely combines folder path and filename (handles Mac/Windows differences)
+-   `file.exists()` returns TRUE/FALSE for whether the file is there
+-   `stop()` halts execution with an error message—we want to fail loudly if files are missing
 
----
+------------------------------------------------------------------------
 
 ## Step 2: Run the Pipeline
 
@@ -125,29 +125,32 @@ pipeline_results <- run_pipeline_with_intermediates(
 # Extract the three key data frames from the results
 # We need all three for the reconciliation checkpoints
 
-combined_df <- pipeline_results$combined
 # ^ Data immediately after import, before any cleaning
 #   Used by Checkpoint A to verify row counts match source files
+combined_df <- pipeline_results$combined
 
-cleaned_df <- pipeline_results$cleaned
+
 # ^ Data after cleaning, with name_std and employee_key columns
 #   Used by Checkpoints B and C for name/key validation
+cleaned_df <- pipeline_results$cleaned
 
-final_df <- pipeline_results$final
+
 # ^ Final long-format data ready for analysis
 #   Used by Checkpoint D for completeness verification
+final_df <- pipeline_results$final
+
 ```
 
 **What this does**:
 
-- `run_pipeline_with_intermediates()` is our master function that orchestrates everything
-- It returns a list with three data frames at different stages of processing
-- We extract these separately because different reconciliation checkpoints need different stages
-- `combined` = raw import (text columns, before parsing)
-- `cleaned` = after parsing dates/currency, standardizing names, creating keys
-- `final` = after pivoting to long format and selecting final columns
+-   `run_pipeline_with_intermediates()` is our master function that orchestrates everything
+-   It returns a list with three data frames at different stages of processing
+-   We extract these separately because different reconciliation checkpoints need different stages
+-   `combined` = raw import (text columns, before parsing)
+-   `cleaned` = after parsing dates/currency, standardizing names, creating keys
+-   `final` = after pivoting to long format and selecting final columns
 
----
+------------------------------------------------------------------------
 
 ## Step 3: Run Reconciliation
 
@@ -172,11 +175,13 @@ reconciliation <- run_reconciliation(
 
 **What this does**:
 
-- Runs four validation checkpoints in sequence
-- Each checkpoint returns PASS/FAIL plus detailed results
-- The `reconciliation` object contains everything needed for the HTML report
+-   Runs four validation checkpoints in sequence
+-   Each checkpoint returns PASS/FAIL plus detailed results
+-   The `reconciliation` object contains everything needed for the HTML report
 
----
+------------------------------------------------------------------------
+
+
 
 ### Checkpoint A: Source Reconciliation
 
@@ -201,20 +206,21 @@ reconciliation$checkpoint_a$details |>
   flextable::autofit() |>  # Automatically size columns to fit content
   flextable::set_caption("Checkpoint A: Source File Reconciliation")
 ```
+
 **What this does**:
 
-- Shows source file row count vs imported row count (should be identical)
-- Shows source file total earnings vs imported total (should match within rounding)
-- `rows_match` and `totals_match` columns show TRUE/FALSE for each file
-- If any show FALSE, something went wrong during import
+-   Shows source file row count vs imported row count (should be identical)
+-   Shows source file total earnings vs imported total (should match within rounding)
+-   `rows_match` and `totals_match` columns show TRUE/FALSE for each file
+-   If any show FALSE, something went wrong during import
 
 **How it works internally** (in schertz_reconciliation.R):
 
-1. For each file in the registry, read the Excel file directly and sum earnings columns
-2. Compare to the same fiscal year in our combined_df
-3. Flag any discrepancies
+1.  For each file in the registry, read the Excel file directly and sum earnings columns
+2.  Compare to the same fiscal year in our combined_df
+3.  Flag any discrepancies
 
----
+------------------------------------------------------------------------
 
 ### Checkpoint B: Name Variations
 
@@ -249,18 +255,18 @@ if (base::nrow(reconciliation$checkpoint_b$similar_names) > 0) {
 
 **What this does**:
 
-- Finds names that differ by just 1-2 characters (edit distance)
-- These might be the same person with slightly different spellings across years
-- "Possibly corrected" column shows if an existing correction rule might handle it
-- Review these and add new corrections to config as needed
+-   Finds names that differ by just 1-2 characters (edit distance)
+-   These might be the same person with slightly different spellings across years
+-   "Possibly corrected" column shows if an existing correction rule might handle it
+-   Review these and add new corrections to config as needed
 
-**How edit distance works**: 
+**How edit distance works**:
 
-- "Smith, John" vs "Smith, Jon" = distance 1 (one letter different)
-- "Garcia, Maria" vs "Garcia, Marie" = distance 2 (two letters different)
-- Higher distance = less likely to be the same person
+-   "Smith, John" vs "Smith, Jon" = distance 1 (one letter different)
+-   "Garcia, Maria" vs "Garcia, Marie" = distance 2 (two letters different)
+-   Higher distance = less likely to be the same person
 
----
+------------------------------------------------------------------------
 
 ### Checkpoint C: Key Validation
 
@@ -287,18 +293,82 @@ reconciliation$checkpoint_c$coverage_summary |>
   flextable::set_caption("Employee Coverage Across Fiscal Years")
 ```
 
+```{r}
+#| label: checkpoint-c-employee-counts-by-year
+
+# SUPPLEMENTAL: Count unique employees per fiscal year at each pipeline stage
+# This lets you verify no employees were lost during data manipulation
+
+# Count from raw imported data (combined_df)
+raw_counts <- combined_df |>
+ dplyr::group_by(fiscal_year) |>
+ dplyr::summarise(
+   raw_rows = dplyr::n(),
+   .groups = "drop"
+ )
+
+# Count from cleaned data (after name standardization, before pivot)
+cleaned_counts <- cleaned_df |>
+ dplyr::group_by(fiscal_year) |>
+ dplyr::summarise(
+   cleaned_rows = dplyr::n(),
+   unique_employees = dplyr::n_distinct(employee_key),
+   .groups = "drop"
+ )
+
+# Count from final long-format data
+final_counts <- final_df |>
+ dplyr::group_by(fiscal_year) |>
+ dplyr::summarise(
+   final_rows = dplyr::n(),
+   unique_employees_final = dplyr::n_distinct(employee_key),
+   .groups = "drop"
+ )
+
+# Join all counts together for comparison
+employee_verification <- raw_counts |>
+ dplyr::left_join(cleaned_counts, by = "fiscal_year") |>
+ dplyr::left_join(final_counts, by = "fiscal_year")
+
+employee_verification |>
+ flextable::flextable() |>
+ flextable::autofit() |>
+ flextable::set_caption("Employee Counts by Fiscal Year (Pipeline Verification)")
+```
+
+
+**Column definitions for this new table**:
+
+| Column | Source | What It Counts |
+|--------|--------|----------------|
+| `raw_rows` | combined_df | Total rows imported from Excel (should match Checkpoint A) |
+| `cleaned_rows` | cleaned_df | Rows after cleaning (should equal raw_rows) |
+| `unique_employees` | cleaned_df | Distinct employee_keys per year |
+| `final_rows` | final_df | Rows after pivot to long format (will be higher - one row per earnings type) |
+| `unique_employees_final` | final_df | Distinct employee_keys in final data (should match unique_employees) |
+
+**What to look for**:
+
+1. `raw_rows` should match your Checkpoint A source file row counts
+2. `cleaned_rows` should equal `raw_rows` (no rows lost in cleaning)
+3. `unique_employees` and `unique_employees_final` should be identical (no employees lost in pivot)
+4. `final_rows` will be larger than `cleaned_rows` because the pivot creates one row per earnings type (Regular, Overtime, Other)
+
+
+
+
 **What this does**:
 
-- Checks that no two records in the same fiscal year have the same employee_key
-- If duplicates exist, shows them for investigation
-- Coverage summary shows retention patterns (how many people span all 5 years vs just 1)
+-   Checks that no two records in the same fiscal year have the same employee_key
+-   If duplicates exist, shows them for investigation
+-   Coverage summary shows retention patterns (how many people span all 5 years vs just 1)
 
 **Why this matters**:
 
-- Duplicate keys within a year = data quality problem (same person listed twice?)
-- Our analysis assumes one record per employee per year per earnings type
+-   Duplicate keys within a year = data quality problem (same person listed twice?)
+-   Our analysis assumes one record per employee per year per earnings type
 
----
+------------------------------------------------------------------------
 
 ### Checkpoint D: Completeness Verification
 
@@ -337,16 +407,16 @@ reconciliation$checkpoint_d$our_totals |>
 
 **What this does**:
 
-- For each person in `key_entities` config, checks if they appear with the right job title in expected years
-- `found = FALSE` means someone is missing who shouldn't be—investigate immediately
-- Also shows total compensation by year for comparison to published figures
+-   For each person in `key_entities` config, checks if they appear with the right job title in expected years
+-   `found = FALSE` means someone is missing who shouldn't be—investigate immediately
+-   Also shows total compensation by year for comparison to published figures
 
 **Why this matters**:
 
-- If the City Manager is missing from FY24, you'd look foolish presenting to Council
-- This is your "sanity check" that politically visible people are present
+-   If the City Manager is missing from FY24, you'd look foolish presenting to Council
+-   This is your "sanity check" that politically visible people are present
 
----
+------------------------------------------------------------------------
 
 ### Overall Reconciliation Status
 
@@ -388,11 +458,11 @@ overall_summary |>
 
 **What this does**:
 
-- Summarizes all checkpoints in one table
-- OVERALL = PASS only if checkpoints A, C, and D all pass
-- Checkpoint B is informational (always passes, but warns you to review)
+-   Summarizes all checkpoints in one table
+-   OVERALL = PASS only if checkpoints A, C, and D all pass
+-   Checkpoint B is informational (always passes, but warns you to review)
 
----
+------------------------------------------------------------------------
 
 ## Step 4: Generate HTML Report
 
@@ -420,11 +490,11 @@ base::cat("Report saved to:", report_path)
 
 **What this does**:
 
-- Creates a self-contained HTML file with all reconciliation details
-- Filename includes date and "_TEST" suffix (if in test mode)
-- This is your audit artifact—you can hand it to anyone who questions your data
+-   Creates a self-contained HTML file with all reconciliation details
+-   Filename includes date and "\_TEST" suffix (if in test mode)
+-   This is your audit artifact—you can hand it to anyone who questions your data
 
----
+------------------------------------------------------------------------
 
 ## Step 5: Export Data
 
@@ -476,12 +546,12 @@ base::cat("  -", base::basename(csv_path), "\n")
 
 **What this does**:
 
-- `saveRDS()` saves in R's native format—preserves dates, factors, everything perfectly
-- `write_csv()` saves as CSV for use in other tools
-- Test mode keeps test outputs separate from production data
-- `base::basename()` extracts just the filename (without folder path) for cleaner output
+-   `saveRDS()` saves in R's native format—preserves dates, factors, everything perfectly
+-   `write_csv()` saves as CSV for use in other tools
+-   Test mode keeps test outputs separate from production data
+-   `base::basename()` extracts just the filename (without folder path) for cleaner output
 
----
+------------------------------------------------------------------------
 
 ## Step 6: Validation Plots
 
@@ -530,16 +600,16 @@ final_df |>
 
 **What this does**:
 
-- `filter()` narrows to just City Manager regular earnings
-- `aes()` defines the aesthetic mappings (what goes on each axis, how to group)
-- `geom_line()` draws lines connecting points
-- `geom_point()` draws dots at each data point
-- `scale_y_continuous(labels = ...)` formats the Y axis labels as dollars
-- `theme_minimal()` removes visual clutter
+-   `filter()` narrows to just City Manager regular earnings
+-   `aes()` defines the aesthetic mappings (what goes on each axis, how to group)
+-   `geom_line()` draws lines connecting points
+-   `geom_point()` draws dots at each data point
+-   `scale_y_continuous(labels = ...)` formats the Y axis labels as dollars
+-   `theme_minimal()` removes visual clutter
 
 **Why it matters**: If Stephen Williams doesn't appear in FY23-24, something is wrong.
 
----
+------------------------------------------------------------------------
 
 ### Plot 2: Total Compensation Growth
 
@@ -586,13 +656,13 @@ reconciliation$checkpoint_d$our_totals |>
 
 **What this does**:
 
-- Uses the totals calculated during reconciliation
-- `scale = 1e-6` divides by 1 million (so 30000000 becomes 30)
-- `suffix = "M"` adds "M" after the number
-- `limits = c(0, NA)` forces Y axis to start at zero (NA means auto-calculate max)
-- `vjust = -1` moves text labels up (negative values move up in ggplot)
+-   Uses the totals calculated during reconciliation
+-   `scale = 1e-6` divides by 1 million (so 30000000 becomes 30)
+-   `suffix = "M"` adds "M" after the number
+-   `limits = c(0, NA)` forces Y axis to start at zero (NA means auto-calculate max)
+-   `vjust = -1` moves text labels up (negative values move up in ggplot)
 
----
+------------------------------------------------------------------------
 
 ### Plot 3: Year-over-Year Growth Rate
 
@@ -644,20 +714,20 @@ growth_data |>
 
 **What this does**:
 
-- `lag()` shifts values down one row, so you can compare each year to the prior year
-- `(new - old) / old` is the standard growth rate formula
-- `geom_col()` creates a bar chart (bars start at 0)
-- `geom_hline()` draws a horizontal reference line
-- `expansion(mult = c(0, 0.15))` adds 15% padding at top of Y axis so labels fit
+-   `lag()` shifts values down one row, so you can compare each year to the prior year
+-   `(new - old) / old` is the standard growth rate formula
+-   `geom_col()` creates a bar chart (bars start at 0)
+-   `geom_hline()` draws a horizontal reference line
+-   `expansion(mult = c(0, 0.15))` adds 15% padding at top of Y axis so labels fit
 
 **The key insight**: `expansion()` is better than hardcoding `limits = c(0, 50)` because it automatically scales with your data. If next year's growth is 60%, it still works.
 
----
+------------------------------------------------------------------------
 
 ## Summary: How the Pipeline Protects You
 
 | Risk | How the Pipeline Addresses It |
-|------|------------------------------|
+|----------------|--------------------------------------------------------|
 | Rows dropped during import | Checkpoint A compares row counts |
 | Dollars don't match source | Checkpoint A compares totals |
 | Invisible characters cause filter failures | `fix_spaces()` normalizes automatically |
@@ -666,27 +736,27 @@ growth_data |>
 | Key person missing from data | Checkpoint D verifies key entities |
 | No audit trail | HTML report documents everything |
 
----
+------------------------------------------------------------------------
 
 ## Key Functions Reference
 
 | Function | File | Purpose |
-|----------|------|---------|
+|----------------------------|------------------|--------------------------|
 | `run_pipeline_with_intermediates()` | schertz_processing.R | Orchestrates all processing stages |
 | `run_reconciliation()` | schertz_reconciliation.R | Runs all four checkpoints |
 | `generate_reconciliation_report()` | schertz_reconciliation.R | Creates HTML audit report |
 | `profile_new_file()` | schertz_profiler.R | Examines a new Excel file before incorporating |
 | `fix_spaces()` | schertz_processing.R | Removes invisible Unicode spaces |
 | `standardize_name()` | schertz_processing.R | Normalizes names (strips middle initials, etc.) |
-| `parse_currency()` | schertz_processing.R | Converts "$1,234.56" to numeric |
+| `parse_currency()` | schertz_processing.R | Converts "\$1,234.56" to numeric |
 | `parse_flex_date()` | schertz_processing.R | Handles both Excel serial dates and text dates |
 
----
+------------------------------------------------------------------------
 
 ## What to Do When Things Go Wrong
 
 | Symptom | Likely Cause | Solution |
-|---------|--------------|----------|
+|--------------------|------------------------------|----------------------|
 | Checkpoint A fails (row mismatch) | File changed, or import filter applied | Re-download source file, check for hidden filters |
 | Checkpoint A fails (total mismatch) | Currency parsing issue | Check for unusual formats in source |
 | Checkpoint B shows many similar names | Normal for first run | Review pairs, add corrections to config |
