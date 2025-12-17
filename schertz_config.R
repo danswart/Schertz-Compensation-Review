@@ -91,6 +91,7 @@ column_mappings <- list(
   ),
 
   # FY23, FY24 structure (separate first/last name columns)
+  # Note: Column names have numeric suffixes like _earnings3, _earnings4
   late = list(
     name_source = "separate",
     last_name = "last_name",
@@ -99,8 +100,8 @@ column_mappings <- list(
     job_title = "job_title",
     hire_date = "hire_date",
     separation_date = "separation_date",
-    regular_earnings = "fy\\d+_regular_earnings",
-    overtime_earnings = "fy\\d+_overtime_earnings",
+    regular_earnings = "fy\\d+_regular_earnings\\d*",
+    overtime_earnings = "fy\\d+_overtime_earnings\\d*",
     additional_earnings = "^fy\\d+_additional$"
   )
 )
