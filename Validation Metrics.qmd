@@ -1,0 +1,89 @@
+---
+title: "Validation Metrics"
+format: html
+---
+
+## FY20
+
+Total regular earnings, all depts:      $13,294,463
+Total overtime earnings, all depts:     $1,051,233
+Total additional earnings, all depts:   $2,241,536
+Grand total, all earnings, all depts:   $16,587,232
+
+
+### Selected departmental totals
+
+Grand total, all earnings, City Council:   $20,087
+Grand total, all earnings, Fire Dept:   $3,487,991
+Grand total, all earnings, Police Dept: $4,266,628
+
+
+
+## FY21
+
+Total regular earnings, all depts:      $17,938,236
+Total overtime earnings, all depts:     $ 1,628,809
+Total additional earnings, all depts:   $ 3,784,777
+Grand total, all earnings, all depts:   $12,351,822
+
+
+### Selected departmental totals
+
+Grand total, all earnings, City Council:   $34,977
+Grand total, all earnings, Fire Dept:   $4,161,261
+Grand total, all earnings, Police Dept: $6,261,232
+
+
+
+## FY22
+
+Total regular earnings, all depts:      $19,894,098
+Total overtime earnings, all depts:     $ 1,865,592
+Total additional earnings, all depts:   $ 4,883,737
+Grand total, all earnings, all depts:   $26,643,427
+
+
+### Selected departmental totals
+
+Grand total, all earnings, City Council:  $ 35,105
+Grand total, all earnings, Fire Dept:     $4,904,944 
+Grand total, all earnings, Police Dept:   $6,796,032
+
+
+
+## FY23
+
+Total regular earnings, all depts:      $
+Total overtime earnings, all depts:     $
+Total additional earnings, all depts:   $
+Grand total, all earnings, all depts:   $
+
+
+### Selected departmental totals
+
+Grand total, all earnings, City Council:  $ 
+Grand total, all earnings, Fire Dept:     $
+Grand total, all earnings, Police Dept:   $
+
+
+
+
+## FY24
+
+Total regular earnings, all depts:      $
+Total overtime earnings, all depts:     $
+Total additional earnings, all depts:   $
+Grand total, all earnings, all depts:   $
+
+
+### Selected departmental totals
+
+Grand total, all earnings, City Council:  $ 
+Grand total, all earnings, Fire Dept:     $
+Grand total, all earnings, Police Dept:   $
+
+
+
+
+
+			
