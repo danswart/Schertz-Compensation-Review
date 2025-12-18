@@ -1505,6 +1505,72 @@ final_df |>
 
 ```
 
+```{r}
+#| label: plot-city-manager-total-cagr
+#| fig-width: 8
+#| fig-height: 13
+
+# Summarize data first
+cm_summary <- final_df |>
+  dplyr::filter(job_title == "City Manager") |>
+  dplyr::group_by(fiscal_year, name) |>
+  dplyr::summarise(
+    total_compensation = base::sum(amount, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Calculate CAGR per person
+cagr_by_person <- cm_summary |>
+  dplyr::group_by(name) |>
+  dplyr::arrange(fiscal_year) |>
+  dplyr::summarise(
+    cagr = ((dplyr::last(total_compensation) / dplyr::first(total_compensation))^(1/(dplyr::n()-1)) - 1) * 100,
+    .groups = "drop"
+  )
+
+# Build caption string
+cagr_text <- cagr_by_person |>
+  dplyr::mutate(label = paste0(name, ": ", round(cagr, 1), "%")) |>
+  dplyr::pull(label) |>
+  paste(collapse = " | ")
+
+# Plot
+cm_summary |>
+  ggplot2::ggplot(
+    ggplot2::aes(
+      x = fiscal_year,
+      y = total_compensation,
+      group = name,
+      color = name
+    )
+  ) +
+  ggplot2::geom_line(linewidth = 1) +
+  ggplot2::geom_point(size = 3) +
+  ggplot2::geom_text(
+    ggplot2::aes(label = scales::dollar(total_compensation)),
+    vjust = -1.0,
+    size = 5,
+    show.legend = FALSE,
+    color = "black"
+  ) +
+  ggplot2::scale_y_continuous(
+    labels = scales::dollar_format(),
+    limits = c(125000, 325000),
+    breaks = base::seq(0, 325000, by = 50000) 
+  ) +
+  ggplot2::theme(
+    axis.text.y = ggplot2::element_blank()
+  ) +
+  ggplot2::labs(
+    title = "City Manager Total Compensation by Fiscal Year",
+    subtitle = "Regular, Overtime & Additional Earnings Combined",
+    x = "Fiscal Year",
+    y = "Total Compensation",
+    color = "Employee",
+    caption = paste("Compound Annual Growth Rate:", cagr_text)
+  )
+
+```
 
 
 
@@ -1566,6 +1632,57 @@ reconciliation$checkpoint_d$our_totals |>
     x = "Fiscal Year",
     y = "Total Compensation"
   ) 
+```
+
+
+
+```{r}
+#| label: plot-total-growth-cagr
+#| fig-width: 8
+#| fig-height: 13
+
+# Extract data first
+city_totals <- reconciliation$checkpoint_d$our_totals
+
+# Calculate CAGR
+city_cagr <- city_totals |>
+  dplyr::arrange(fiscal_year) |>
+  dplyr::summarise(
+    cagr = ((dplyr::last(total_compensation) / dplyr::first(total_compensation))^(1/(dplyr::n()-1)) - 1) * 100
+  ) |>
+  dplyr::pull(cagr)
+
+# Plot
+city_totals |>
+  ggplot2::ggplot(
+    ggplot2::aes(
+      x = fiscal_year,
+      y = total_compensation,
+      group = 1
+    )
+  ) +
+  ggplot2::geom_line(linewidth = 1.5, color = "steelblue") +
+  ggplot2::geom_point(size = 4, color = "steelblue") +
+  ggplot2::geom_text(
+    ggplot2::aes(
+      label = scales::dollar(total_compensation, scale = 1e-6, suffix = "M")
+    ),
+    vjust = -1
+  ) +
+  ggplot2::scale_y_continuous(
+    labels = scales::dollar_format(scale = 1e-6, suffix = "M"),
+    expand = ggplot2::expansion(mult = c(0, 0.15))
+  ) +
+  ggplot2::theme(
+    axis.text.y = ggplot2::element_blank()
+  ) +
+  ggplot2::labs(
+    title = "Total Employee Compensation by Fiscal Year",
+    subtitle = "City of Schertz",
+    x = "Fiscal Year",
+    y = "Total Compensation",
+    caption = paste0("Compound Annual Growth Rate: ", round(city_cagr, 1), "%")
+  )
 ```
 
 **What this does**:
