@@ -1382,12 +1382,11 @@ ggplot2::ggplot(growth_comparison, ggplot2::aes(x = fiscal_year, y = index,
 ```
 
 
-### Plot: Compensation Growth by Department (Top 10)
-
+### Plot: Compensation by Department (Top 10)
 ```{r}
 #| label: plot-dept-growth
 #| fig-width: 12
-#| fig-height: 7
+#| fig-height: 10
 
 # Get top 10 departments by FY24 total compensation
 top_depts <- final_df |>
@@ -1404,22 +1403,35 @@ dept_yearly <- final_df |>
   dplyr::summarise(
     total_compensation = sum(amount, na.rm = TRUE),
     .groups = "drop"
+  ) |>
+  # Reorder department by FY24 total (descending)
+  dplyr::mutate(
+    department = forcats::fct_reorder2(department, fiscal_year, total_compensation, 
+                                        .fun = function(fy, tc) -tc[fy == "FY24"][1])
   )
 
-ggplot2::ggplot(dept_yearly, ggplot2::aes(x = fiscal_year, y = total_compensation, 
-                                           fill = department)) +
-  ggplot2::geom_col(position = "stack") +
+ggplot2::ggplot(dept_yearly, ggplot2::aes(x = department, y = total_compensation, 
+                                           fill = fiscal_year)) +
+  ggplot2::geom_col(position = ggplot2::position_dodge(width = 0.8), width = 0.7) +
+  ggplot2::coord_flip() +
   ggplot2::scale_y_continuous(labels = scales::dollar_format(scale = 1e-6, suffix = "M")) +
+  ggplot2::scale_fill_brewer(palette = "Blues") +
   ggplot2::labs(
-    title = "Total Compensation by Department (Top 10)",
-    subtitle = "Stacked view shows which departments are driving growth",
-    x = "Fiscal Year",
+    title = "Total Compensation by Department (Top 10 by FY24)",
+    subtitle = "Departments ordered by FY24 total compensation, descending",
+    x = NULL,
     y = "Total Compensation",
-    fill = "Department"
-  ) +
-  ggplot2::theme(legend.position = "right")
+    fill = "Fiscal Year"
+  )
 ```
 
+**What changed:**
+- `position = ggplot2::position_dodge()` — separate bars side by side instead of stacked
+- `ggplot2::coord_flip()` — horizontal bars
+- `forcats::fct_reorder2()` — orders departments by FY24 compensation, descending
+- Removed `theme_minimal` reference
+- `scale_fill_brewer(palette = "Blues")` — nice sequential color for fiscal years
+- `x = NULL` — removes redundant axis label since department names are self-explanatory
 
 ### Plot: Department Growth Rates (FY20 to FY24)
 
@@ -1551,6 +1563,186 @@ decomposition |>
 | **Decomposition Table** | Quantifies exactly how much is from hiring vs pay increases |
 
 The scatter plot is particularly powerful for Council presentations—it immediately shows which departments are giving big raises vs. which are just adding staff.
+
+
+### Plot: FY24 Compensation by Department (Top 10) with Avg per Employee
+
+```{r}
+#| label: plot-dept-fy24-simple
+#| fig-width: 13
+#| fig-height: 8
+
+# Calculate FY24 totals with avg per employee
+dept_fy24 <- final_df |>
+  dplyr::filter(fiscal_year == "FY24") |>
+  dplyr::group_by(department) |>
+  dplyr::summarise(
+    total_compensation = sum(amount, na.rm = TRUE),
+    employee_count = dplyr::n_distinct(employee_key),
+    avg_per_employee = total_compensation / employee_count,
+    .groups = "drop"
+  ) |>
+  dplyr::slice_max(total_compensation, n = 10) |>
+  dplyr::mutate(
+    department = forcats::fct_reorder(department, total_compensation)
+  )
+
+ggplot2::ggplot(dept_fy24, ggplot2::aes(x = department, y = total_compensation)) +
+  ggplot2::geom_col(fill = "steelblue", width = 0.7) +
+  ggplot2::geom_text(
+    ggplot2::aes(label = scales::dollar(total_compensation, scale = 1e-6, suffix = "M", accuracy = 0.1)),
+    hjust = -0.1,
+    size = 4,
+    fontface = "bold"
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(label = paste0("Avg: ", scales::dollar(avg_per_employee, scale = 1e-3, suffix = "K", accuracy = 1),
+                                 " (n=", employee_count, ")")),
+    y = 0,
+    hjust = -0.05,
+    size = 3,
+    color = "white"
+  ) +
+  ggplot2::coord_flip() +
+  ggplot2::scale_y_continuous(
+    labels = scales::dollar_format(scale = 1e-6, suffix = "M"),
+    expand = ggplot2::expansion(mult = c(0, 0.25))
+  ) +
+  ggplot2::labs(
+    title = "FY24 Total Compensation by Department (Top 10)",
+    subtitle = "With average compensation per employee and headcount",
+    x = NULL,
+    y = "Total Compensation"
+  )
+```
+
+
+### Bump Chart: Department Ranking Changes Over Time
+
+```{r}
+#| label: plot-dept-rank-bump
+#| fig-width: 13
+#| fig-height: 8
+
+# Calculate ranks by year for all departments
+dept_ranks_all <- final_df |>
+  dplyr::group_by(department, fiscal_year) |>
+  dplyr::summarise(
+    total_compensation = sum(amount, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::mutate(
+    rank = dplyr::min_rank(dplyr::desc(total_compensation))
+  ) |>
+  dplyr::ungroup()
+
+# Get departments that were ever in top 10
+top_10_ever <- dept_ranks_all |>
+  dplyr::filter(rank <= 10) |>
+  dplyr::distinct(department) |>
+  dplyr::pull(department)
+
+# Filter to only those departments
+dept_ranks <- dept_ranks_all |>
+  dplyr::filter(department %in% top_10_ever)
+
+ggplot2::ggplot(dept_ranks, ggplot2::aes(x = fiscal_year, y = rank, 
+                                          group = department, color = department)) +
+  ggplot2::geom_line(linewidth = 1.5) +
+  ggplot2::geom_point(size = 4) +
+  ggplot2::geom_text(
+    data = dplyr::filter(dept_ranks, fiscal_year == "FY24"),
+    ggplot2::aes(label = department),
+    hjust = -0.1,
+    size = 3
+  ) +
+  ggplot2::geom_text(
+    data = dplyr::filter(dept_ranks, fiscal_year == "FY20"),
+    ggplot2::aes(label = department),
+    hjust = 1.1,
+    size = 3
+  ) +
+  ggplot2::scale_y_reverse(breaks = 1:15) +
+  ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = c(0.25, 0.35))) +
+  ggplot2::labs(
+    title = "Department Compensation Rankings Over Time",
+    subtitle = "Rank 1 = highest total compensation. Lines show how departments moved in rankings.",
+    x = "Fiscal Year",
+    y = "Rank (1 = Highest)"
+  ) +
+  ggplot2::theme(legend.position = "none")
+```
+
+**What changed:** Split the piped chain into separate steps:
+1. `dept_ranks_all` — calculate ranks for all departments
+2. `top_10_ever` — identify which departments were ever in top 10
+3. `dept_ranks` — filter to just those departments
+
+This avoids the `.` placeholder which only works with magrittr's `%>%` pipe.
+
+
+
+### Table: Department Rank Changes FY20 to FY24
+
+```{r}
+#| label: dept-rank-changes-table
+
+# Summarize rank changes
+rank_changes <- dept_ranks |>
+  dplyr::filter(fiscal_year %in% c("FY20", "FY24")) |>
+  dplyr::select(department, fiscal_year, rank, total_compensation) |>
+  tidyr::pivot_wider(
+    names_from = fiscal_year,
+    values_from = c(rank, total_compensation)
+  ) |>
+  dplyr::mutate(
+    rank_change = rank_FY20 - rank_FY24,
+    rank_direction = dplyr::case_when(
+      rank_change > 0 ~ paste0("↑ ", rank_change),
+      rank_change < 0 ~ paste0("↓ ", abs(rank_change)),
+      TRUE ~ "—"
+    )
+  ) |>
+  dplyr::filter(!is.na(rank_FY20) & !is.na(rank_FY24)) |>
+  dplyr::arrange(rank_FY24)
+
+rank_changes |>
+  dplyr::mutate(
+    total_compensation_FY20 = scales::dollar(total_compensation_FY20, scale = 1e-6, suffix = "M", accuracy = 0.1),
+    total_compensation_FY24 = scales::dollar(total_compensation_FY24, scale = 1e-6, suffix = "M", accuracy = 0.1)
+  ) |>
+  dplyr::select(department, rank_FY20, rank_FY24, rank_direction,
+                total_compensation_FY20, total_compensation_FY24) |>
+  flextable::flextable() |>
+  flextable::set_header_labels(
+    rank_FY20 = "FY20 Rank",
+    rank_FY24 = "FY24 Rank",
+    rank_direction = "Change",
+    total_compensation_FY20 = "FY20 Total",
+    total_compensation_FY24 = "FY24 Total"
+  ) |>
+  flextable::autofit() |>
+  flextable::bg(i = ~ stringr::str_starts(rank_direction, "↑"), j = "rank_direction", bg = "#ccffcc") |>
+  flextable::bg(i = ~ stringr::str_starts(rank_direction, "↓"), j = "rank_direction", bg = "#ffcccc") |>
+  flextable::set_caption("Department Ranking Changes: FY20 to FY24 (↑ = moved up in spending rank)")
+```
+
+**What changed:**
+- Removed `rank_change` from the `dplyr::select()` 
+- Changed conditional formatting to use `stringr::str_starts(rank_direction, "↑")` and `stringr::str_starts(rank_direction, "↓")` instead of checking `rank_change > 0`
+
+Now the formatting logic uses the visible column content, so we don't need the hidden helper column.
+
+**What each shows:**
+
+| Visualization | Key Insight |
+|---------------|-------------|
+| **FY24 Bar Chart** | Current state: which depts cost most, avg pay, headcount |
+| **Bump Chart** | Trend: which depts are rising/falling in relative spending |
+| **Rank Table** | Simple summary: who moved up, who moved down |
+
+The bump chart is the "poor man's racing chart" - it works in static formats (PDF, print) and immediately shows if Police has always been #1 or if Fire overtook them, etc.
 
 
 
