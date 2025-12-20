@@ -1565,6 +1565,7 @@ decomposition |>
 The scatter plot is particularly powerful for Council presentations—it immediately shows which departments are giving big raises vs. which are just adding staff.
 
 
+
 ### Plot: FY24 Compensation by Department (Top 10) with Avg per Employee
 
 ```{r}
@@ -1702,7 +1703,8 @@ rank_changes <- dept_ranks |>
       rank_change > 0 ~ paste0("↑ ", rank_change),
       rank_change < 0 ~ paste0("↓ ", abs(rank_change)),
       TRUE ~ "—"
-    )
+    ),
+    pct_increase = (total_compensation_FY24 - total_compensation_FY20) / total_compensation_FY20 * 100
   ) |>
   dplyr::filter(!is.na(rank_FY20) & !is.na(rank_FY24)) |>
   dplyr::arrange(rank_FY24)
@@ -1710,17 +1712,19 @@ rank_changes <- dept_ranks |>
 rank_changes |>
   dplyr::mutate(
     total_compensation_FY20 = scales::dollar(total_compensation_FY20, scale = 1e-6, suffix = "M", accuracy = 0.1),
-    total_compensation_FY24 = scales::dollar(total_compensation_FY24, scale = 1e-6, suffix = "M", accuracy = 0.1)
+    total_compensation_FY24 = scales::dollar(total_compensation_FY24, scale = 1e-6, suffix = "M", accuracy = 0.1),
+    pct_increase = paste0(round(pct_increase, 1), "%")
   ) |>
   dplyr::select(department, rank_FY20, rank_FY24, rank_direction,
-                total_compensation_FY20, total_compensation_FY24) |>
+                total_compensation_FY20, total_compensation_FY24, pct_increase) |>
   flextable::flextable() |>
   flextable::set_header_labels(
     rank_FY20 = "FY20 Rank",
     rank_FY24 = "FY24 Rank",
-    rank_direction = "Change",
+    rank_direction = "Rank Chg",
     total_compensation_FY20 = "FY20 Total",
-    total_compensation_FY24 = "FY24 Total"
+    total_compensation_FY24 = "FY24 Total",
+    pct_increase = "% Increase"
   ) |>
   flextable::autofit() |>
   flextable::bg(i = ~ stringr::str_starts(rank_direction, "↑"), j = "rank_direction", bg = "#ccffcc") |>
@@ -1729,11 +1733,11 @@ rank_changes |>
 ```
 
 **What changed:**
-- Removed `rank_change` from the `dplyr::select()` 
-- Changed conditional formatting to use `stringr::str_starts(rank_direction, "↑")` and `stringr::str_starts(rank_direction, "↓")` instead of checking `rank_change > 0`
-
-Now the formatting logic uses the visible column content, so we don't need the hidden helper column.
-
+- Added `pct_increase = (total_compensation_FY24 - total_compensation_FY20) / total_compensation_FY20 * 100` in the first mutate (before dollar formatting)
+- Added `pct_increase = paste0(round(pct_increase, 1), "%")` in the second mutate to format it
+- Added `pct_increase` to the `dplyr::select()`
+- Added header label `"% Increase"`
+- Shortened "Change" to "Rank Chg" to save horizontal space
 **What each shows:**
 
 | Visualization | Key Insight |
