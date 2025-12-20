@@ -1,0 +1,320 @@
+---
+title: "Cross-Year Consistency Validation"
+subtitle: "Detecting Source Data Omissions"
+author: "Dan Swart, CPA (ret)"
+date: today
+format: html
+editor: source
+---
+
+## The Problem We're Solving
+
+Traditional data validation confirms that what you imported matches the source files.
+But what if the source files themselves are incomplete?
+
+**Real-world example discovered**: The FY23 Excel file from City of Schertz was missing 
+an entire department. The import was "correct" (it matched the file), but the file 
+itself was incomplete. This would have been embarrassing to discover during a 
+Council presentation.
+
+**The solution**: Compare categorical values (departments, job titles) across all 
+fiscal years. If a department exists in FY22 and FY24 but NOT FY23, that's almost 
+certainly a source data error—not a real organizational change.
+
+```{r}
+#| label: setup
+#| message: false
+
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(purrr)
+library(flextable)
+
+# Source the consistency module
+source("schertz_consistency.R")
+
+# Also source other pipeline components if needed
+source("schertz_config.R")
+source("schertz_processing.R")
+```
+
+## Load Your Data
+
+If you've already run the main pipeline:
+
+```{r}
+#| label: load-data
+
+# Load the final dataset (or use the one already in memory from the pipeline)
+# final_df <- readRDS(file.path(paths$output_test, "compensation_long_TEST.rds"))
+
+# Or if running as part of the full pipeline, final_df is already available
+```
+
+## Run Consistency Checks
+
+### Check 1: Departments Across Years
+
+This is the critical check that would have caught the missing department.
+
+```{r}
+#| label: check-departments
+
+# Check department consistency across all fiscal years
+dept_check <- check_cross_year_consistency(
+  df = final_df,
+  value_col = "department",    # Column containing department names
+  year_col = "fiscal_year",    # Column containing fiscal year labels
+  label = "Departments"        # Human-readable label for reports
+)
+```
+
+```{r}
+#| label: dept-results
+
+# Show the presence matrix - which departments appear in which years
+dept_check$presence_matrix |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Department Presence by Fiscal Year (TRUE = present)")
+```
+
+```{r}
+#| label: dept-gaps
+
+# Show any gaps found (CRITICAL - these are almost always source data errors)
+if (dept_check$n_gaps > 0) {
+  base::cat("CRITICAL: The following departments have gaps:\n\n")
+  dept_check$gaps |>
+    flextable::flextable() |>
+    flextable::autofit() |>
+    flextable::bg(bg = "#ffcccc") |>
+    flextable::set_caption("GAPS DETECTED - Departments missing from intermediate years")
+} else {
+  base::cat("No department gaps detected - all departments are consistent across years.\n")
+}
+```
+
+### Check 2: Job Titles Across Years
+
+Job titles change more frequently than departments, but large-scale disappearances
+are still suspicious.
+
+```{r}
+#| label: check-job-titles
+
+# Check job title consistency
+title_check <- check_cross_year_consistency(
+  df = final_df,
+  value_col = "job_title",
+  year_col = "fiscal_year",
+  label = "Job Titles"
+)
+```
+
+```{r}
+#| label: title-gaps
+
+# Show any job title gaps
+if (title_check$n_gaps > 0) {
+  base::cat("Job titles with gaps (may or may not be errors - review needed):\n\n")
+  title_check$gaps |>
+    dplyr::slice_head(n = 20) |>  # Show first 20 if many
+    flextable::flextable() |>
+    flextable::autofit() |>
+    flextable::set_caption("Job Title Gaps (first 20)")
+} else {
+  base::cat("No job title gaps detected.\n")
+}
+```
+
+### Check 3: Year-over-Year Changes Summary
+
+See what appeared and disappeared between each consecutive pair of years.
+
+```{r}
+#| label: dept-changes
+
+# Department changes between years
+dept_check$comparisons |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Department Changes Between Consecutive Years")
+```
+
+### Check 4: Employee-Level Gaps (Optional)
+
+Check for individual employees who appear before and after a year but are missing
+from that year. This is more noisy (people do leave and return), but can catch
+systematic omissions.
+
+```{r}
+#| label: check-employees
+#| eval: false
+
+# This can take a moment with many employees
+employee_gaps <- check_employee_gaps(
+  df = final_df,
+  key_col = "employee_key",
+  year_col = "fiscal_year",
+  name_col = "name"
+)
+
+if (employee_gaps$n_gaps > 0) {
+  base::cat("Found ", employee_gaps$n_gaps, " employees with gap years\n")
+  employee_gaps$gaps |>
+    dplyr::slice_head(n = 30) |>
+    flextable::flextable() |>
+    flextable::autofit()
+}
+```
+
+## Run All Checks at Once
+
+For convenience, run multiple checks with one function call:
+
+```{r}
+#| label: run-all-checks
+
+# Define which columns to check
+# Format: c("Label" = "column_name", ...)
+columns_to_check <- c(
+  "Departments" = "department",
+  "Job Titles" = "job_title"
+)
+
+# Run all checks
+consistency_results <- run_consistency_checks(
+  df = final_df,
+  columns_to_check = columns_to_check,
+  year_col = "fiscal_year"
+)
+```
+
+```{r}
+#| label: overall-status
+
+# Show overall status
+if (consistency_results$overall_pass) {
+  base::cat("✓ All consistency checks passed\n")
+} else {
+  base::cat("✗ CONSISTENCY CHECKS FAILED\n")
+  base::cat("  Total gaps found: ", consistency_results$total_gaps, "\n\n")
+  base::cat("  Review the gaps above - these are likely source data errors.\n")
+  base::cat("  Contact the data provider to obtain complete data.\n")
+}
+```
+
+## Generate Consistency Report
+
+Save an HTML report documenting the consistency checks:
+
+```{r}
+#| label: generate-report
+
+# Generate HTML report
+report_path <- generate_consistency_report(
+  consistency_results,
+  output_path = paths$reports,
+  filename = "consistency_check_TEST"
+)
+
+base::cat("Report saved to:", report_path, "\n")
+```
+
+---
+
+## Understanding the Output
+
+### Presence Matrix
+
+| department | FY20 | FY21 | FY22 | FY23 | FY24 |
+|------------|------|------|------|------|------|
+| Police     | TRUE | TRUE | TRUE | TRUE | TRUE |
+| Fire       | TRUE | TRUE | TRUE | TRUE | TRUE |
+| Library    | TRUE | TRUE | TRUE | FALSE| TRUE |
+
+In this example, "Library" is missing from FY23. This is a **gap** - almost certainly
+a source data error, since the library didn't close for exactly one year.
+
+### Gap Detection Logic
+
+A **gap** is detected when:
+1. A value exists in year N-1
+2. The same value is MISSING in year N  
+3. The same value exists again in year N+1
+
+This pattern almost always indicates a data error, not a real organizational change.
+
+### When Gaps Are OK
+
+Some gaps might be legitimate:
+- A department was truly closed for one year and reopened
+- A job title was renamed and then renamed back
+- An employee left and was rehired a year later
+
+But these are rare. **Most gaps are source data errors.**
+
+---
+
+## Integration with Main Pipeline
+
+Add this to your main pipeline workflow after the reconciliation checks:
+
+```{r}
+#| eval: false
+
+# After run_reconciliation() completes...
+
+# Run consistency checks
+source("schertz_consistency.R")
+
+consistency_results <- run_consistency_checks(
+  df = final_df,
+  columns_to_check = c(
+    "Departments" = "department",
+    "Job Titles" = "job_title"
+  ),
+  year_col = "fiscal_year"
+)
+
+# Fail the pipeline if critical gaps found
+if (!consistency_results$overall_pass) {
+  warning("CONSISTENCY CHECK FAILED - Source data may be incomplete!")
+  # Optionally: stop("Cannot proceed with incomplete source data")
+}
+```
+
+---
+## Reusing This Module for Other Projects
+
+The consistency module is **generalized** - it works with any column names.
+
+Example for a different project with different column names:
+
+```{r}
+#| eval: false
+
+# Different project, different column names
+check_cross_year_consistency(
+  df = my_other_data,
+  value_col = "location",      # Check locations instead of departments
+  year_col = "calendar_year",  # Different year column name
+  label = "Locations"
+)
+
+# Or check multiple columns
+run_consistency_checks(
+  df = my_other_data,
+  columns_to_check = c(
+    "Locations" = "location",
+    "Product Lines" = "product_line",
+    "Cost Centers" = "cost_center"
+  ),
+  year_col = "calendar_year"
+)
+```
+
+The functions don't assume anything about your column names - you specify them
+as parameters.

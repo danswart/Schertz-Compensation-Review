@@ -1,0 +1,1556 @@
+---
+title: "Schertz Compensation Data Pipeline - Documented Version"
+subtitle: "Compensation Review Project"
+description: ""
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+  - name: "Claude Sonnet 4.5"
+date: today
+date-format: long
+format:
+  html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: false
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+execute:
+  echo: true
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(DT.options = list(dom = 'pBlfrti'))
+options(shiny.maxRequestSize = 50 * 1024^2)
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 16,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 14,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 14,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12,
+        angle = 45,
+        hjust = 1
+      ),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 14),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12,
+        angle = 45,
+        hjust = 1
+      ),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 12,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+# Set seed for reproducibility
+base::set.seed(123)
+```
+
+
+## Introduction
+
+This document explains each component of the compensation data pipeline. It's designed to help you understand what each piece of code does and why, so you can maintain and extend it confidently.
+
+The pipeline has one job: take five messy Excel files and produce a single, clean, audit-ready dataset—while proving nothing was lost or corrupted along the way.
+
+**Key validation checkpoints**:
+
+- **A**: Source Reconciliation - row counts and totals match Excel files
+- **B**: Name Variation Scan - detect spelling inconsistencies  
+- **C**: Key Validation - composite keys are unique and valid
+- **D**: Completeness Verification - key entities present
+- **E**: Earnings Validation - dollar amounts match by type and department
+- **F**: Cross-Year Consistency - detect source data omissions (NEW)
+
+------------------------------------------------------------------------
+
+## Setup: Loading Libraries and Source Files
+
+```{r}
+#| label: loading-libraries-sources
+#| message: false
+
+# Core data manipulation
+library(readxl)    # Read Excel files into R
+library(dplyr)     # Data manipulation (filter, mutate, select, etc.)
+library(tidyr)     # Reshaping data (pivot_longer, pivot_wider)
+library(stringr)   # String manipulation (str_replace, str_detect, etc.)
+library(janitor)   # Data cleaning utilities (clean_names)
+library(purrr)     # Functional programming (map, map_dfr, etc.)
+
+# Output and visualization
+library(flextable) # Create formatted tables for reports
+library(ggplot2)   # Data visualization
+library(scales)    # Formatting for axes (dollar_format, percent, etc.)
+
+# Data validation
+library(pointblank) # Pipeline assertions and validation reporting
+
+# Source our custom pipeline components
+source("schertz_config.R")         # Configuration: what files, what corrections
+source("schertz_profiler.R")       # Tools for examining new files
+source("schertz_processing.R")     # Core data transformation functions
+source("schertz_reconciliation.R") # Validation and audit reporting
+source("schertz_consistency.R")    # Cross-year consistency validation (NEW)
+```
+
+**What this does**: Loads all the R packages we need, then loads our five custom files that contain the pipeline functions. The `source()` function runs an R script and makes all its functions available to use.
+
+------------------------------------------------------------------------
+
+## Step 1: Verify Configuration
+
+Before processing anything, we confirm that our configuration is correct and all source files exist.
+
+```{r}
+#| label: verify-config
+
+# Display the file registry
+base::cat("=== FILE REGISTRY ===\n\n")
+print(file_registry)
+
+# Check that each file exists
+base::cat("\n=== FILE STATUS ===\n\n")
+
+file_check <- purrr::map_dfr(
+  base::seq_len(base::nrow(file_registry)),
+  function(i) {
+    filepath <- base::file.path(paths$data_raw, file_registry$filename[i])
+    dplyr::tibble(
+      fiscal_year = file_registry$fiscal_year[i],
+      filename = file_registry$filename[i],
+      exists = base::file.exists(filepath)
+    )
+  }
+)
+
+print(file_check)
+
+if (!base::all(file_check$exists)) {
+  stop("Missing files! Cannot proceed.")
+}
+
+# Show the name corrections
+base::cat("\n=== NAME CORRECTIONS (", base::nrow(name_corrections), " rules) ===\n\n")
+print(name_corrections)
+
+# Show the key entities
+base::cat("\n=== KEY ENTITIES TO VERIFY (", base::nrow(key_entities), ") ===\n\n")
+print(key_entities)
+```
+
+------------------------------------------------------------------------
+
+## Step 2: Compute Source Totals from Excel Files
+
+Before running the pipeline, we read each Excel file directly and compute column sums. These become our "source of truth" for validation.
+
+```{r}
+#| label: compute-source-totals
+
+# Helper function: find a column by pattern
+find_column_by_pattern <- function(col_names, pattern) {
+  if (pattern %in% col_names) {
+    return(pattern)
+  }
+  matches <- stringr::str_subset(col_names, pattern)
+  if (base::length(matches) >= 1) {
+    return(matches[1])
+  }
+  return(NULL)
+}
+
+# Compute totals from a single Excel file
+compute_excel_totals <- function(filepath, fiscal_year, structure_type, col_mappings) {
+  raw_excel <- readxl::read_excel(filepath)
+  raw_excel <- janitor::clean_names(raw_excel)
+  col_names <- base::names(raw_excel)
+  
+  mapping <- col_mappings[[structure_type]]
+  
+  regular_total <- 0
+  overtime_total <- 0
+  other_total <- 0
+  
+  regular_col_name <- find_column_by_pattern(col_names, mapping$regular_earnings)
+  if (!base::is.null(regular_col_name)) {
+    regular_col <- raw_excel[[regular_col_name]]
+    regular_total <- base::sum(parse_currency(regular_col), na.rm = TRUE)
+  }
+  
+  overtime_col_name <- find_column_by_pattern(col_names, mapping$overtime_earnings)
+  if (!base::is.null(overtime_col_name)) {
+    overtime_col <- raw_excel[[overtime_col_name]]
+    overtime_total <- base::sum(parse_currency(overtime_col), na.rm = TRUE)
+  }
+  
+  other_col_name <- find_column_by_pattern(col_names, mapping$additional_earnings)
+  if (!base::is.null(other_col_name)) {
+    other_col <- raw_excel[[other_col_name]]
+    other_total <- base::sum(parse_currency(other_col), na.rm = TRUE)
+  }
+  
+  dplyr::tibble(
+    fiscal_year = fiscal_year,
+    source_regular = regular_total,
+    source_overtime = overtime_total,
+    source_other = other_total,
+    source_grand_total = regular_total + overtime_total + other_total
+  )
+}
+
+# Apply to each file in the registry
+source_totals <- purrr::map_dfr(
+  base::seq_len(base::nrow(file_registry)),
+  function(i) {
+    filepath <- base::file.path(paths$data_raw, file_registry$filename[i])
+    compute_excel_totals(
+      filepath = filepath,
+      fiscal_year = file_registry$fiscal_year[i],
+      structure_type = file_registry$structure_type[i],
+      col_mappings = column_mappings
+    )
+  }
+)
+
+# Display source totals
+source_totals |>
+  dplyr::mutate(
+    source_regular = scales::dollar(source_regular, accuracy = 0.01),
+    source_overtime = scales::dollar(source_overtime, accuracy = 0.01),
+    source_other = scales::dollar(source_other, accuracy = 0.01),
+    source_grand_total = scales::dollar(source_grand_total, accuracy = 0.01)
+  ) |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Source Totals (computed directly from Excel files)")
+```
+
+------------------------------------------------------------------------
+
+## Step 3: Run the Pipeline
+
+```{r}
+#| label: run-pipeline
+
+pipeline_results <- run_pipeline_with_intermediates(
+  registry = file_registry,
+  corrections = name_corrections,
+  data_path = paths$data_raw
+)
+
+combined_df <- pipeline_results$combined
+cleaned_df <- pipeline_results$cleaned
+final_df <- pipeline_results$final
+```
+
+------------------------------------------------------------------------
+
+## Step 4: Run Reconciliation
+
+### Checkpoint A: Source Reconciliation
+
+```{r}
+#| label: run-reconciliation
+
+reconciliation <- run_reconciliation(
+  combined_df = combined_df,
+  cleaned_df = cleaned_df,
+  final_df = final_df,
+  registry = file_registry,
+  corrections = name_corrections,
+  entities = key_entities,
+  external = external_totals
+)
+```
+
+```{r}
+#| label: checkpoint-a-details
+
+reconciliation$checkpoint_a$details |>
+  dplyr::mutate(
+    source_total = scales::dollar(source_total, accuracy = 1),
+    imported_total = scales::dollar(imported_total, accuracy = 1),
+    total_diff = scales::dollar(total_diff, accuracy = 1)
+  ) |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Checkpoint A: Source File Reconciliation")
+```
+
+------------------------------------------------------------------------
+
+### Checkpoint B: Name Variations
+
+```{r}
+#| label: checkpoint-b-details
+
+reconciliation$checkpoint_b$summary |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Checkpoint B: Name Variation Summary")
+```
+
+```{r}
+#| label: checkpoint-b-similar-names
+
+if (base::nrow(reconciliation$checkpoint_b$similar_names) > 0) {
+  reconciliation$checkpoint_b$similar_names |>
+    dplyr::slice_head(n = 30) |>
+    flextable::flextable() |>
+    flextable::autofit() |>
+    flextable::set_caption("Similar Name Pairs (first 30)")
+} else {
+  base::cat("No similar name pairs found.")
+}
+```
+
+------------------------------------------------------------------------
+
+### Checkpoint C: Key Validation
+
+```{r}
+#| label: checkpoint-c-details
+
+reconciliation$checkpoint_c$summary |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Checkpoint C: Key Validation Summary")
+```
+
+```{r}
+#| label: checkpoint-c-coverage
+
+reconciliation$checkpoint_c$coverage_summary |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Employee Coverage Across Fiscal Years")
+```
+
+```{r}
+#| label: checkpoint-c-employee-counts-by-year
+
+raw_counts <- combined_df |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::summarise(raw_rows = dplyr::n(), .groups = "drop")
+
+cleaned_counts <- cleaned_df |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::summarise(
+    cleaned_rows = dplyr::n(),
+    unique_employees = dplyr::n_distinct(employee_key),
+    .groups = "drop"
+  )
+
+final_counts <- final_df |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::summarise(
+    final_rows = dplyr::n(),
+    unique_employees_final = dplyr::n_distinct(employee_key),
+    .groups = "drop"
+  )
+
+employee_verification <- raw_counts |>
+  dplyr::left_join(cleaned_counts, by = "fiscal_year") |>
+  dplyr::left_join(final_counts, by = "fiscal_year")
+
+employee_verification |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Employee Counts by Fiscal Year (Pipeline Verification)")
+```
+
+------------------------------------------------------------------------
+
+### Checkpoint D: Completeness Verification
+
+```{r}
+#| label: checkpoint-d-entities
+
+if (base::nrow(reconciliation$checkpoint_d$entity_check) > 0) {
+  reconciliation$checkpoint_d$entity_check |>
+    flextable::flextable() |>
+    flextable::autofit() |>
+    flextable::set_caption("Checkpoint D: Key Entity Verification")
+} else {
+  base::cat("No key entities defined in configuration.")
+}
+```
+
+```{r}
+#| label: checkpoint-d-totals
+
+reconciliation$checkpoint_d$our_totals |>
+  dplyr::mutate(
+    total_compensation = scales::dollar(total_compensation, accuracy = 1)
+  ) |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Calculated Totals by Fiscal Year")
+```
+
+------------------------------------------------------------------------
+
+### Checkpoint E: Earnings Validation (pointblank)
+
+```{r}
+#| label: checkpoint-e-compute-pipeline-totals
+
+pipeline_totals <- final_df |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::summarise(
+    pipeline_regular = base::sum(amount[earnings_type == "Regular"], na.rm = TRUE),
+    pipeline_overtime = base::sum(amount[earnings_type == "Overtime"], na.rm = TRUE),
+    pipeline_other = base::sum(amount[earnings_type == "Additional"], na.rm = TRUE),
+    pipeline_grand_total = base::sum(amount, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+```{r}
+#| label: checkpoint-e-build-comparison
+
+earnings_comparison <- source_totals |>
+  dplyr::left_join(pipeline_totals, by = "fiscal_year") |>
+  dplyr::mutate(
+    diff_regular = pipeline_regular - source_regular,
+    diff_overtime = pipeline_overtime - source_overtime,
+    diff_other = pipeline_other - source_other,
+    diff_grand = pipeline_grand_total - source_grand_total,
+    tolerance = 1.00,
+    regular_ok = base::abs(diff_regular) <= tolerance,
+    overtime_ok = base::abs(diff_overtime) <= tolerance,
+    other_ok = base::abs(diff_other) <= tolerance,
+    grand_ok = base::abs(diff_grand) <= tolerance,
+    all_ok = regular_ok & overtime_ok & other_ok & grand_ok
+  )
+```
+
+```{r}
+#| label: checkpoint-e-agent
+
+earnings_agent <- pointblank::create_agent(
+  tbl = earnings_comparison,
+  tbl_name = "Earnings Validation",
+  label = "Checkpoint E: Source vs Pipeline Earnings Totals"
+) |>
+  pointblank::col_vals_lte(columns = diff_regular, value = 1.00, label = "Regular earnings difference <= $1") |>
+  pointblank::col_vals_gte(columns = diff_regular, value = -1.00, label = "Regular earnings difference >= -$1") |>
+  pointblank::col_vals_lte(columns = diff_overtime, value = 1.00, label = "Overtime earnings difference <= $1") |>
+  pointblank::col_vals_gte(columns = diff_overtime, value = -1.00, label = "Overtime earnings difference >= -$1") |>
+  pointblank::col_vals_lte(columns = diff_other, value = 1.00, label = "Other earnings difference <= $1") |>
+  pointblank::col_vals_gte(columns = diff_other, value = -1.00, label = "Other earnings difference >= -$1") |>
+  pointblank::col_vals_lte(columns = diff_grand, value = 1.00, label = "Grand total difference <= $1") |>
+  pointblank::col_vals_gte(columns = diff_grand, value = -1.00, label = "Grand total difference >= -$1") |>
+  pointblank::interrogate()
+
+earnings_agent
+```
+
+```{r}
+#| label: checkpoint-e-detail-table
+
+earnings_comparison |>
+  dplyr::select(fiscal_year, source_grand_total, pipeline_grand_total, diff_grand, all_ok) |>
+  dplyr::mutate(
+    source_grand_total = scales::dollar(source_grand_total, accuracy = 0.01),
+    pipeline_grand_total = scales::dollar(pipeline_grand_total, accuracy = 0.01),
+    diff_grand = scales::dollar(diff_grand, accuracy = 0.01),
+    status = dplyr::if_else(all_ok, "PASS", "FAIL")
+  ) |>
+  dplyr::select(-all_ok) |>
+  flextable::flextable() |>
+  flextable::bg(i = ~ status == "FAIL", bg = "#ffcccc") |>
+  flextable::bg(i = ~ status == "PASS", bg = "#ccffcc") |>
+  flextable::autofit() |>
+  flextable::set_caption("Checkpoint E: Grand Total Validation by Fiscal Year")
+```
+
+```{r}
+#| label: checkpoint-e-department-validation
+
+validation_departments <- c("City Council", "Fire Department", "Police Department")
+
+safe_to_numeric <- function(x) {
+  if (base::is.numeric(x)) return(x) else return(parse_currency(x))
+}
+
+compute_dept_totals_from_excel <- function(filepath, fiscal_year, structure_type, col_mappings) {
+  raw_excel <- readxl::read_excel(filepath)
+  raw_excel <- janitor::clean_names(raw_excel)
+  col_names <- base::names(raw_excel)
+  mapping <- col_mappings[[structure_type]]
+  
+  dept_col_name <- find_column_by_pattern(col_names, mapping$department)
+  if (base::is.null(dept_col_name)) {
+    return(dplyr::tibble(department = character(), source_total = numeric(), fiscal_year = character()))
+  }
+  
+  regular_col_name <- find_column_by_pattern(col_names, mapping$regular_earnings)
+  overtime_col_name <- find_column_by_pattern(col_names, mapping$overtime_earnings)
+  addl_col_name <- find_column_by_pattern(col_names, mapping$additional_earnings)
+  
+  temp_df <- dplyr::tibble(
+    dept = fix_spaces(raw_excel[[dept_col_name]]),
+    earn_regular = if (!base::is.null(regular_col_name)) safe_to_numeric(raw_excel[[regular_col_name]]) else 0,
+    earn_overtime = if (!base::is.null(overtime_col_name)) safe_to_numeric(raw_excel[[overtime_col_name]]) else 0,
+    earn_addl = if (!base::is.null(addl_col_name)) safe_to_numeric(raw_excel[[addl_col_name]]) else 0
+  ) |>
+    dplyr::mutate(
+      earn_regular = dplyr::coalesce(earn_regular, 0),
+      earn_overtime = dplyr::coalesce(earn_overtime, 0),
+      earn_addl = dplyr::coalesce(earn_addl, 0),
+      earn_total = earn_regular + earn_overtime + earn_addl
+    )
+  
+  temp_df |>
+    dplyr::filter(dept %in% validation_departments) |>
+    dplyr::group_by(dept) |>
+    dplyr::summarise(source_total = base::sum(earn_total, na.rm = TRUE), .groups = "drop") |>
+    dplyr::rename(department = dept) |>
+    dplyr::mutate(fiscal_year = fiscal_year)
+}
+
+source_dept_totals <- purrr::map_dfr(
+  base::seq_len(base::nrow(file_registry)),
+  function(i) {
+    filepath <- base::file.path(paths$data_raw, file_registry$filename[i])
+    compute_dept_totals_from_excel(filepath, file_registry$fiscal_year[i], 
+                                    file_registry$structure_type[i], column_mappings)
+  }
+)
+
+pipeline_dept_totals <- final_df |>
+  dplyr::filter(department %in% validation_departments) |>
+  dplyr::group_by(fiscal_year, department) |>
+  dplyr::summarise(pipeline_total = base::sum(amount, na.rm = TRUE), .groups = "drop")
+
+all_combinations <- tidyr::expand_grid(
+  fiscal_year = base::unique(file_registry$fiscal_year),
+  department = validation_departments
+)
+
+dept_comparison <- all_combinations |>
+  dplyr::left_join(source_dept_totals, by = c("fiscal_year", "department")) |>
+  dplyr::left_join(pipeline_dept_totals, by = c("fiscal_year", "department")) |>
+  dplyr::mutate(
+    source_total = dplyr::coalesce(source_total, 0),
+    pipeline_total = dplyr::coalesce(pipeline_total, 0),
+    difference = pipeline_total - source_total,
+    dept_ok = base::abs(difference) <= 1.00
+  )
+
+dept_comparison |>
+  dplyr::mutate(
+    source_total = scales::dollar(source_total, accuracy = 0.01),
+    pipeline_total = scales::dollar(pipeline_total, accuracy = 0.01),
+    difference = scales::dollar(difference, accuracy = 0.01),
+    status = dplyr::if_else(dept_ok, "PASS", "FAIL")
+  ) |>
+  dplyr::select(fiscal_year, department, source_total, pipeline_total, difference, status) |>
+  dplyr::arrange(department, fiscal_year) |>
+  flextable::flextable() |>
+  flextable::bg(i = ~ status == "FAIL", bg = "#ffcccc") |>
+  flextable::bg(i = ~ status == "PASS", bg = "#ccffcc") |>
+  flextable::autofit() |>
+  flextable::set_caption("Checkpoint E: Department Validation (Selected Departments)")
+```
+
+```{r}
+#| label: checkpoint-e-pass-fail
+
+earnings_passed <- base::all(earnings_comparison$all_ok)
+dept_passed <- base::all(dept_comparison$dept_ok)
+checkpoint_e_passed <- earnings_passed & dept_passed
+
+if (!checkpoint_e_passed) {
+  base::cat("\n=== CHECKPOINT E FAILED ===\n\n")
+  if (!earnings_passed) {
+    base::cat("EARNINGS VALIDATION FAILURES detected.\n")
+  }
+  if (!dept_passed) {
+    base::cat("DEPARTMENT VALIDATION FAILURES detected.\n")
+  }
+} else {
+  base::cat("Checkpoint E: PASSED\n")
+}
+```
+
+------------------------------------------------------------------------
+
+### Checkpoint F: Cross-Year Consistency (NEW)
+
+**Purpose**: Detect source data omissions by comparing categorical values across fiscal years. If a department exists in FY22 and FY24 but is MISSING from FY23, that's almost certainly a source data error—not a real organizational change.
+
+**Why this matters**: The import validations (Checkpoints A-E) confirm that what you imported matches the source files. But what if the source files themselves are incomplete? This checkpoint catches exactly that scenario.
+
+```{r}
+#| label: checkpoint-f-run-consistency
+
+# Run cross-year consistency checks on key categorical columns
+# This will catch departments (or job titles) that "disappear" for one year
+# and then "reappear" - almost always a sign of source data omission
+
+consistency_results <- run_consistency_checks(
+  df = final_df,
+  columns_to_check = c(
+    "Departments" = "department",
+    "Job Titles" = "job_title"
+  ),
+  year_col = "fiscal_year"
+)
+```
+
+**What this does**:
+
+- Builds a "presence matrix" showing which values appear in which years
+- Detects "gaps" - values present before AND after a year, but missing from that year
+- Gaps are almost always source data errors, not real organizational changes
+
+#### Department Presence Matrix
+
+```{r}
+#| label: checkpoint-f-dept-presence
+
+# Show which departments appear in which years
+consistency_results$checks$department$presence_matrix |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Checkpoint F: Department Presence by Fiscal Year (TRUE = present)")
+```
+
+#### Department Gaps (CRITICAL)
+
+```{r}
+#| label: checkpoint-f-dept-gaps
+
+# Show any departments with gaps - these are almost certainly source data errors
+dept_gaps <- consistency_results$checks$department$gaps
+
+if (base::nrow(dept_gaps) > 0) {
+  base::cat("CRITICAL: The following departments are missing from intermediate years!\n")
+  base::cat("These departments exist BEFORE and AFTER the gap year, suggesting source data omission.\n\n")
+  
+  dept_gaps |>
+    flextable::flextable() |>
+    flextable::autofit() |>
+    flextable::bg(bg = "#ffcccc") |>
+    flextable::set_caption("CRITICAL: Department Gaps Detected")
+} else {
+  base::cat("No department gaps detected. All departments are consistent across years.\n")
+}
+```
+
+#### Year-over-Year Department Changes
+
+```{r}
+#| label: checkpoint-f-dept-changes
+
+# Show what departments appeared/disappeared between consecutive years
+consistency_results$checks$department$comparisons |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Department Changes Between Consecutive Years")
+```
+
+#### Job Title Gaps
+
+```{r}
+#| label: checkpoint-f-title-gaps
+
+# Job titles change more frequently, but large-scale gaps are still suspicious
+title_gaps <- consistency_results$checks$job_title$gaps
+
+if (base::nrow(title_gaps) > 0) {
+  base::cat("Job titles with gaps (review needed - may or may not be errors):\n\n")
+  
+  title_gaps |>
+    dplyr::slice_head(n = 20) |>
+    flextable::flextable() |>
+    flextable::autofit() |>
+    flextable::set_caption("Job Title Gaps (first 20)")
+} else {
+  base::cat("No job title gaps detected.\n")
+}
+```
+
+```{r}
+#| label: checkpoint-f-pass-fail
+
+# Determine if Checkpoint F passed
+# Department gaps are CRITICAL failures
+# Job title gaps are warnings (more likely to be legitimate changes)
+
+checkpoint_f_passed <- consistency_results$checks$department$pass
+
+if (!checkpoint_f_passed) {
+  base::cat("\n=== CHECKPOINT F FAILED ===\n\n")
+  base::cat("CRITICAL: Source data appears to be incomplete.\n")
+  base::cat("Departments exist before and after gap years but are missing from those years.\n")
+  base::cat("This is almost certainly a source data error, not a real organizational change.\n\n")
+  base::cat("RECOMMENDED ACTION:\n")
+  base::cat("1. Contact the data provider to obtain complete data for the gap year(s)\n")
+  base::cat("2. Verify the source Excel files contain all expected departments\n")
+  base::cat("3. Do NOT proceed with analysis until source data is complete\n")
+} else {
+  base::cat("Checkpoint F: PASSED\n")
+  base::cat("All departments are consistent across fiscal years.\n")
+  
+  # Note if there are job title gaps (informational, not a failure)
+  if (base::nrow(title_gaps) > 0) {
+    base::cat("\nNote: ", base::nrow(title_gaps), " job title gap(s) detected.\n")
+    base::cat("Review these to determine if they represent real title changes or data issues.\n")
+  }
+}
+```
+
+**Understanding the output**:
+
+| Pattern | Meaning | Action |
+|---------|---------|--------|
+| Department in FY20-22, missing FY23, present FY24 | Source data omission | Contact data provider |
+| Department appears FY20-23, gone FY24 | Possibly real (dept closed?) | Verify with client |
+| Department appears only FY23-24 | New department | Expected, no action |
+| Job title gap | Could be title change or error | Review case by case |
+
+------------------------------------------------------------------------
+
+### Overall Reconciliation Status
+
+```{r}
+#| label: overall-status
+
+overall_summary <- dplyr::tibble(
+  Checkpoint = c(
+    "A: Source Reconciliation",
+    "B: Name Variations", 
+    "C: Key Validation",
+    "D: Completeness",
+    "E: Earnings & Department Validation",
+    "F: Cross-Year Consistency",
+    "OVERALL"
+  ),
+  Status = c(
+    base::ifelse(reconciliation$checkpoint_a$pass, "PASS", "FAIL"),
+    base::ifelse(reconciliation$checkpoint_b$pass, 
+                 base::ifelse(reconciliation$checkpoint_b$has_warnings, "PASS (warnings)", "PASS"),
+                 "FAIL"),
+    base::ifelse(reconciliation$checkpoint_c$pass, "PASS", "FAIL"),
+    base::ifelse(reconciliation$checkpoint_d$pass, "PASS", "FAIL"),
+    base::ifelse(checkpoint_e_passed, "PASS", "FAIL"),
+    base::ifelse(checkpoint_f_passed, "PASS", "FAIL"),
+    base::ifelse(reconciliation$overall_pass & checkpoint_e_passed & checkpoint_f_passed, "PASS", "FAIL")
+  )
+)
+
+overall_summary |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::bold(i = 7) |>
+  flextable::bg(i = ~ Status == "FAIL", bg = "#ffcccc") |>
+  flextable::bg(i = ~ Status == "PASS", bg = "#ccffcc") |>
+  flextable::bg(i = ~ Status == "PASS (warnings)", bg = "#ffffcc") |>
+  flextable::set_caption("Reconciliation Summary (All Checkpoints)")
+```
+
+------------------------------------------------------------------------
+
+## Step 5: Generate HTML Report
+
+```{r}
+#| label: generate-report
+
+if (!base::dir.exists(paths$reports)) {
+  base::dir.create(paths$reports, recursive = TRUE)
+}
+
+report_path <- generate_reconciliation_report(
+  reconciliation,
+  output_path = paths$reports,
+  test_mode = report_settings$test_mode
+)
+
+base::cat("Reconciliation report saved to:", report_path, "\n")
+
+# Also generate consistency report
+consistency_report_path <- generate_consistency_report(
+  consistency_results,
+  output_path = paths$reports,
+  filename = base::ifelse(report_settings$test_mode, "consistency_TEST", "consistency")
+)
+
+base::cat("Consistency report saved to:", consistency_report_path, "\n")
+```
+
+------------------------------------------------------------------------
+
+## Step 6: Export Data
+
+```{r}
+#| label: export-decision
+
+overall_passed <- reconciliation$overall_pass & checkpoint_e_passed & checkpoint_f_passed
+
+if (!overall_passed) {
+  warning("RECONCILIATION FAILED - Review issues before using exported data!")
+  base::cat("\nProceeding with export for review purposes, but data may have issues.\n")
+}
+```
+
+```{r}
+#| label: export-data
+
+output_dir <- base::ifelse(
+  report_settings$test_mode,
+  paths$output_test,
+  paths$data_clean
+)
+
+if (!base::dir.exists(output_dir)) {
+  base::dir.create(output_dir, recursive = TRUE)
+}
+
+test_suffix <- base::ifelse(report_settings$test_mode, "_TEST", "")
+
+rds_path <- base::file.path(output_dir, base::paste0("compensation_long", test_suffix, ".rds"))
+saveRDS(final_df, file = rds_path)
+
+csv_path <- base::file.path(output_dir, base::paste0("compensation_long", test_suffix, ".csv"))
+readr::write_csv(final_df, file = csv_path)
+
+base::cat("Data exported to:", output_dir, "\n")
+base::cat("Files:\n")
+base::cat("  -", base::basename(rds_path), "\n")
+base::cat("  -", base::basename(csv_path), "\n")
+```
+
+------------------------------------------------------------------------
+
+## Step 7: Validation Plots
+
+### Plot 1: City Manager Compensation Over Time
+
+```{r}
+#| label: plot-city-manager
+#| fig-width: 8
+#| fig-height: 5
+
+final_df |>
+  dplyr::filter(job_title == "City Manager", earnings_type == "Regular") |>
+  ggplot2::ggplot(ggplot2::aes(x = fiscal_year, y = amount, group = name, color = name)) +
+  ggplot2::geom_line(linewidth = 1) +
+  ggplot2::geom_point(size = 3) +
+  ggplot2::scale_y_continuous(labels = scales::dollar_format()) +
+  ggplot2::labs(
+    title = "City Manager Regular Earnings by Fiscal Year",
+    x = "Fiscal Year",
+    y = "Regular Earnings",
+    color = "Employee"
+  )
+```
+
+### Plot 2: Total Compensation Growth
+
+```{r}
+#| label: plot-total-growth
+#| fig-width: 8
+#| fig-height: 6
+
+reconciliation$checkpoint_d$our_totals |>
+  ggplot2::ggplot(ggplot2::aes(x = fiscal_year, y = total_compensation, group = 1)) +
+  ggplot2::geom_line(linewidth = 1.5, color = "steelblue") +
+  ggplot2::geom_point(size = 4, color = "steelblue") +
+  ggplot2::geom_text(
+    ggplot2::aes(label = scales::dollar(total_compensation, scale = 1e-6, suffix = "M")),
+    vjust = -1
+  ) +
+  ggplot2::scale_y_continuous(
+    labels = scales::dollar_format(scale = 1e-6, suffix = "M"),
+    expand = ggplot2::expansion(mult = c(0, 0.15))
+  ) +
+  ggplot2::labs(
+    title = "Total Employee Compensation by Fiscal Year",
+    subtitle = "City of Schertz",
+    x = "Fiscal Year",
+    y = "Total Compensation"
+  )
+```
+
+### Plot 3: Year-over-Year Growth Rate
+
+```{r}
+#| label: plot-growth-rate
+#| fig-width: 8
+#| fig-height: 5
+
+growth_data <- reconciliation$checkpoint_d$our_totals |>
+  dplyr::arrange(fiscal_year) |>
+  dplyr::mutate(
+    prior_total = dplyr::lag(total_compensation),
+    growth_rate = (total_compensation - prior_total) / prior_total,
+    growth_pct = growth_rate * 100
+  )
+
+growth_data |>
+  dplyr::filter(!base::is.na(growth_rate)) |>
+  ggplot2::ggplot(ggplot2::aes(x = fiscal_year, y = growth_pct)) +
+  ggplot2::geom_col(fill = "steelblue") +
+  ggplot2::geom_text(
+    ggplot2::aes(label = base::paste0(base::round(growth_pct, 1), "%")),
+    vjust = -0.5
+  ) +
+  ggplot2::geom_hline(yintercept = 0, linetype = "dashed") +
+  ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+  ggplot2::labs(
+    title = "Year-over-Year Compensation Growth",
+    subtitle = "City of Schertz",
+    x = "Fiscal Year",
+    y = "Growth Rate (%)"
+  )
+```
+
+------------------------------------------------------------------------
+
+## Summary: How the Pipeline Protects You
+
+| Risk | How the Pipeline Addresses It |
+|------|-------------------------------|
+| Rows dropped during import | Checkpoint A compares row counts |
+| Dollars don't match source | Checkpoint A compares totals |
+| Invisible characters cause filter failures | `fix_spaces()` normalizes automatically |
+| Same person appears as two people | Checkpoint B flags similar names |
+| Duplicate records inflate totals | Checkpoint C checks key uniqueness |
+| Key person missing from data | Checkpoint D verifies key entities |
+| Currency parsing corrupts amounts | Checkpoint E compares by earnings type |
+| Column mapping errors | Checkpoint E catches type-level mismatches |
+| **Source data is incomplete** | **Checkpoint F detects cross-year gaps** |
+| No audit trail | HTML reports document everything |
+
+------------------------------------------------------------------------
+
+## Key Functions Reference
+
+| Function | File | Purpose |
+|----------|------|---------|
+| `run_pipeline_with_intermediates()` | schertz_processing.R | Orchestrates all processing stages |
+| `run_reconciliation()` | schertz_reconciliation.R | Runs checkpoints A-D |
+| `run_consistency_checks()` | schertz_consistency.R | Runs checkpoint F (cross-year) |
+| `generate_reconciliation_report()` | schertz_reconciliation.R | Creates HTML audit report |
+| `generate_consistency_report()` | schertz_consistency.R | Creates cross-year consistency report |
+| `check_cross_year_consistency()` | schertz_consistency.R | Checks single column for gaps |
+| `profile_new_file()` | schertz_profiler.R | Examines new Excel files |
+| `fix_spaces()` | schertz_processing.R | Removes invisible Unicode spaces |
+| `standardize_name()` | schertz_processing.R | Normalizes names |
+| `parse_currency()` | schertz_processing.R | Converts currency strings to numeric |
+
+------------------------------------------------------------------------
+
+## What to Do When Things Go Wrong
+
+| Symptom | Likely Cause | Solution |
+|---------|--------------|----------|
+| Checkpoint A fails (row mismatch) | File changed or filter applied | Re-download source file |
+| Checkpoint A fails (total mismatch) | Currency parsing issue | Check unusual formats in source |
+| Checkpoint B shows many similar names | Normal for first run | Review and add corrections |
+| Checkpoint C shows duplicate keys | Same person twice in year | Investigate source data |
+| Checkpoint D shows missing entity | Invisible character or name changed | Run profiler on source |
+| Checkpoint E fails (earnings mismatch) | Column mapping wrong | Verify config mappings |
+| **Checkpoint F fails (department gap)** | **Source data incomplete** | **Contact data provider** |
+| Plot missing expected person | Job title doesn't match | Check with `distinct(job_title)` |
+
+
+
+----
+
+
+### Search FY23 raw Excel file for single employee
+
+```{r}
+#| label: search-fy23-locken
+
+fy23_raw <- readxl::read_excel(
+  file.path(paths$data_raw, "FY23Employee_Comp_FY23.xlsx")
+) |>
+  janitor::clean_names()
+
+fy23_raw |>
+  dplyr::filter(stringr::str_detect(last_name, regex("locken", ignore_case = TRUE))) |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("FY23 Raw Excel: Search for 'Locken'")
+```
+
+
+### And check all years to see the pattern:
+
+```{r}
+#| label: search-all-years-locken
+
+combined_df |>
+  dplyr::filter(stringr::str_detect(name_original, regex("locken", ignore_case = TRUE))) |>
+  dplyr::select(fiscal_year, name_original, department, job_title, regular_earnings) |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("All Years (Combined Data): Search for 'Locken'")
+```
+
+
+### And in the final cleaned data:
+
+```{r}
+#| label: search-final-locken
+
+final_df |>
+  dplyr::filter(stringr::str_detect(name, regex("locken", ignore_case = TRUE))) |>
+  dplyr::filter(earnings_type == "Regular") |>
+  dplyr::select(fiscal_year, name, department, job_title, amount) |>
+  dplyr::arrange(fiscal_year) |>
+  dplyr::mutate(amount = scales::dollar(amount, accuracy = 0.01)) |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Final Cleaned Data: Lisa Locken Regular Earnings by Year")
+```
+
+
+### Employee counts by job title by year
+
+```{r}
+#| label: job-title-counts-by-year
+
+final_df |>
+  dplyr::filter(earnings_type == "Regular") |>
+  dplyr::count(job_title, fiscal_year) |>
+  tidyr::pivot_wider(names_from = fiscal_year, values_from = n, values_fill = 0) |>
+  dplyr::arrange(job_title) |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Employee Counts by Job Title by Fiscal Year")
+```
+
+
+### Number of employees per department by year
+
+```{r}
+#| label: department-counts-by-year
+
+final_df |>
+  dplyr::filter(earnings_type == "Regular") |>
+  dplyr::count(department, fiscal_year) |>
+  tidyr::pivot_wider(names_from = fiscal_year, values_from = n, values_fill = 0) |>
+  dplyr::arrange(department) |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::set_caption("Employee Counts by Department by Fiscal Year")
+```
+
+
+### Flag job titles with 'large' changes from FY20 to FY24
+
+```{r}
+#| label: job-title-large-changes
+
+job_title_counts <- final_df |>
+  dplyr::filter(earnings_type == "Regular") |>
+  dplyr::count(job_title, fiscal_year) |>
+  tidyr::pivot_wider(names_from = fiscal_year, values_from = n, values_fill = 0) |>
+  dplyr::mutate(
+    pct_change = (FY24 - FY20) / FY20 * 100,
+    change_type = dplyr::case_when(
+      FY20 == 0 ~ "NEW",
+      FY24 == 0 ~ "ELIMINATED",
+      pct_change < -50 ~ "DROP",
+      pct_change > 100 ~ "INCREASE",
+      TRUE ~ "OK"
+    )
+  )
+
+job_title_counts |>
+  dplyr::filter(change_type != "OK") |>
+  dplyr::arrange(pct_change) |>
+  dplyr::mutate(
+    pct_change_fmt = dplyr::case_when(
+      is.infinite(pct_change) | is.nan(pct_change) ~ "N/A",
+      TRUE ~ paste0(round(pct_change, 1), "%")
+    )
+  ) |>
+  dplyr::select(job_title, FY20, FY24, pct_change_fmt, change_type) |>
+  flextable::flextable() |>
+  flextable::set_header_labels(
+    FY20 = "FY20 Count",
+    FY24 = "FY24 Count",
+    pct_change_fmt = "% Change"
+  ) |>
+  flextable::autofit() |>
+  flextable::bg(i = ~ change_type == "DROP", bg = "#ffcccc") |>
+  flextable::bg(i = ~ change_type == "INCREASE", bg = "#ffffcc") |>
+  flextable::bg(i = ~ change_type == "NEW", bg = "#ccffcc") |>
+  flextable::bg(i = ~ change_type == "ELIMINATED", bg = "#ffcccc") |>
+  flextable::set_caption("Job Titles: FY20 to FY24 Changes (>50% Drop, >100% Increase, New, or Eliminated)")
+```
+
+
+### Flag departments with 'large' changes from FY20 to FY24
+
+```{r}
+#| label: department-large-changes
+
+dept_counts <- final_df |>
+  dplyr::filter(earnings_type == "Regular") |>
+  dplyr::count(department, fiscal_year) |>
+  tidyr::pivot_wider(names_from = fiscal_year, values_from = n, values_fill = 0) |>
+  dplyr::mutate(
+    pct_change = (FY24 - FY20) / FY20 * 100,
+    change_type = dplyr::case_when(
+      FY20 == 0 ~ "NEW",
+      FY24 == 0 ~ "ELIMINATED",
+      pct_change < -50 ~ "DROP",
+      pct_change > 100 ~ "INCREASE",
+      TRUE ~ "OK"
+    )
+  )
+
+dept_counts |>
+  dplyr::filter(change_type != "OK") |>
+  dplyr::arrange(pct_change) |>
+  dplyr::mutate(
+    pct_change_fmt = dplyr::case_when(
+      is.infinite(pct_change) | is.nan(pct_change) ~ "N/A",
+      TRUE ~ paste0(round(pct_change, 1), "%")
+    )
+  ) |>
+  dplyr::select(department, FY20, FY24, pct_change_fmt, change_type) |>
+  flextable::flextable() |>
+  flextable::set_header_labels(
+    FY20 = "FY20 Count",
+    FY24 = "FY24 Count",
+    pct_change_fmt = "% Change"
+  ) |>
+  flextable::autofit() |>
+  flextable::bg(i = ~ change_type == "DROP", bg = "#ffcccc") |>
+  flextable::bg(i = ~ change_type == "INCREASE", bg = "#ffffcc") |>
+  flextable::bg(i = ~ change_type == "NEW", bg = "#ccffcc") |>
+  flextable::bg(i = ~ change_type == "ELIMINATED", bg = "#ffcccc") |>
+  flextable::set_caption("Departments: FY20 to FY24 Changes (>50% Drop, >100% Increase, New, or Eliminated)")
+```
+
+
+
+-------
+
+Great question. This is a classic decomposition analysis: Is the growth driven by more people, or more pay per person? Let me give you several visualizations that tell that story.
+
+
+
+
+### Summary: Total Compensation vs Total Employees by Year
+
+```{r}
+#| label: comp-vs-headcount-summary
+
+# Calculate totals by year - ALL earnings types
+yearly_summary <- final_df |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::summarise(
+    total_compensation = sum(amount, na.rm = TRUE),
+    total_employees = dplyr::n_distinct(employee_key),
+    avg_compensation = total_compensation / total_employees,
+    .groups = "drop"
+  ) |>
+  dplyr::arrange(fiscal_year) |>
+  dplyr::mutate(
+    comp_index = total_compensation / first(total_compensation) * 100,
+    emp_index = total_employees / first(total_employees) * 100,
+    avg_comp_index = avg_compensation / first(avg_compensation) * 100
+  )
+
+yearly_summary |>
+  dplyr::mutate(
+    total_compensation = scales::dollar(total_compensation, accuracy = 1),
+    avg_compensation = scales::dollar(avg_compensation, accuracy = 1),
+    comp_index = round(comp_index, 1),
+    emp_index = round(emp_index, 1),
+    avg_comp_index = round(avg_comp_index, 1)
+  ) |>
+  flextable::flextable() |>
+  flextable::set_header_labels(
+    total_compensation = "Total Comp",
+    total_employees = "Employees",
+    avg_compensation = "Avg Comp/Employee",
+    comp_index = "Comp Index",
+    emp_index = "Employee Index",
+    avg_comp_index = "Avg Comp Index"
+  ) |>
+  flextable::autofit() |>
+  flextable::set_caption("Total Compensation vs Headcount Summary (FY20 = 100)")
+```
+
+
+**Note**: The FY23 dip ($26.6M → $23.6M) followed by FY24 spike ($23.6M → $30.7M) is suspicious—that's likely related to the missing department data you discovered. When you get corrected FY23 data, that dip will probably smooth out.
+
+
+### Plot: Indexed Growth Comparison
+
+```{r}
+#| label: plot-indexed-growth
+#| fig-width: 10
+#| fig-height: 6
+
+# Reshape for plotting
+growth_comparison <- yearly_summary |>
+  dplyr::select(fiscal_year, comp_index, emp_index, avg_comp_index) |>
+  tidyr::pivot_longer(
+    cols = c(comp_index, emp_index, avg_comp_index),
+    names_to = "metric",
+    values_to = "index"
+  ) |>
+  dplyr::mutate(
+    metric = dplyr::case_when(
+      metric == "comp_index" ~ "Total Compensation",
+      metric == "emp_index" ~ "Total Employees",
+      metric == "avg_comp_index" ~ "Avg Comp per Employee"
+    )
+  )
+
+ggplot2::ggplot(growth_comparison, ggplot2::aes(x = fiscal_year, y = index, 
+                                                 color = metric, group = metric)) +
+
+  ggplot2::geom_line(linewidth = 1.5) +
+  ggplot2::geom_point(size = 4) +
+  ggplot2::geom_hline(yintercept = 100, linetype = "dashed", color = "gray50") +
+  ggplot2::geom_text(ggplot2::aes(label = round(index, 0)), vjust = -1, size = 4) +
+  ggplot2::scale_y_continuous(
+    limits = c(90, NA),
+    expand = ggplot2::expansion(mult = c(0, 0.15))
+  ) +
+  ggplot2::scale_color_manual(values = c(
+    "Total Compensation" = "firebrick",
+    "Total Employees" = "steelblue",
+    "Avg Comp per Employee" = "darkgreen"
+  )) +
+  ggplot2::labs(
+    title = "What's Driving Compensation Growth?",
+    subtitle = "Indexed to FY20 = 100. If headcount and compensation grew equally, lines would overlap.",
+    x = "Fiscal Year",
+    y = "Index (FY20 = 100)",
+    color = "Metric"
+  ) +
+  ggplot2::theme(legend.position = "bottom")
+```
+
+
+### Plot: Compensation Growth by Department (Top 10)
+
+```{r}
+#| label: plot-dept-growth
+#| fig-width: 12
+#| fig-height: 7
+
+# Get top 10 departments by FY24 total compensation
+top_depts <- final_df |>
+  dplyr::filter(fiscal_year == "FY24") |>
+  dplyr::group_by(department) |>
+  dplyr::summarise(total = sum(amount, na.rm = TRUE), .groups = "drop") |>
+  dplyr::slice_max(total, n = 10) |>
+  dplyr::pull(department)
+
+# Calculate totals by department and year
+dept_yearly <- final_df |>
+  dplyr::filter(department %in% top_depts) |>
+  dplyr::group_by(department, fiscal_year) |>
+  dplyr::summarise(
+    total_compensation = sum(amount, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+ggplot2::ggplot(dept_yearly, ggplot2::aes(x = fiscal_year, y = total_compensation, 
+                                           fill = department)) +
+  ggplot2::geom_col(position = "stack") +
+  ggplot2::scale_y_continuous(labels = scales::dollar_format(scale = 1e-6, suffix = "M")) +
+  ggplot2::labs(
+    title = "Total Compensation by Department (Top 10)",
+    subtitle = "Stacked view shows which departments are driving growth",
+    x = "Fiscal Year",
+    y = "Total Compensation",
+    fill = "Department"
+  ) +
+  ggplot2::theme(legend.position = "right")
+```
+
+
+### Plot: Department Growth Rates (FY20 to FY24)
+
+```{r}
+#| label: plot-dept-growth-rates
+#| fig-width: 12
+#| fig-height: 8
+
+# Calculate growth by department
+dept_growth <- final_df |>
+  dplyr::filter(fiscal_year %in% c("FY20", "FY24")) |>
+  dplyr::group_by(department, fiscal_year) |>
+  dplyr::summarise(
+    total_comp = sum(amount, na.rm = TRUE),
+    headcount = dplyr::n_distinct(employee_key),
+    .groups = "drop"
+  ) |>
+  tidyr::pivot_wider(
+    names_from = fiscal_year,
+    values_from = c(total_comp, headcount),
+    values_fill = 0
+  ) |>
+  dplyr::mutate(
+    comp_growth_pct = (total_comp_FY24 - total_comp_FY20) / total_comp_FY20 * 100,
+    headcount_growth_pct = (headcount_FY24 - headcount_FY20) / headcount_FY20 * 100,
+    dollar_growth = total_comp_FY24 - total_comp_FY20
+  ) |>
+  dplyr::filter(total_comp_FY20 > 0)  # Exclude new departments for this view
+
+# Plot: Scatter of headcount growth vs comp growth
+ggplot2::ggplot(dept_growth, ggplot2::aes(x = headcount_growth_pct, y = comp_growth_pct)) +
+  ggplot2::geom_point(ggplot2::aes(size = dollar_growth), alpha = 0.7, color = "steelblue") +
+  ggplot2::geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray50") +
+  ggplot2::geom_text(ggplot2::aes(label = department), vjust = -1, hjust = 0.5, size = 3, 
+                     check_overlap = TRUE) +
+  ggplot2::scale_size_continuous(labels = scales::dollar_format(scale = 1e-6, suffix = "M"),
+                                  range = c(2, 15)) +
+  ggplot2::labs(
+    title = "Headcount Growth vs Compensation Growth by Department",
+    subtitle = "Points above the dashed line: compensation grew faster than headcount (pay increases)\nPoints below: headcount grew faster (more hiring)",
+    x = "Headcount Growth (FY20 to FY24) %",
+    y = "Compensation Growth (FY20 to FY24) %",
+    size = "$ Growth"
+  ) +
+  ggplot2::theme(legend.position = "right")
+```
+
+
+### Table: Department Growth Detail
+
+```{r}
+#| label: dept-growth-table
+
+dept_growth |>
+  dplyr::arrange(dplyr::desc(dollar_growth)) |>
+  dplyr::mutate(
+    total_comp_FY20 = scales::dollar(total_comp_FY20, accuracy = 1),
+    total_comp_FY24 = scales::dollar(total_comp_FY24, accuracy = 1),
+    dollar_growth = scales::dollar(dollar_growth, accuracy = 1),
+    comp_growth_pct = paste0(round(comp_growth_pct, 1), "%"),
+    headcount_growth_pct = paste0(round(headcount_growth_pct, 1), "%")
+  ) |>
+  dplyr::select(
+    department, 
+    headcount_FY20, headcount_FY24, headcount_growth_pct,
+    total_comp_FY20, total_comp_FY24, dollar_growth, comp_growth_pct
+  ) |>
+  flextable::flextable() |>
+  flextable::set_header_labels(
+    headcount_FY20 = "FY20 Staff",
+    headcount_FY24 = "FY24 Staff",
+    headcount_growth_pct = "Staff % Chg",
+    total_comp_FY20 = "FY20 Comp",
+    total_comp_FY24 = "FY24 Comp",
+    dollar_growth = "$ Growth",
+    comp_growth_pct = "Comp % Chg"
+  ) |>
+  flextable::autofit() |>
+  flextable::set_caption("Department Growth Detail: FY20 to FY24 (Sorted by Dollar Growth)")
+```
+
+
+### The Bottom Line: Decomposition
+
+```{r}
+#| label: growth-decomposition
+
+# Calculate the decomposition
+fy20 <- yearly_summary |> dplyr::filter(fiscal_year == "FY20")
+fy24 <- yearly_summary |> dplyr::filter(fiscal_year == "FY24")
+
+total_growth <- fy24$total_compensation - fy20$total_compensation
+growth_from_headcount <- (fy24$total_employees - fy20$total_employees) * fy20$avg_compensation
+growth_from_pay_increase <- (fy24$avg_compensation - fy20$avg_compensation) * fy20$total_employees
+interaction_effect <- total_growth - growth_from_headcount - growth_from_pay_increase
+
+decomposition <- dplyr::tibble(
+  Component = c(
+    "Total Compensation Growth (FY20 → FY24)",
+    "Due to Headcount Increase",
+    "Due to Pay Increase (per employee)",
+    "Interaction (both factors)"
+  ),
+  Amount = c(total_growth, growth_from_headcount, growth_from_pay_increase, interaction_effect),
+  Percent_of_Total = c(100, 
+                        growth_from_headcount / total_growth * 100,
+                        growth_from_pay_increase / total_growth * 100,
+                        interaction_effect / total_growth * 100)
+)
+
+decomposition |>
+  dplyr::mutate(
+    Amount = scales::dollar(Amount, accuracy = 1),
+    Percent_of_Total = paste0(round(Percent_of_Total, 1), "%")
+  ) |>
+  flextable::flextable() |>
+  flextable::autofit() |>
+  flextable::bold(i = 1) |>
+  flextable::set_caption("Compensation Growth Decomposition: What's Driving the Increase?")
+```
+
+**What these visualizations tell you:**
+
+| Chart | Key Insight |
+|-------|-------------|
+| **Indexed Growth** | If red line (comp) is much higher than blue line (employees), pay per person is driving growth |
+| **Stacked Bar by Dept** | Shows which departments dominate total spending |
+| **Scatter Plot** | Points above diagonal = comp grew faster than headcount (raises); below = more hiring |
+| **Decomposition Table** | Quantifies exactly how much is from hiring vs pay increases |
+
+The scatter plot is particularly powerful for Council presentations—it immediately shows which departments are giving big raises vs. which are just adding staff.
+
+
+
