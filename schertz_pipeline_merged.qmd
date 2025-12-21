@@ -1,0 +1,679 @@
+---
+title: "Schertz Compensation Data Pipeline - Explicit Column Version"
+subtitle: "Compensation Review Project"
+description: "Each earnings component explicitly captured and validated"
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+  - name: "Claude Opus 4.5"
+date: today
+date-format: long
+format:
+  html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: false
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+execute:
+  echo: true
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(DT.options = list(dom = 'pBlfrti'))
+options(shiny.maxRequestSize = 50 * 1024^2)
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+# Set global ggplot2 theme (NO theme_minimal)
+ggplot2::theme_set(
+  ggplot2::theme_bw(base_size = 16) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 16,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 14,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 14,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12,
+        angle = 45,
+        hjust = 1
+      ),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 14),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12,
+        angle = 45,
+        hjust = 1
+      ),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 12,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+# Set seed for reproducibility
+base::set.seed(123)
+```
+
+## Introduction
+
+This document implements **explicit column handling** for the Schertz compensation data pipeline. Every earnings component is captured distinctly, validated independently, and then summed to verify totals match.
+
+**Key Philosophy**: Each column name is specified **exactly** as it appears after `janitor::clean_names()`. No regex patterns, no guessing.
+
+**Explicit Compensation Components**:
+
+| Component               | Goes Into          |
+|-------------------------|--------------------|
+| Leave Payout            | Total Earnings     |
+| Regular Earnings        | Total Earnings     |
+| Overtime Earnings       | Total Earnings     |
+| Additional Earnings     | Total Earnings     |
+| Deployment Earnings     | Total Earnings     |
+| Arbitration/Settlements | Total Earnings     |
+| **Total Earnings**      | (calculated)       |
+| Additional Benefits     | Total Compensation |
+| **Total Compensation**  | (final)            |
+
+------------------------------------------------------------------------
+
+## Step 1: Define Files and Data Folder
+
+```{r}
+#| label: define-files
+
+# =============================================================================
+# EDIT THESE FILENAMES TO MATCH YOUR ACTUAL FILES
+# =============================================================================
+
+files <- base::list(
+  FY20 = "FY20 Earnings.xlsx",
+  FY21 = "FY21 Earnings.xlsx",
+  FY22 = "FY22 Earnings.xlsx",
+  FY23 = "FY23Employee_Comp_FY23.xlsx",
+  FY24 = "FY24Employee_Comp_FY24_All.xlsx"
+)
+
+data_folder <- here::here("data_raw")
+```
+
+------------------------------------------------------------------------
+
+## Step 2: Define Exact Column Mappings
+
+These are the **exact** column names after `janitor::clean_names()`.
+
+```{r}
+#| label: define-column-mappings
+
+# =============================================================================
+# COLUMN MAPPINGS - EXACT COLUMN NAMES FROM YOUR FILES
+# =============================================================================
+# Set to NA if that column doesn't exist in a given year
+
+column_maps <- base::list(
+  
+  # ----- FY20 -----
+  FY20 = base::list(
+    # Identity columns
+    name = "name",                    # Single name column (or NA if split)
+    last_name = NA,                   # NA if using single name column
+    first_name = NA,                  # NA if using single name column
+    department = "department",
+    job_title = "job_title",
+    hire_date = "hire_date",
+    termination_date = "termination_date",
+    
+    # Earnings columns (set to NA if not present)
+    leave_payout = NA,
+    regular_earnings = "regular_earnings",
+    overtime_earnings = "overtime_earnings",
+    additional_earnings = "additional_earnings1",
+    deployment_earnings = NA,
+    arbitration_settlements = NA,
+    
+    # Benefits (set to NA if not present)
+    additional_benefits = NA,
+    
+    # Totals for validation
+    total_earnings = "total_earnings",
+    total_compensation = NA           # NA if no total_comp column
+  ),
+  
+  # ----- FY21 -----
+  FY21 = base::list(
+    status = "status",
+    name = "name",
+    last_name = NA,
+    first_name = NA,
+    department = "home_department",
+    job_title = "job_title",
+    hire_date = "hire_date",
+    termination_date = "termination_date",
+    
+    leave_payout = NA,
+    regular_earnings = "regular_earnings",
+    overtime_earnings = "overtime_earnings",
+    additional_earnings = "additional_earnings1",
+    deployment_earnings = NA,
+    arbitration_settlements = NA,
+    
+    additional_benefits = NA,
+    
+    total_earnings = "total_earnings",
+    total_compensation = NA
+  ),
+  
+  # ----- FY22 -----
+  FY22 = base::list(
+    status = "status",
+    name = "name",
+    last_name = NA,
+    first_name = NA,
+    department = "department",
+    job_title = "job_title",
+    hire_date = "hire_date",
+    termination_date = "termination_date",
+    
+    leave_payout = NA,
+    regular_earnings = "regular_earnings",
+    overtime_earnings = "overtime_earnings",
+    additional_earnings = "additional_earnings1",
+    deployment_earnings = NA,
+    arbitration_settlements = NA,
+    
+    additional_benefits = NA,
+    
+    total_earnings = "total_earnings",
+    total_compensation = NA
+  ),
+  
+  # ----- FY23 -----
+  FY23 = base::list(
+    name = NA,                                    # NA - using split names
+    last_name = "last_name",
+    first_name = "first_name",
+    department = "department",
+    job_title = "job_title",
+    employee_category = "employee_category",
+    hire_date = "hire_date",
+    separation_date = "separation_date",
+    fy23_annual_salary1 = "fy23_annual_salary1",
+    
+    leave_payout = "fy23_leave_payout2",
+    regular_earnings = "fy23_regular_earnings3",
+    overtime_earnings = "fy23_overtime_earnings4",
+    additional_earnings = "fy23_additional_earnings5",
+    deployment_earnings = "fy23_deployment_earnings6",
+    arbitration_settlements = "arbitration_settlements",
+    additional_benefits = "fy23_additional_benefits8",
+    total_earnings = "fy23_total_earnings7",
+    total_compensation = "fy23_total_compensation9"
+  ),
+  
+  # ----- FY24 -----
+  FY24 = base::list(
+    name = NA,
+    last_name = "last_name",
+    first_name = "first_name",
+    department = "home_department",
+    job_title = "job_title",
+    employee_category = "employee_category",
+    hire_date = "hire_date",
+    separation_date = "separation_date",
+    fy24_annual_salary1 = "fy24_annual_salary1",
+    
+    leave_payout = "fy24_leave_payout2",
+    regular_earnings = "fy24_regular_earnings3",
+    overtime_earnings = "fy24_overtime_earnings4",
+    additional_earnings = "fy24_additional",
+    deployment_earnings = "fy24_deployment",
+    arbitration_settlements = "arbitration_settlements",
+    additional_benefits = "fy24_additional_1",
+    total_earnings = "fy24_total_earnings7",
+    total_compensation = "fy24_total_compensation9"
+  )
+)
+```
+
+------------------------------------------------------------------------
+
+## Step 3: Utility Functions
+
+```{r}
+#| label: utility-functions
+
+# Parse currency to numeric
+parse_currency <- function(x) {
+  if (base::is.numeric(x)) return(x)
+  x <- stringr::str_remove_all(x, "[$,\\s]")
+  base::suppressWarnings(base::as.numeric(x))
+}
+
+# Fix invisible spaces
+fix_spaces <- function(x) {
+  if (!base::is.character(x)) return(x)
+  stringr::str_squish(x)
+}
+
+# Standardize name for matching
+standardize_name <- function(x) {
+  x <- fix_spaces(x)
+  x <- stringr::str_to_upper(x)
+  stringr::str_remove_all(x, "[^A-Z ]")
+}
+
+# Safe column extract - returns 0 if column is NA or doesn't exist
+safe_extract <- function(df, col_name) {
+  if (base::is.na(col_name) || !col_name %in% base::names(df)) {
+    return(base::rep(0, base::nrow(df)))
+  }
+  result <- parse_currency(df[[col_name]])
+  dplyr::coalesce(result, 0)
+}
+```
+
+------------------------------------------------------------------------
+
+## Step 4: Process Each File
+
+```{r}
+#| label: process-files
+
+process_file <- function(fy, filename, col_map) {
+  
+  filepath <- base::file.path(data_folder, filename)
+  
+  if (!base::file.exists(filepath)) {
+    base::warning("File not found: ", filepath)
+    return(NULL)
+  }
+  
+  df <- readxl::read_excel(filepath) |>
+    janitor::clean_names()
+  
+  # Handle name - either single column or split
+  if (!base::is.na(col_map$name)) {
+    # Single name column
+    name_values <- fix_spaces(df[[col_map$name]])
+    last_name <- NA_character_
+    first_name <- NA_character_
+  } else {
+    # Split name columns
+    last_name <- fix_spaces(df[[col_map$last_name]])
+    first_name <- fix_spaces(df[[col_map$first_name]])
+    name_values <- base::paste(last_name, first_name, sep = ", ")
+  }
+  
+  # Build result
+  result <- dplyr::tibble(
+    fiscal_year = fy,
+    name = name_values,
+    name_std = standardize_name(name_values),
+    last_name = last_name,
+    first_name = first_name,
+    department = fix_spaces(df[[col_map$department]]),
+    job_title = fix_spaces(df[[col_map$job_title]]),
+    
+    # Earnings
+    leave_payout = safe_extract(df, col_map$leave_payout),
+    regular_earnings = safe_extract(df, col_map$regular_earnings),
+    overtime_earnings = safe_extract(df, col_map$overtime_earnings),
+    additional_earnings = safe_extract(df, col_map$additional_earnings),
+    deployment_earnings = safe_extract(df, col_map$deployment_earnings),
+    arbitration_settlements = safe_extract(df, col_map$arbitration_settlements),
+    additional_benefits = safe_extract(df, col_map$additional_benefits),
+    
+    # Source totals for validation
+    source_total_earnings = safe_extract(df, col_map$total_earnings),
+    source_total_compensation = safe_extract(df, col_map$total_compensation)
+  )
+  
+  # Calculate totals
+  result <- result |>
+    dplyr::mutate(
+      calc_total_earnings = leave_payout + regular_earnings + overtime_earnings +
+                            additional_earnings + deployment_earnings + arbitration_settlements,
+      calc_total_compensation = calc_total_earnings + additional_benefits,
+      employee_key = base::paste(name_std, department, sep = "_")
+    )
+  
+  # For files without total_compensation, use total_earnings
+  result <- result |>
+    dplyr::mutate(
+      source_total_compensation = dplyr::if_else(
+        source_total_compensation == 0 & source_total_earnings > 0,
+        source_total_earnings,
+        source_total_compensation
+      )
+    )
+  
+  return(result)
+}
+
+# Process all files
+all_data <- purrr::map2_dfr(
+  base::names(files),
+  files,
+  function(fy, filename) {
+    process_file(fy, filename, column_maps[[fy]])
+  }
+)
+
+base::cat("Processed", base::nrow(all_data), "total rows\n")
+base::cat("Fiscal years:", base::paste(base::unique(all_data$fiscal_year), collapse = ", "), "\n")
+```
+
+------------------------------------------------------------------------
+
+## Step 5: Validation - Compare Calculated vs Source Totals
+
+```{r}
+#| label: validation
+
+validation <- all_data |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::summarise(
+    rows = dplyr::n(),
+    calc_total = base::sum(calc_total_compensation, na.rm = TRUE),
+    source_total = base::sum(source_total_compensation, na.rm = TRUE),
+    difference = calc_total - source_total,
+    .groups = "drop"
+  ) |>
+  dplyr::mutate(
+    status = dplyr::if_else(base::abs(difference) <= 1, "PASS", "FAIL")
+  )
+
+validation |>
+  dplyr::mutate(
+    calc_total = scales::dollar(calc_total, accuracy = 1),
+    source_total = scales::dollar(source_total, accuracy = 1),
+    difference = scales::dollar(difference, accuracy = 0.01)
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Validation: Calculated vs Source Totals") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::bg(i = ~ status == "FAIL", bg = "#ffcccc") |>
+  flextable::bg(i = ~ status == "PASS", bg = "#ccffcc") |>
+  flextable::autofit()
+```
+
+------------------------------------------------------------------------
+
+## Step 6: Component Breakdown by Year
+
+```{r}
+#| label: component-breakdown
+
+component_summary <- all_data |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::summarise(
+    `Leave Payout` = base::sum(leave_payout, na.rm = TRUE),
+    `Regular` = base::sum(regular_earnings, na.rm = TRUE),
+    `Overtime` = base::sum(overtime_earnings, na.rm = TRUE),
+    `Additional` = base::sum(additional_earnings, na.rm = TRUE),
+    `Deployment` = base::sum(deployment_earnings, na.rm = TRUE),
+    `Arbitration` = base::sum(arbitration_settlements, na.rm = TRUE),
+    `Benefits` = base::sum(additional_benefits, na.rm = TRUE),
+    `TOTAL` = base::sum(calc_total_compensation, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+component_summary |>
+  dplyr::mutate(
+    dplyr::across(dplyr::where(is.numeric), ~ scales::dollar(.x, accuracy = 1))
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Component Breakdown by Fiscal Year") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+------------------------------------------------------------------------
+
+## Step 7: Summary Statistics
+
+```{r}
+#| label: summary-statistics
+
+yearly_summary <- all_data |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::summarise(
+    total_compensation = base::sum(calc_total_compensation, na.rm = TRUE),
+    total_employees = dplyr::n_distinct(employee_key),
+    avg_compensation = total_compensation / total_employees,
+    .groups = "drop"
+  ) |>
+  dplyr::arrange(fiscal_year)
+
+yearly_summary |>
+  dplyr::mutate(
+    total_compensation = scales::dollar(total_compensation, accuracy = 1),
+    avg_compensation = scales::dollar(avg_compensation, accuracy = 1)
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Yearly Summary: Total Compensation and Headcount") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+------------------------------------------------------------------------
+
+## Step 8: Convert to Long Format and Export
+
+```{r}
+#| label: export
+
+# Pivot to long format
+final_df <- all_data |>
+  dplyr::select(
+    fiscal_year, name, name_std, last_name, first_name,
+    department, job_title, employee_key,
+    leave_payout, regular_earnings, overtime_earnings,
+    additional_earnings, deployment_earnings, arbitration_settlements,
+    additional_benefits
+  ) |>
+  tidyr::pivot_longer(
+    cols = c(leave_payout, regular_earnings, overtime_earnings,
+             additional_earnings, deployment_earnings, arbitration_settlements,
+             additional_benefits),
+    names_to = "earnings_type",
+    values_to = "amount"
+  ) |>
+  dplyr::mutate(
+    earnings_type = dplyr::case_when(
+      earnings_type == "leave_payout" ~ "Leave Payout",
+      earnings_type == "regular_earnings" ~ "Regular",
+      earnings_type == "overtime_earnings" ~ "Overtime",
+      earnings_type == "additional_earnings" ~ "Additional",
+      earnings_type == "deployment_earnings" ~ "Deployment",
+      earnings_type == "arbitration_settlements" ~ "Arbitration",
+      earnings_type == "additional_benefits" ~ "Benefits",
+      TRUE ~ earnings_type
+    )
+  )
+
+# Export
+output_dir <- here::here("data-clean")
+if (!base::dir.exists(output_dir)) base::dir.create(output_dir, recursive = TRUE)
+
+base::saveRDS(final_df, base::file.path(output_dir, "compensation_long.rds"))
+readr::write_csv(final_df, base::file.path(output_dir, "compensation_long.csv"))
+
+base::cat("Exported to:", output_dir, "\n")
+base::cat("- compensation_long.rds\n")
+base::cat("- compensation_long.csv\n")
+```
+
+------------------------------------------------------------------------
+
+## Summary
+
+| Year    | Structure                              | Notes                    |
+|---------|----------------------------------------|--------------------------|
+| FY20-22 | Single `name` column, no benefits      | Total = Total Earnings   |
+| FY23-24 | Split `last_name`/`first_name`, has benefits | Full Total Compensation |
+
+If validation shows **FAIL**, check the column mappings in Step 2.
+
+------------------------------------------------------------------------
+
+## How to Add a New Fiscal Year
+
+1. Add the filename to the `files` list in Step 1
+2. Run this to see the exact column names:
+```r
+new_file <- readxl::read_excel(here::here("data_raw", "NEW_FILE.xlsx"))
+base::names(janitor::clean_names(new_file))
+```
+3. Add a new entry to `column_maps` in Step 2 with the exact column names
+4. Run the pipeline
