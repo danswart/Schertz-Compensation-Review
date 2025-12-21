@@ -210,6 +210,8 @@ The pipeline has one job: take five messy Excel files and produce a single, clea
 
 ## Setup: Loading Libraries and Source Files
 
+**What this does**: Loads all the R packages we need, then loads our five custom files that contain the pipeline functions. The `source()` function runs an R script and makes all its functions available to use.
+
 ```{r}
 #| label: loading-libraries-sources
 #| message: false
@@ -238,7 +240,7 @@ source("schertz_reconciliation.R") # Validation and audit reporting
 source("schertz_consistency.R")    # Cross-year consistency validation (NEW)
 ```
 
-**What this does**: Loads all the R packages we need, then loads our five custom files that contain the pipeline functions. The `source()` function runs an R script and makes all its functions available to use.
+
 
 ------------------------------------------------------------------------
 

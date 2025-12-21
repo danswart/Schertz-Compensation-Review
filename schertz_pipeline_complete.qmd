@@ -1,0 +1,1208 @@
+---
+title: "Schertz Compensation Data Pipeline - Explicit Column Version"
+subtitle: "Compensation Review Project"
+description: "Each earnings component explicitly captured and validated"
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+  - name: "Claude Opus 4.5"
+date: today
+date-format: long
+format:
+  html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: false
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+execute:
+  echo: true
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(DT.options = list(dom = 'pBlfrti'))
+options(shiny.maxRequestSize = 50 * 1024^2)
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+# Set global ggplot2 theme (NO theme_minimal)
+ggplot2::theme_set(
+  ggplot2::theme_bw(base_size = 16) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 16,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 14,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 14,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12,
+        angle = 45,
+        hjust = 1
+      ),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 14),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12,
+        angle = 45,
+        hjust = 1
+      ),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 12,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+# Set seed for reproducibility
+base::set.seed(123)
+```
+
+## Introduction
+
+This document implements **explicit column handling** for the Schertz compensation data pipeline. Every earnings component is captured distinctly, validated independently, and then summed to verify totals match.
+
+**Key Philosophy**: Each column name is specified **exactly** as it appears after `janitor::clean_names()`. No regex patterns, no guessing.
+
+**Explicit Compensation Components** (FY23 structure):
+
+| Component               | Excel Column Name        | Goes Into          |
+|-------------------------|--------------------------|--------------------|
+| Leave Payout            | FY23 LEAVE PAYOUT        | Total Earnings     |
+| Regular Earnings        | FY23 REGULAR EARNINGS    | Total Earnings     |
+| Overtime Earnings       | FY23 OVERTIME EARNINGS   | Total Earnings     |
+| Additional Earnings     | FY23 ADDITIONAL EARNINGS | Total Earnings     |
+| Deployment Earnings     | FY23 DEPLOYMENT EARNINGS | Total Earnings     |
+| Arbitration/Settlements | ARBITRATION/ SETTLEMENTS | Total Earnings     |
+| **Total Earnings**      | FY23 TOTAL EARNINGS      | (calculated)       |
+| Additional Benefits     | FY23 ADDITIONAL BENEFITS | Total Compensation |
+| **Total Compensation**  | FY23 TOTAL COMPENSATION  | (final)            |
+
+**Validation Formula**:
+
+```         
+TOTAL_EARNINGS = LEAVE_PAYOUT + REGULAR_EARNINGS + OVERTIME_EARNINGS + 
+                 ADDITIONAL_EARNINGS + DEPLOYMENT_EARNINGS + ARBITRATION_SETTLEMENTS
+
+TOTAL_COMPENSATION = TOTAL_EARNINGS + ADDITIONAL_BENEFITS
+```
+
+------------------------------------------------------------------------
+
+# PHASE 1: DISCOVERY
+
+Run this section first to see exact column names after `clean_names()`.
+
+## Step 1: Define Your Files
+
+**Edit these filenames to match your actual files:**
+
+```{r}
+#| label: define-files
+
+# =============================================================================
+# EDIT THESE FILENAMES TO MATCH YOUR ACTUAL FILES
+# =============================================================================
+
+files <- base::list(
+  FY20 = "FY20 Earnings.xlsx",
+  FY21 = "FY21 Earnings.xlsx",
+  FY22 = "FY22 Earnings.xlsx",
+  FY23 = "FY23Employee_Comp_FY23.xlsx",
+  FY24 = "FY24Employee_Comp_FY24_All.xlsx"
+)
+
+data_folder <- here::here("data_raw")
+
+# Configuration paths for export
+paths <- base::list(
+  data_raw = here::here("data_raw"),
+  data_clean = here::here("data_clean"),
+  reports = here::here("reports"),
+  output_test = here::here("output_test")
+)
+
+# Report settings
+report_settings <- base::list(
+  test_mode = FALSE
+)
+```
+
+## Step 2: Read Files and Show Column Names
+
+This reads each file, applies `clean_names()`, and shows you the exact column names to use.
+
+```{r}
+#| label: read-and-show-columns
+
+# Read each file and capture column names
+file_info <- purrr::map_dfr(base::names(files), function(fy) {
+  filepath <- base::file.path(data_folder, files[[fy]])
+  
+  if (!base::file.exists(filepath)) {
+    return(dplyr::tibble(
+      fiscal_year = fy,
+      filename = files[[fy]],
+      status = "FILE NOT FOUND",
+      row_count = NA_integer_,
+      columns = NA_character_
+    ))
+  }
+  
+  df <- readxl::read_excel(filepath) |>
+    janitor::clean_names()
+  
+  dplyr::tibble(
+    fiscal_year = fy,
+    filename = files[[fy]],
+    status = "OK",
+    row_count = base::nrow(df),
+    columns = base::paste(base::names(df), collapse = ", ")
+  )
+})
+
+# Display summary
+file_info |>
+  dplyr::select(fiscal_year, filename, status, row_count) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("File Import Summary") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+## Step 3: Exact Column Names by File
+
+**Copy these exact column names into Phase 2 below.**
+
+```{r}
+#| label: show-exact-columns
+
+# Show columns for each file in a usable format
+for (fy in base::names(files)) {
+  filepath <- base::file.path(data_folder, files[[fy]])
+  
+  if (base::file.exists(filepath)) {
+    df <- readxl::read_excel(filepath) |>
+      janitor::clean_names()
+    
+    base::cat("\n")
+    base::cat("# =========================================================\n")
+    base::cat("#", fy, "- Columns after clean_names():\n")
+    base::cat("# =========================================================\n")
+    
+    cols <- base::names(df)
+    for (i in base::seq_along(cols)) {
+      base::cat("#", base::sprintf("%2d", i), ":", cols[i], "\n")
+    }
+  }
+}
+```
+
+------------------------------------------------------------------------
+
+# ⛔ STOP HERE FIRST TIME
+
+Run Phase 1 above. Then use the column names shown to fill in the exact mappings in Phase 2 below.
+
+------------------------------------------------------------------------
+
+# PHASE 2: PROCESSING
+
+**After reviewing Phase 1 output, edit the column mappings below.**
+
+## Step 4: Define Exact Column Mappings
+
+**Edit these to match the exact column names from Phase 1:**
+
+```{r}
+#| label: define-column-mappings
+
+# =============================================================================
+# COLUMN MAPPINGS - EDIT THESE TO MATCH YOUR FILES EXACTLY
+# =============================================================================
+# Use the exact column names shown in Phase 1 (after clean_names)
+# Set to NA if that column doesn't exist in a given year
+
+column_maps <- base::list(
+  
+  # ----- FY20 -----
+  FY20 = base::list(
+    # Identity columns
+    name = "name",                    # Single name column (or NA if split)
+    last_name = NA,                   # NA if using single name column
+    first_name = NA,                  # NA if using single name column
+    department = "department",
+    job_title = "job_title",
+    hire_date = "hire_date",
+    termination_date = "termination_date",
+    
+    # Earnings columns (set to NA if not present)
+    leave_payout = NA,
+    regular_earnings = "regular_earnings",
+    overtime_earnings = "overtime_earnings",
+    additional_earnings = "additional_earnings1",
+    deployment_earnings = NA,
+    arbitration_settlements = NA,
+    
+    # Benefits (set to NA if not present)
+    additional_benefits = NA,
+    
+    # Totals for validation
+    total_earnings = "total_earnings",
+    total_compensation = NA           # NA if no total_comp column
+  ),
+  
+  # ----- FY21 -----
+  FY21 = base::list(
+    status = "status",
+    name = "name",
+    last_name = NA,
+    first_name = NA,
+    department = "home_department",
+    job_title = "job_title",
+    hire_date = "hire_date",
+    termination_date = "termination_date",
+    
+    leave_payout = NA,
+    regular_earnings = "regular_earnings",
+    overtime_earnings = "overtime_earnings",
+    additional_earnings = "additional_earnings1",
+    deployment_earnings = NA,
+    arbitration_settlements = NA,
+    
+    additional_benefits = NA,
+    
+    total_earnings = "total_earnings",
+    total_compensation = NA
+  ),
+  
+  # ----- FY22 -----
+  FY22 = base::list(
+    status = "status",
+    name = "name",
+    last_name = NA,
+    first_name = NA,
+    department = "department",
+    job_title = "job_title",
+    hire_date = "hire_date",
+    termination_date = "termination_date",
+    
+    leave_payout = NA,
+    regular_earnings = "regular_earnings",
+    overtime_earnings = "overtime_earnings",
+    additional_earnings = "additional_earnings1",
+    deployment_earnings = NA,
+    arbitration_settlements = NA,
+    
+    additional_benefits = NA,
+    
+    total_earnings = "total_earnings",
+    total_compensation = NA
+  ),
+  
+  # ----- FY23 -----
+  FY23 = base::list(
+    name = NA,                                    # NA - using split names
+    last_name = "last_name",
+    first_name = "first_name",
+    department = "department",
+    job_title = "job_title",
+    employee_category = "employee_category",
+    hire_date = "hire_date",
+    separation_date = "separation_date",
+    fy23_annual_salary1 = "fy23_annual_salary1",
+    
+    leave_payout = "fy23_leave_payout2",
+    regular_earnings = "fy23_regular_earnings3",
+    overtime_earnings = "fy23_overtime_earnings4",
+    additional_earnings = "fy23_additional_earnings5",
+    deployment_earnings = "fy23_deployment_earnings6",
+    arbitration_settlements = "arbitration_settlements",
+    additional_benefits = "fy23_additional_benefits8",
+    total_earnings = "fy23_total_earnings7",
+    total_compensation = "fy23_total_compensation9"
+  ),
+  
+  # ----- FY24 -----
+  FY24 = base::list(
+    name = NA,
+    last_name = "last_name",
+    first_name = "first_name",
+    department = "home_department",
+    job_title = "job_title",
+    employee_category = "employee_category",
+    hire_date = "hire_date",
+    separation_date = "separation_date",
+    fy24_annual_salary1 = "fy24_annual_salary1",
+    
+    leave_payout = "fy24_leave_payout2",
+    regular_earnings = "fy24_regular_earnings3",
+    overtime_earnings = "fy24_overtime_earnings4",
+    additional_earnings = "fy24_additional",
+    deployment_earnings = "fy24_deployment",
+    arbitration_settlements = "arbitration_settlements",
+    additional_benefits = "fy24_additional_1",
+    total_earnings = "fy24_total_earnings7",
+    total_compensation = "fy24_total_compensation9"
+  )
+)
+
+base::cat("Defined column mappings for", base::length(column_maps), "fiscal years\n")
+```
+
+------------------------------------------------------------------------
+
+## Step 5: Utility Functions
+
+```{r}
+#| label: utility-functions
+
+# =============================================================================
+# UTILITY FUNCTIONS
+# =============================================================================
+
+# Parse currency to numeric
+parse_currency <- function(x) {
+  if (base::is.numeric(x)) return(x)
+  x <- stringr::str_remove_all(x, "[$,\\s]")
+  base::suppressWarnings(base::as.numeric(x))
+}
+
+# Fix invisible spaces
+fix_spaces <- function(x) {
+  if (!base::is.character(x)) return(x)
+  stringr::str_squish(x)
+}
+
+# Standardize name for matching
+standardize_name <- function(x) {
+  x <- fix_spaces(x)
+  x <- stringr::str_to_upper(x)
+  stringr::str_remove_all(x, "[^A-Z ]")
+}
+
+# Safe column extract - returns 0 if column is NA or doesn't exist
+safe_extract <- function(df, col_name) {
+  if (base::is.na(col_name) || !col_name %in% base::names(df)) {
+    return(base::rep(0, base::nrow(df)))
+  }
+  result <- parse_currency(df[[col_name]])
+  dplyr::coalesce(result, 0)
+}
+```
+
+------------------------------------------------------------------------
+
+## Step 6: Process Each File
+
+```{r}
+#| label: process-files
+
+# =============================================================================
+# PROCESS EACH FILE INTO WIDE FORMAT
+# =============================================================================
+
+process_file <- function(fy, filename, col_map) {
+  
+  filepath <- base::file.path(data_folder, filename)
+  
+  if (!base::file.exists(filepath)) {
+    base::warning("File not found: ", filepath)
+    return(NULL)
+  }
+  
+  df <- readxl::read_excel(filepath) |>
+    janitor::clean_names()
+  
+  # Handle name - either single column or split
+  if (!base::is.na(col_map$name)) {
+    # Single name column
+    name_values <- fix_spaces(df[[col_map$name]])
+    last_name <- NA_character_
+    first_name <- NA_character_
+  } else {
+    # Split name columns
+    last_name <- fix_spaces(df[[col_map$last_name]])
+    first_name <- fix_spaces(df[[col_map$first_name]])
+    name_values <- base::paste(last_name, first_name, sep = ", ")
+  }
+  
+  # Build result
+  result <- dplyr::tibble(
+    fiscal_year = fy,
+    name = name_values,
+    name_std = standardize_name(name_values),
+    last_name = last_name,
+    first_name = first_name,
+    department = fix_spaces(df[[col_map$department]]),
+    job_title = fix_spaces(df[[col_map$job_title]]),
+    
+    # Earnings
+    leave_payout = safe_extract(df, col_map$leave_payout),
+    regular_earnings = safe_extract(df, col_map$regular_earnings),
+    overtime_earnings = safe_extract(df, col_map$overtime_earnings),
+    additional_earnings = safe_extract(df, col_map$additional_earnings),
+    deployment_earnings = safe_extract(df, col_map$deployment_earnings),
+    arbitration_settlements = safe_extract(df, col_map$arbitration_settlements),
+    additional_benefits = safe_extract(df, col_map$additional_benefits),
+    
+    # Source totals for validation
+    source_total_earnings = safe_extract(df, col_map$total_earnings),
+    source_total_compensation = safe_extract(df, col_map$total_compensation)
+  )
+  
+  # Calculate totals
+  result <- result |>
+    dplyr::mutate(
+      calc_total_earnings = leave_payout + regular_earnings + overtime_earnings +
+                            additional_earnings + deployment_earnings + arbitration_settlements,
+      calc_total_compensation = calc_total_earnings + additional_benefits,
+      employee_key = base::paste(name_std, department, sep = "_")
+    )
+  
+  # For files without total_compensation, use total_earnings
+  result <- result |>
+    dplyr::mutate(
+      source_total_compensation = dplyr::if_else(
+        source_total_compensation == 0 & source_total_earnings > 0,
+        source_total_earnings,
+        source_total_compensation
+      )
+    )
+  
+  return(result)
+}
+
+# Process all files
+all_data <- purrr::map2_dfr(
+  base::names(files),
+  files,
+  function(fy, filename) {
+    process_file(fy, filename, column_maps[[fy]])
+  }
+)
+
+base::cat("Processed", base::nrow(all_data), "total rows\n")
+base::cat("Fiscal years:", base::paste(base::unique(all_data$fiscal_year), collapse = ", "), "\n")
+```
+
+------------------------------------------------------------------------
+
+## Step 7: Validation - Compare Calculated vs Source Totals
+
+```{r}
+#| label: validation
+
+# =============================================================================
+# VALIDATION: COMPARE CALCULATED VS SOURCE TOTALS
+# =============================================================================
+
+validation <- all_data |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::summarise(
+    rows = dplyr::n(),
+    calc_total = base::sum(calc_total_compensation, na.rm = TRUE),
+    source_total = base::sum(source_total_compensation, na.rm = TRUE),
+    difference = calc_total - source_total,
+    .groups = "drop"
+  ) |>
+  dplyr::mutate(
+    status = dplyr::if_else(base::abs(difference) <= 1, "PASS", "FAIL")
+  )
+
+validation |>
+  dplyr::mutate(
+    calc_total = scales::dollar(calc_total, accuracy = 1),
+    source_total = scales::dollar(source_total, accuracy = 1),
+    difference = scales::dollar(difference, accuracy = 0.01)
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Validation: Calculated vs Source Totals") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::bg(i = ~ status == "FAIL", bg = "#ffcccc") |>
+  flextable::bg(i = ~ status == "PASS", bg = "#ccffcc") |>
+  flextable::autofit()
+```
+
+```{r}
+#| label: validation-interpretation
+
+# Report on validation status
+validation_passed <- base::all(validation$status == "PASS")
+
+if (!validation_passed) {
+  base::cat("\n=== VALIDATION FAILED ===\n\n")
+  
+  failures <- validation |>
+    dplyr::filter(status == "FAIL")
+  
+  for (i in base::seq_len(base::nrow(failures))) {
+    row <- failures[i, ]
+    base::cat("MISMATCH in", row$fiscal_year, ":\n")
+    base::cat("  - Calculated:", scales::dollar(row$calc_total), "\n")
+    base::cat("  - Source:", scales::dollar(row$source_total), "\n")
+    base::cat("  - Difference:", scales::dollar(row$difference), "\n\n")
+  }
+  
+  base::cat("ACTION REQUIRED:\n")
+  base::cat("1. Check the column_maps for missing or incorrect column names\n")
+  base::cat("2. Review the column names shown in Phase 1\n")
+  base::cat("3. Update the column mappings to match the exact column names\n")
+  
+} else {
+  base::cat("Validation: PASSED\n")
+  base::cat("All calculated totals match source file totals within $1.00\n")
+}
+```
+
+------------------------------------------------------------------------
+
+## Step 8: Component Breakdown by Year
+
+```{r}
+#| label: component-breakdown
+
+# =============================================================================
+# COMPONENT BREAKDOWN BY FISCAL YEAR
+# =============================================================================
+
+component_summary <- all_data |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::summarise(
+    `Leave Payout` = base::sum(leave_payout, na.rm = TRUE),
+    `Regular` = base::sum(regular_earnings, na.rm = TRUE),
+    `Overtime` = base::sum(overtime_earnings, na.rm = TRUE),
+    `Additional` = base::sum(additional_earnings, na.rm = TRUE),
+    `Deployment` = base::sum(deployment_earnings, na.rm = TRUE),
+    `Arbitration` = base::sum(arbitration_settlements, na.rm = TRUE),
+    `Benefits` = base::sum(additional_benefits, na.rm = TRUE),
+    `TOTAL` = base::sum(calc_total_compensation, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+component_summary |>
+  dplyr::mutate(
+    dplyr::across(dplyr::where(is.numeric), ~ scales::dollar(.x, accuracy = 1))
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Component Breakdown by Fiscal Year") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+------------------------------------------------------------------------
+
+## Step 9: Convert to Long Format
+
+```{r}
+#| label: convert-to-long
+
+# =============================================================================
+# CONVERT TO LONG FORMAT FOR ANALYSIS
+# =============================================================================
+
+final_df <- all_data |>
+  dplyr::select(
+    fiscal_year, name, name_std, last_name, first_name,
+    department, job_title, employee_key,
+    leave_payout, regular_earnings, overtime_earnings,
+    additional_earnings, deployment_earnings, arbitration_settlements,
+    additional_benefits
+  ) |>
+  tidyr::pivot_longer(
+    cols = c(leave_payout, regular_earnings, overtime_earnings,
+             additional_earnings, deployment_earnings, arbitration_settlements,
+             additional_benefits),
+    names_to = "earnings_type",
+    values_to = "amount"
+  ) |>
+  dplyr::mutate(
+    earnings_type = dplyr::case_when(
+      earnings_type == "leave_payout" ~ "Leave Payout",
+      earnings_type == "regular_earnings" ~ "Regular",
+      earnings_type == "overtime_earnings" ~ "Overtime",
+      earnings_type == "additional_earnings" ~ "Additional",
+      earnings_type == "deployment_earnings" ~ "Deployment",
+      earnings_type == "arbitration_settlements" ~ "Arbitration",
+      earnings_type == "additional_benefits" ~ "Benefits",
+      TRUE ~ earnings_type
+    )
+  )
+
+base::cat("Long format data created:", base::nrow(final_df), "rows\n")
+base::cat("Unique employees:", dplyr::n_distinct(final_df$employee_key), "\n")
+```
+
+------------------------------------------------------------------------
+
+## Step 10: Checkpoint H - Explicit Component Breakdown
+
+This checkpoint shows exactly how much of each component was captured, proving nothing was missed.
+
+```{r}
+#| label: checkpoint-h-component-breakdown
+
+# =============================================================================
+# CHECKPOINT H: EXPLICIT COMPONENT BREAKDOWN
+# =============================================================================
+
+# Create a detailed breakdown showing each component's contribution
+component_breakdown <- final_df |>
+  dplyr::group_by(fiscal_year, earnings_type) |>
+  dplyr::summarise(
+    amount = base::sum(amount, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  tidyr::pivot_wider(
+    names_from = earnings_type,
+    values_from = amount,
+    values_fill = 0
+  )
+
+# Add totals row
+component_breakdown <- component_breakdown |>
+  dplyr::mutate(
+    `Total Earnings` = `Leave Payout` + Regular + Overtime + Additional + Deployment + Arbitration,
+    `Total Compensation` = `Total Earnings` + Benefits
+  )
+
+# Display
+component_breakdown |>
+  dplyr::mutate(
+    dplyr::across(dplyr::where(is.numeric), ~ scales::dollar(.x, accuracy = 1))
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Checkpoint H: Explicit Component Breakdown by Year") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+------------------------------------------------------------------------
+
+## Step 11: Summary Statistics
+
+```{r}
+#| label: summary-statistics
+
+# =============================================================================
+# SUMMARY STATISTICS
+# =============================================================================
+
+# Summary by year
+yearly_summary <- final_df |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::summarise(
+    total_compensation = base::sum(amount, na.rm = TRUE),
+    total_employees = dplyr::n_distinct(employee_key),
+    avg_compensation = total_compensation / total_employees,
+    .groups = "drop"
+  ) |>
+  dplyr::arrange(fiscal_year)
+
+yearly_summary |>
+  dplyr::mutate(
+    total_compensation = scales::dollar(total_compensation, accuracy = 1),
+    avg_compensation = scales::dollar(avg_compensation, accuracy = 1)
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Yearly Summary: Total Compensation and Headcount") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+------------------------------------------------------------------------
+
+## Step 12: Export Data
+
+```{r}
+#| label: export-data
+
+# =============================================================================
+# EXPORT DATA
+# =============================================================================
+
+# Ensure output directory exists
+if (!base::dir.exists(paths$data_clean)) {
+  base::dir.create(paths$data_clean, recursive = TRUE)
+}
+
+# Export
+test_suffix <- base::ifelse(report_settings$test_mode, "_TEST", "")
+
+rds_path <- base::file.path(paths$data_clean, base::paste0("compensation_long", test_suffix, ".rds"))
+base::saveRDS(final_df, file = rds_path)
+
+csv_path <- base::file.path(paths$data_clean, base::paste0("compensation_long", test_suffix, ".csv"))
+readr::write_csv(final_df, file = csv_path)
+
+# Also export the wide format for convenience
+wide_rds_path <- base::file.path(paths$data_clean, base::paste0("compensation_wide", test_suffix, ".rds"))
+base::saveRDS(all_data, file = wide_rds_path)
+
+wide_csv_path <- base::file.path(paths$data_clean, base::paste0("compensation_wide", test_suffix, ".csv"))
+readr::write_csv(all_data, file = wide_csv_path)
+
+base::cat("Data exported:\n")
+base::cat("  Long format:\n")
+base::cat("    -", rds_path, "\n")
+base::cat("    -", csv_path, "\n")
+base::cat("  Wide format:\n")
+base::cat("    -", wide_rds_path, "\n")
+base::cat("    -", wide_csv_path, "\n")
+```
+
+------------------------------------------------------------------------
+
+## Appendix A: Column Structure Comparison
+
+This shows exactly what columns exist in each year's file, helping identify when the spreadsheet structure changes.
+
+```{r}
+#| label: column-structure-comparison
+
+# =============================================================================
+# APPENDIX A: COLUMN STRUCTURE COMPARISON
+# =============================================================================
+
+# Build a comparison of actual column names across years
+col_comparison <- purrr::map_dfr(
+  base::names(files),
+  function(fy) {
+    filepath <- base::file.path(data_folder, files[[fy]])
+    
+    if (base::file.exists(filepath)) {
+      df <- readxl::read_excel(filepath) |>
+        janitor::clean_names()
+      
+      dplyr::tibble(
+        fiscal_year = fy,
+        column_name = base::names(df)
+      )
+    } else {
+      NULL
+    }
+  }
+) |>
+  dplyr::mutate(present = TRUE) |>
+  tidyr::pivot_wider(
+    names_from = fiscal_year,
+    values_from = present,
+    values_fill = FALSE
+  )
+
+col_comparison |>
+  dplyr::mutate(
+    dplyr::across(dplyr::where(is.logical), ~ dplyr::if_else(.x, "✓", ""))
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Column Presence by Fiscal Year") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+------------------------------------------------------------------------
+
+## Appendix B: Data Quality Checks
+
+```{r}
+#| label: data-quality-checks
+
+# =============================================================================
+# APPENDIX B: DATA QUALITY CHECKS
+# =============================================================================
+
+# Check for missing names
+missing_names <- all_data |>
+  dplyr::filter(base::is.na(name) | name == "" | name == "NA, NA") |>
+  dplyr::select(fiscal_year, name, department, job_title)
+
+if (base::nrow(missing_names) > 0) {
+  base::cat("WARNING: Found", base::nrow(missing_names), "records with missing names:\n")
+  base::print(missing_names)
+} else {
+  base::cat("No missing names found.\n")
+}
+
+# Check for duplicate employee keys within a year
+duplicates <- all_data |>
+  dplyr::group_by(fiscal_year, employee_key) |>
+  dplyr::filter(dplyr::n() > 1) |>
+  dplyr::arrange(fiscal_year, employee_key)
+
+if (base::nrow(duplicates) > 0) {
+  base::cat("\nWARNING: Found", base::nrow(duplicates), "duplicate employee keys:\n")
+  duplicates |>
+    dplyr::select(fiscal_year, name, department, job_title) |>
+    base::print()
+} else {
+  base::cat("No duplicate employee keys found within fiscal years.\n")
+}
+
+# Check for negative amounts
+negative_amounts <- all_data |>
+  dplyr::filter(
+    leave_payout < 0 | regular_earnings < 0 | overtime_earnings < 0 |
+    additional_earnings < 0 | deployment_earnings < 0 | arbitration_settlements < 0 |
+    additional_benefits < 0
+  )
+
+if (base::nrow(negative_amounts) > 0) {
+  base::cat("\nNOTE: Found", base::nrow(negative_amounts), "records with negative amounts (may be corrections/adjustments)\n")
+} else {
+  base::cat("No negative amounts found.\n")
+}
+```
+
+------------------------------------------------------------------------
+
+## Appendix C: Year-over-Year Comparison
+
+```{r}
+#| label: yoy-comparison
+
+# =============================================================================
+# APPENDIX C: YEAR-OVER-YEAR COMPARISON
+# =============================================================================
+
+yoy_summary <- yearly_summary |>
+  dplyr::mutate(
+    prev_total = dplyr::lag(total_compensation),
+    prev_employees = dplyr::lag(total_employees),
+    total_change = total_compensation - prev_total,
+    total_pct_change = (total_change / prev_total) * 100,
+    employee_change = total_employees - prev_employees
+  )
+
+yoy_summary |>
+  dplyr::mutate(
+    total_compensation = scales::dollar(total_compensation, accuracy = 1),
+    avg_compensation = scales::dollar(avg_compensation, accuracy = 1),
+    total_change = scales::dollar(total_change, accuracy = 1),
+    total_pct_change = base::sprintf("%.1f%%", total_pct_change)
+  ) |>
+  dplyr::select(
+    fiscal_year, total_employees, employee_change,
+    total_compensation, total_change, total_pct_change, avg_compensation
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Year-over-Year Comparison") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+------------------------------------------------------------------------
+
+## Appendix D: Top Earners by Year
+
+```{r}
+#| label: top-earners
+
+# =============================================================================
+# APPENDIX D: TOP EARNERS BY YEAR
+# =============================================================================
+
+top_earners <- all_data |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::slice_max(order_by = calc_total_compensation, n = 10) |>
+  dplyr::select(
+    fiscal_year, name, department, job_title, calc_total_compensation
+  ) |>
+  dplyr::mutate(
+    rank = dplyr::row_number()
+  ) |>
+  dplyr::ungroup()
+
+top_earners |>
+  dplyr::mutate(
+    calc_total_compensation = scales::dollar(calc_total_compensation, accuracy = 1)
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Top 10 Earners by Fiscal Year") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+------------------------------------------------------------------------
+
+## Appendix E: Department Summary
+
+```{r}
+#| label: department-summary
+
+# =============================================================================
+# APPENDIX E: DEPARTMENT SUMMARY
+# =============================================================================
+
+dept_summary <- all_data |>
+  dplyr::group_by(fiscal_year, department) |>
+  dplyr::summarise(
+    employees = dplyr::n(),
+    total_comp = base::sum(calc_total_compensation, na.rm = TRUE),
+    avg_comp = base::mean(calc_total_compensation, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  dplyr::arrange(fiscal_year, dplyr::desc(total_comp))
+
+# Show FY24 as example
+dept_summary |>
+  dplyr::filter(fiscal_year == "FY24") |>
+  dplyr::mutate(
+    total_comp = scales::dollar(total_comp, accuracy = 1),
+    avg_comp = scales::dollar(avg_comp, accuracy = 1)
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Department Summary - FY24") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+------------------------------------------------------------------------
+
+## Appendix F: Overtime Analysis
+
+```{r}
+#| label: overtime-analysis
+
+# =============================================================================
+# APPENDIX F: OVERTIME ANALYSIS
+# =============================================================================
+
+overtime_summary <- all_data |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::summarise(
+    total_overtime = base::sum(overtime_earnings, na.rm = TRUE),
+    total_regular = base::sum(regular_earnings, na.rm = TRUE),
+    overtime_pct = (total_overtime / total_regular) * 100,
+    employees_with_ot = base::sum(overtime_earnings > 0),
+    total_employees = dplyr::n(),
+    pct_with_ot = (employees_with_ot / total_employees) * 100,
+    .groups = "drop"
+  )
+
+overtime_summary |>
+  dplyr::mutate(
+    total_overtime = scales::dollar(total_overtime, accuracy = 1),
+    total_regular = scales::dollar(total_regular, accuracy = 1),
+    overtime_pct = base::sprintf("%.1f%%", overtime_pct),
+    pct_with_ot = base::sprintf("%.1f%%", pct_with_ot)
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Overtime Analysis by Fiscal Year") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+------------------------------------------------------------------------
+
+## How to Add a New Fiscal Year
+
+When you receive a new fiscal year's file:
+
+1.  **Add the filename** to the `files` list in Step 1
+
+2.  **Run Phase 1** to see the exact column names:
+
+``` r
+new_file <- readxl::read_excel(here::here("data_raw", "NEW_FILE.xlsx"))
+base::names(janitor::clean_names(new_file))
+```
+
+3.  **Add a new entry to `column_maps`** in Step 4 with the exact column names
+
+4.  **Run the pipeline** - Validation will tell you if any columns are missing
+
+5.  **Update column names** if the spreadsheet structure has changed
+
+This explicit approach means you'll never silently lose data when the spreadsheet structure changes.
+
+------------------------------------------------------------------------
+
+## Summary
+
+| Year    | Structure                              | Notes                    |
+|---------|----------------------------------------|--------------------------|
+| FY20-22 | Single `name` column, no benefits      | Total = Total Earnings   |
+| FY23-24 | Split `last_name`/`first_name`, has benefits | Full Total Compensation |
+
+If validation shows **FAIL**, check the column mappings in Step 4.
