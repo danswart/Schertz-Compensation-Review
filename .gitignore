@@ -95,6 +95,8 @@ temp-*.RDS
 # Raw data (if large)
 data-raw/
 raw-data/
+data_raw/
+raw_data/
 
 # Auto-generated plots
 Rplots.pdf
