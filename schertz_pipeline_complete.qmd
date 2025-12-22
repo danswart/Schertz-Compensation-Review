@@ -264,7 +264,7 @@ report_settings <- base::list(
 This reads each file, applies `clean_names()`, and shows you the exact column names to use.
 
 ```{r}
-#| label: read-and-show-columns
+#| label: import-and-show-columns
 
 # Read each file and capture column names
 file_info <- purrr::map_dfr(base::names(files), function(fy) {
@@ -529,7 +529,7 @@ safe_extract <- function(df, col_name) {
 
 ------------------------------------------------------------------------
 
-## Step 6: Process Each File
+## Step 6: Process Each File for Each Year
 
 ```{r}
 #| label: process-files
@@ -550,14 +550,14 @@ process_file <- function(fy, filename, col_map) {
   df <- readxl::read_excel(filepath) |>
     janitor::clean_names()
   
-  # Handle name - either single column or split
+  # Handle column name - either single column or split
   if (!base::is.na(col_map$name)) {
     # Single name column
     name_values <- fix_spaces(df[[col_map$name]])
     last_name <- NA_character_
     first_name <- NA_character_
   } else {
-    # Split name columns
+    # Handle split name columns
     last_name <- fix_spaces(df[[col_map$last_name]])
     first_name <- fix_spaces(df[[col_map$first_name]])
     name_values <- base::paste(last_name, first_name, sep = ", ")
@@ -764,7 +764,7 @@ final_df <- all_data |>
   ) |>
   dplyr::mutate(
     earnings_type = dplyr::case_when(
-      earnings_type == "leave_payout" ~ "Leave Payout",
+      earnings_type == "leave_payout" ~ "Leave",
       earnings_type == "regular_earnings" ~ "Regular",
       earnings_type == "overtime_earnings" ~ "Overtime",
       earnings_type == "additional_earnings" ~ "Additional",
@@ -808,7 +808,7 @@ component_breakdown <- final_df |>
 # Add totals row
 component_breakdown <- component_breakdown |>
   dplyr::mutate(
-    `Total Earnings` = `Leave Payout` + Regular + Overtime + Additional + Deployment + Arbitration,
+    `Total Earnings` = `Leave` + Regular + Overtime + Additional + Deployment + Arbitration,
     `Total Compensation` = `Total Earnings` + Benefits
   )
 
@@ -868,6 +868,7 @@ yearly_summary |>
 
 ------------------------------------------------------------------------
 
+
 ## Step 12: Export Data
 
 ```{r}
@@ -908,6 +909,8 @@ base::cat("    -", wide_csv_path, "\n")
 ```
 
 ------------------------------------------------------------------------
+
+
 
 ## Appendix A: Column Structure Comparison
 
@@ -963,6 +966,8 @@ col_comparison |>
 
 ------------------------------------------------------------------------
 
+
+
 ## Appendix B: Data Quality Checks
 
 ```{r}
@@ -1014,7 +1019,11 @@ if (base::nrow(negative_amounts) > 0) {
 }
 ```
 
+
 ------------------------------------------------------------------------
+
+
+
 
 ## Appendix C: Year-over-Year Comparison
 
@@ -1022,7 +1031,7 @@ if (base::nrow(negative_amounts) > 0) {
 #| label: yoy-comparison
 
 # =============================================================================
-# APPENDIX C: YEAR-OVER-YEAR COMPARISON
+# APPENDIX C: YEAR-OVER-YEAR COMPARISON OF EE TOTALS, COMPENSATION, PCT, AVG COMP
 # =============================================================================
 
 yoy_summary <- yearly_summary |>
@@ -1056,7 +1065,9 @@ yoy_summary |>
   flextable::autofit()
 ```
 
+
 ------------------------------------------------------------------------
+
 
 ## Appendix D: Top 10 Earners by Year
 
@@ -1067,7 +1078,7 @@ yoy_summary |>
 # APPENDIX D: TOP 10 EARNERS BY YEAR
 # =============================================================================
 
-top_earners <- all_data |>
+top_10_earners <- all_data |>
   dplyr::group_by(fiscal_year) |>
   dplyr::slice_max(order_by = calc_total_compensation, n = 10) |>
   dplyr::select(
@@ -1078,7 +1089,7 @@ top_earners <- all_data |>
   ) |>
   dplyr::ungroup()
 
-top_earners |>
+top_10_earners |>
   dplyr::mutate(
     calc_total_compensation = scales::dollar(calc_total_compensation, accuracy = 1)
   ) |>
@@ -1093,7 +1104,9 @@ top_earners |>
   flextable::autofit()
 ```
 
+
 ------------------------------------------------------------------------
+
 
 ## Appendix E: Department Summary
 
@@ -1132,7 +1145,9 @@ dept_summary |>
   flextable::autofit()
 ```
 
+
 ------------------------------------------------------------------------
+
 
 ## Appendix F: Overtime Analysis
 
@@ -1177,7 +1192,8 @@ overtime_summary |>
 
 ------------------------------------------------------------------------
 
-## Appendix G: Department Ranking Changes Over Time (Bump Chart)
+
+## Appendix G: Department Compenstation Ranking Over Time (Bump Chart)
 ```{r}
 #| label: dept-rank-bump-chart
 #| fig-width: 13
@@ -1207,7 +1223,7 @@ top_10_ever <- dept_ranks_all |>
   dplyr::pull(department)
 
 # Filter to only those departments
-dept_ranks <- dept_ranks_all |>
+dept_ranks_top_10 <- dept_ranks_all |>
   dplyr::filter(department %in% top_10_ever)
 
 okabe_ito <- c(
@@ -1228,18 +1244,18 @@ okabe_ito <- c(
 
 
 # Create bump chart
-ggplot2::ggplot(dept_ranks, ggplot2::aes(x = fiscal_year, y = rank, 
+ggplot2::ggplot(dept_ranks_top_10, ggplot2::aes(x = fiscal_year, y = rank, 
                                           group = department, color = department)) +
   ggplot2::geom_line(linewidth = 1.5) +
   ggplot2::geom_point(size = 4) +
   ggplot2::geom_text(
-    data = dplyr::filter(dept_ranks, fiscal_year == "FY24"),
+    data = dplyr::filter(dept_ranks_top_10, fiscal_year == "FY24"),
     ggplot2::aes(label = department),
     hjust = -0.1,
     size = 3
   ) +
   ggplot2::geom_text(
-    data = dplyr::filter(dept_ranks, fiscal_year == "FY20"),
+    data = dplyr::filter(dept_ranks_top_10, fiscal_year == "FY20"),
     ggplot2::aes(label = department),
     hjust = 1.1,
     size = 3
@@ -1249,18 +1265,21 @@ ggplot2::ggplot(dept_ranks, ggplot2::aes(x = fiscal_year, y = rank,
   ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = c(0.25, 0.35))) +
   ggplot2::labs(
     title = "Department Compensation Rankings Over Time",
-    subtitle = "Rank 1 = highest total compensation. Lines show how departments moved in rankings.",
+    subtitle = "Rank 1 = highest total compensation. Lines show how departments moved in rankings relative to each other.",
     x = "Fiscal Year",
     y = "Rank (1 = Highest)"
   ) +
   ggplot2::theme(legend.position = "none")
 ```
 
+
+# Calculate compensation rankings by year for all departments (in table form)
+
 ```{r}
 #| label: dept-rank-table
 
 # Show the underlying data
-dept_ranks |>
+dept_ranks_top_10 |>
   tidyr::pivot_wider(
     id_cols = department,
     names_from = fiscal_year,
@@ -1281,48 +1300,99 @@ dept_ranks |>
 
 ------------------------------------------------------------------------
 
-## Appendix H: City Manager Compensation Over Time
+
+## Appendix H: City Manager Total Compensation Over Time
+
 ```{r}
-#| label: plot-city-manager
-#| fig-width: 10
-#| fig-height: 6
+#| label: plot-city-manager-total-comp
+#| fig-width: 13
+#| fig-height: 8
 
 # =============================================================================
 # APPENDIX H: CITY MANAGER COMPENSATION OVER TIME
 # =============================================================================
 
+
+# City Manager TOTAL COMPENSATION by Fiscal Year
+# Total compensation = Leave + Regular + Overtime + Additional + Deployment + Arbitration + Benefits
+
+# If you've already recoded earnings_type to pretty labels (e.g., "Regular"),
+# these are the labels to include:
+comp_types <- c(
+  "Leave Payout", "Regular", "Overtime", "Additional",
+  "Deployment", "Arbitration", "Benefits"
+)
+
 city_manager_data <- final_df |>
-  dplyr::filter(job_title == "City Manager", earnings_type == "Regular")
+  dplyr::filter(
+    job_title == "City Manager",
+    earnings_type %in% comp_types
+  ) |>
+  dplyr::group_by(fiscal_year, name) |>
+  dplyr::summarise(
+    total_compensation = sum(amount, na.rm = TRUE),
+    .groups = "drop"
+  )
 
 if (base::nrow(city_manager_data) > 0) {
-  ggplot2::ggplot(city_manager_data, 
-                  ggplot2::aes(x = fiscal_year, y = amount, group = name, color = name)) +
+
+  ggplot2::ggplot(
+    city_manager_data,
+    ggplot2::aes(x = fiscal_year, y = total_compensation, group = name, color = name)
+  ) +
     ggplot2::geom_line(linewidth = 1) +
     ggplot2::geom_point(size = 3) +
-    ggplot2::scale_y_continuous(labels = scales::dollar_format()) +
+
+    # Value labels ABOVE points
+    ggplot2::geom_text(
+      ggplot2::aes(label = scales::dollar(total_compensation, accuracy = 1)),
+      vjust = -1.5,
+      size = 4.5,
+      color = "black",
+      show.legend = FALSE
+    ) +
+
+    # Keep headroom for labels
+    ggplot2::scale_y_continuous(
+      expand = ggplot2::expansion(mult = c(0, 0.15))
+    ) +
+
     ggplot2::labs(
-      title = "City Manager Regular Earnings by Fiscal Year",
+      title = "City Manager - Total Compensation by Fiscal Year",
       subtitle = "City of Schertz",
       x = "Fiscal Year",
-      y = "Regular Earnings",
+      y = NULL,
       color = "Employee"
     ) +
-    ggplot2::theme(legend.position = "bottom")
+
+    # Remove y-axis clutter
+    ggplot2::theme(
+      legend.position = "bottom",
+      axis.text.y  = ggplot2::element_blank(),
+      axis.ticks.y = ggplot2::element_blank(),
+      panel.grid.major.y = ggplot2::element_blank()
+    )
+
 } else {
   base::cat("No City Manager records found in the data.\n")
 }
+
 ```
+
+
+
 
 ------------------------------------------------------------------------
 
-## Appendix I: Total Compensation Growth
+
+## Appendix I: Total Compensation Growth by Year
 ```{r}
 #| label: plot-total-compensation-growth-by-year
 #| fig-width: 10
 #| fig-height: 6
 
 # =============================================================================
-# APPENDIX I: TOTAL COMPENSATION GROWTH
+# APPENDIX I: TOTAL COMPENSATION GROWTH BY FISCAL YEAR - ALL DEPTS
 # =============================================================================
 
 ggplot2::ggplot(yearly_summary, 
@@ -1331,30 +1401,43 @@ ggplot2::ggplot(yearly_summary,
   ggplot2::geom_point(size = 4, color = "steelblue") +
   ggplot2::geom_text(
     ggplot2::aes(label = scales::dollar(total_compensation, scale = 1e-6, suffix = "M")),
-    vjust = -1
+    vjust = -2
   ) +
+  
+  ggplot2::theme(
+    axis.text.y  = ggplot2::element_blank(),
+    axis.ticks.y = ggplot2::element_blank(),
+    panel.grid.major.y = ggplot2::element_blank()
+  ) +
+
   ggplot2::scale_y_continuous(
-    labels = scales::dollar_format(scale = 1e-6, suffix = "M"),
-    expand = ggplot2::expansion(mult = c(0, 0.15))
-  ) +
+    expand = ggplot2::expansion(mult = c(0.05, 0.15)
+                                )
+    ) +
+
   ggplot2::labs(
-    title = "Total Employee Compensation by Fiscal Year",
+    title = "Total Employee Compensation by Fiscal Year - All Depts",
     subtitle = "City of Schertz",
     x = "Fiscal Year",
     y = "Total Compensation"
   )
+
 ```
+
 
 ------------------------------------------------------------------------
 
+
 ## Appendix J: Year-over-Year Growth Rate Bar Chart
+
+
 ```{r}
 #| label: plot-growth-rate
 #| fig-width: 10
 #| fig-height: 6
 
 # =============================================================================
-# APPENDIX J: YEAR-OVER-YEAR GROWTH RATE
+# APPENDIX J: YEAR-OVER-YEAR GROWTH RATE BAR CHART
 # =============================================================================
 
 growth_data <- yearly_summary |>
@@ -1383,8 +1466,11 @@ growth_data |>
   )
 ```
 
+
 ```{r}
 #| label: growth-rate-table
+
+# APPENDIX J: YEAR-OVER-YEAR GROWTH RATE TABLE
 
 growth_data |>
   dplyr::mutate(
@@ -1416,6 +1502,7 @@ growth_data |>
 
 
 ------------------------------------------------------------------------
+
 
 ## How to Add a New Fiscal Year
 

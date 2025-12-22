@@ -1,0 +1,57 @@
+---
+title: "Code Object Definitions"
+format: html
+---
+
+
+file_info        = list of files to be imported
+filepath         = Path specifications
+df                = Read each raw_data file and capture column names: WIDE; df in objects is last yr imported; includes totals columns per Excel data
+column_maps      = List OF column names present by year
+
+all_data          = Combined original data for ALL FY; WIDE; EE key added; Calc'd totals per R; Totals per Excel for comparisons
+
+final_df          = all_data in LONG form; user friendly column names
+validation        = all_data subset into totals per FY to compare source with computed totals
+
+component_breakdown = from final_df includes total earnings and total compensation columns calc'd by R
+
+component_summary = from final_df; total comp by type of payout; no total columns from component_breakdown; grand total calc'd by R
+
+yearly_summary    = from final_df; total comp, total # of employees, average pay/employee by FY
+
+col_comparison    = table of logical values for display of which years each column is present
+
+missing_names     = check for missing names in the all_data object (blank or NA in the names field)
+
+duplicates        = check for duplicates in the employee_key in the all_data object
+
+negative_amounts  = Check all_data for negative amounts
+
+yoy_summary       = year-over-year comparisons of EE compensation, # of EEs, Pct change, and Avg Comp; from yearly_summary 
+
+top_10_earners    = The top 10 earners from all_data; all depts; calc'd by R
+
+dept_summary      = comparing departments on # of EEs, comp, and avg comp by FY; from all_data
+
+overtime_summary  = comparing overtime by FY with % of all employees receiving OT; from all_data
+
+dept_ranks_all    = Calculate rank in total compensation by year for all departments; from final_df
+
+dept_ranks        = Total compensation rankings by year for top 10 departments; from dept_ranks_all
+
+city_manager_data = City Mgr compensation of time; from final_df
+
+growth_data       = from yearly_summary; total compensation, total comp growth rate and growth %
+ 
+
+
+
+
+
+
+
+
+
+
+
