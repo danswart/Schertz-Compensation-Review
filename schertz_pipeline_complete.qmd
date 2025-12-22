@@ -1058,13 +1058,13 @@ yoy_summary |>
 
 ------------------------------------------------------------------------
 
-## Appendix D: Top Earners by Year
+## Appendix D: Top 10 Earners by Year
 
 ```{r}
-#| label: top-earners
+#| label: top-10-earners-per-year
 
 # =============================================================================
-# APPENDIX D: TOP EARNERS BY YEAR
+# APPENDIX D: TOP 10 EARNERS BY YEAR
 # =============================================================================
 
 top_earners <- all_data |>
@@ -1172,6 +1172,248 @@ overtime_summary |>
   flextable::bg(i = 2, bg = "palegreen", part = "header") |>
   flextable::autofit()
 ```
+
+
+
+------------------------------------------------------------------------
+
+## Appendix G: Department Ranking Changes Over Time (Bump Chart)
+```{r}
+#| label: dept-rank-bump-chart
+#| fig-width: 13
+#| fig-height: 8
+
+# =============================================================================
+# APPENDIX G: DEPARTMENT RANKING BUMP CHART
+# =============================================================================
+
+# Calculate ranks by year for all departments
+dept_ranks_all <- final_df |>
+  dplyr::group_by(department, fiscal_year) |>
+  dplyr::summarise(
+    total_compensation = base::sum(amount, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::mutate(
+    rank = dplyr::min_rank(dplyr::desc(total_compensation))
+  ) |>
+  dplyr::ungroup()
+
+# Get departments that were ever in top 10
+top_10_ever <- dept_ranks_all |>
+  dplyr::filter(rank <= 10) |>
+  dplyr::distinct(department) |>
+  dplyr::pull(department)
+
+# Filter to only those departments
+dept_ranks <- dept_ranks_all |>
+  dplyr::filter(department %in% top_10_ever)
+
+okabe_ito <- c(
+  "#000000", # black
+  "#E69F00", # orange
+  "#56B4E9", # sky blue
+  "#009E73", # bluish green
+  "#F0E442", # yellow
+  "#0072B2", # blue
+  "#D55E00", # vermilion
+  "#CC79A7",  # reddish purple
+  "firebrick",
+  "navy",
+  "darkgreen",
+  "brown"
+  
+)
+
+
+# Create bump chart
+ggplot2::ggplot(dept_ranks, ggplot2::aes(x = fiscal_year, y = rank, 
+                                          group = department, color = department)) +
+  ggplot2::geom_line(linewidth = 1.5) +
+  ggplot2::geom_point(size = 4) +
+  ggplot2::geom_text(
+    data = dplyr::filter(dept_ranks, fiscal_year == "FY24"),
+    ggplot2::aes(label = department),
+    hjust = -0.1,
+    size = 3
+  ) +
+  ggplot2::geom_text(
+    data = dplyr::filter(dept_ranks, fiscal_year == "FY20"),
+    ggplot2::aes(label = department),
+    hjust = 1.1,
+    size = 3
+  ) +
+  ggplot2::scale_color_manual(values = okabe_ito) +
+  ggplot2::scale_y_reverse(breaks = 1:15) +
+  ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = c(0.25, 0.35))) +
+  ggplot2::labs(
+    title = "Department Compensation Rankings Over Time",
+    subtitle = "Rank 1 = highest total compensation. Lines show how departments moved in rankings.",
+    x = "Fiscal Year",
+    y = "Rank (1 = Highest)"
+  ) +
+  ggplot2::theme(legend.position = "none")
+```
+
+```{r}
+#| label: dept-rank-table
+
+# Show the underlying data
+dept_ranks |>
+  tidyr::pivot_wider(
+    id_cols = department,
+    names_from = fiscal_year,
+    values_from = rank
+  ) |>
+  dplyr::arrange(FY24) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Department Rankings by Fiscal Year (1 = Highest Compensation)") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+
+------------------------------------------------------------------------
+
+## Appendix H: City Manager Compensation Over Time
+```{r}
+#| label: plot-city-manager
+#| fig-width: 10
+#| fig-height: 6
+
+# =============================================================================
+# APPENDIX H: CITY MANAGER COMPENSATION OVER TIME
+# =============================================================================
+
+city_manager_data <- final_df |>
+  dplyr::filter(job_title == "City Manager", earnings_type == "Regular")
+
+if (base::nrow(city_manager_data) > 0) {
+  ggplot2::ggplot(city_manager_data, 
+                  ggplot2::aes(x = fiscal_year, y = amount, group = name, color = name)) +
+    ggplot2::geom_line(linewidth = 1) +
+    ggplot2::geom_point(size = 3) +
+    ggplot2::scale_y_continuous(labels = scales::dollar_format()) +
+    ggplot2::labs(
+      title = "City Manager Regular Earnings by Fiscal Year",
+      subtitle = "City of Schertz",
+      x = "Fiscal Year",
+      y = "Regular Earnings",
+      color = "Employee"
+    ) +
+    ggplot2::theme(legend.position = "bottom")
+} else {
+  base::cat("No City Manager records found in the data.\n")
+}
+```
+
+------------------------------------------------------------------------
+
+## Appendix I: Total Compensation Growth
+```{r}
+#| label: plot-total-compensation-growth-by-year
+#| fig-width: 10
+#| fig-height: 6
+
+# =============================================================================
+# APPENDIX I: TOTAL COMPENSATION GROWTH
+# =============================================================================
+
+ggplot2::ggplot(yearly_summary, 
+                ggplot2::aes(x = fiscal_year, y = total_compensation, group = 1)) +
+  ggplot2::geom_line(linewidth = 1.5, color = "steelblue") +
+  ggplot2::geom_point(size = 4, color = "steelblue") +
+  ggplot2::geom_text(
+    ggplot2::aes(label = scales::dollar(total_compensation, scale = 1e-6, suffix = "M")),
+    vjust = -1
+  ) +
+  ggplot2::scale_y_continuous(
+    labels = scales::dollar_format(scale = 1e-6, suffix = "M"),
+    expand = ggplot2::expansion(mult = c(0, 0.15))
+  ) +
+  ggplot2::labs(
+    title = "Total Employee Compensation by Fiscal Year",
+    subtitle = "City of Schertz",
+    x = "Fiscal Year",
+    y = "Total Compensation"
+  )
+```
+
+------------------------------------------------------------------------
+
+## Appendix J: Year-over-Year Growth Rate Bar Chart
+```{r}
+#| label: plot-growth-rate
+#| fig-width: 10
+#| fig-height: 6
+
+# =============================================================================
+# APPENDIX J: YEAR-OVER-YEAR GROWTH RATE
+# =============================================================================
+
+growth_data <- yearly_summary |>
+  dplyr::arrange(fiscal_year) |>
+  dplyr::mutate(
+    prior_total = dplyr::lag(total_compensation),
+    growth_rate = (total_compensation - prior_total) / prior_total,
+    growth_pct = growth_rate * 100
+  )
+
+growth_data |>
+  dplyr::filter(!base::is.na(growth_rate)) |>
+  ggplot2::ggplot(ggplot2::aes(x = fiscal_year, y = growth_pct)) +
+  ggplot2::geom_col(fill = "steelblue") +
+  ggplot2::geom_text(
+    ggplot2::aes(label = base::paste0(base::round(growth_pct, 1), "%")),
+    vjust = -0.5
+  ) +
+  ggplot2::geom_hline(yintercept = 0, linetype = "dashed") +
+  ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
+  ggplot2::labs(
+    title = "Year-over-Year Compensation Growth",
+    subtitle = "City of Schertz",
+    x = "Fiscal Year",
+    y = "Growth Rate (%)"
+  )
+```
+
+```{r}
+#| label: growth-rate-table
+
+growth_data |>
+  dplyr::mutate(
+    change_num = total_compensation - prior_total,
+    total_compensation_disp = scales::dollar(total_compensation, accuracy = 1),
+    prior_total_disp        = scales::dollar(prior_total, accuracy = 1),
+    change_disp             = scales::dollar(change_num, accuracy = 1),
+    growth_pct_disp         = sprintf("%.1f%%", growth_pct)
+  ) |>
+  dplyr::select(
+    fiscal_year, total_employees,
+    total_compensation = total_compensation_disp,
+    prior_total        = prior_total_disp,
+    change             = change_disp,
+    growth_pct         = growth_pct_disp
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Year-over-Year Compensation Growth Details") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+
+```
+
+
 
 ------------------------------------------------------------------------
 
