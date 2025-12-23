@@ -276,7 +276,7 @@ fy23_cols[stringr::str_detect(fy23_cols, "regular|overtime|additional")]
 std_fy23 <- raw_data$fy23 |>
   dplyr::transmute(
     name_original       = base::paste0(last_name, ", ", first_name),
-    department          = home_department,
+    department          = department,
     job_title           = job_title,
     hire_date           = hire_date,
     separation_date     = separation_date,

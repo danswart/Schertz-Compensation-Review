@@ -1,0 +1,16 @@
+---
+title: "Bad Data from City"
+format: html
+---
+
+
+
+FY23 Total Employees per City spreadsheet = 457
+ACTUAL Count                              = 513
+              DIFF                        =  56
+
+FY23 Total Employee Compensation City spreadsheet = 33,952,337
+ACTUAL Total                                      = 37,915,565
+              DIFF                                =  3,963,228
+
+

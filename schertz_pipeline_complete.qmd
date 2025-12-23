@@ -4,9 +4,10 @@ subtitle: "Compensation Review Project"
 description: "Each earnings component explicitly captured and validated"
 authors: 
   - name: "Dan Swart, CPA (ret)"
-  - name: "Claude Opus 4.5"
+  - name: "Claude Sonnet 4.5"
 date: today
 date-format: long
+# bibliography: manual-refs.bib
 format:
   html:
     resources:
@@ -16,13 +17,13 @@ format:
           # <script type="text/javascript" src="reference-backlinks.js"></script>
     default: true         
     code-copy: true
-    code-link: true
-    code-fold: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
     code-summary: "Show the code"
     code-overflow: wrap
     code-block-bg: "#FAEBD7"
     code-block-border-left: "#31BAE9"
-    embed-resources: false
+    embed-resources: false     # Fast for drafts. Override for sharing output
     include-in-header:
       - text: 
           <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
@@ -49,6 +50,44 @@ format:
     citeproc: true
     link-citations: true
     linestretch: 1.0
+    
+    
+    
+  typst:
+    # fig-width: 13
+    E fig-height: 8
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
 
 editor: source
 
@@ -56,6 +95,8 @@ quarto:
   render:
     cache-refresh: true
 
+
+# for .qmd filesd
 execute:
   echo: true
   message: false
@@ -64,6 +105,8 @@ execute:
   fig-width: 13
   fig-height: 8
 
+
+# for .rmd files
 knitr:
   opts_chunk:
     echo: true
@@ -71,11 +114,23 @@ knitr:
     warning: false
     message: false
     cache: false
+
+
 ---
+
 
 ```{r}
 #| label: setup
 #| include: false
+
+
+# install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
+
+# census_api_key("95496766c51541ee6f402c1e1a8658581285b759", install = TRUE, overwrite = TRUE)
+
+
+# # load libraries - NOT NEEDED
+
 
 # Force dplyr's select to take precedence
 select <- dplyr::select
@@ -83,10 +138,15 @@ filter <- dplyr::filter
 
 # Options
 options(scipen = 999)
-options(DT.options = list(dom = 'pBlfrti'))
-options(shiny.maxRequestSize = 50 * 1024^2)
+options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
 options(tigris_use_cache = TRUE)
 options(device = "RStudioGD") 
+
 
 # Flextable defaults:
 flextable::set_flextable_defaults(
@@ -106,9 +166,87 @@ flextable::set_flextable_defaults(
   post_process_docx = identity
 )
 
-# Set global ggplot2 theme (NO theme_minimal)
+
+#
+# # Sample Code:
+# flextable::flextable(violations) |>
+ #  flextable::set_header_labels(
+ #    Variable = "Variable",
+ #    Measurement = "Measurement",
+ #    Likely_Impact = "Likely Impact"
+ #  ) |>
+#    flextable::add_header_lines(values = "Frequent Violations of Scientific Method in Current So-Called 'Equity' Research") |>
+#   flextable::color(i = 1, color = "blue", part = "header") |>
+#   flextable::italic(i = 1, part = "header") |>
+#   flextable::align(i = 1, align = "center", part = "header") |>
+#   flextable::fontsize(i = 1, size = 14, part = "header") |>
+#   flextable::bg(i = 1, bg = "white", part = "header") |>
+#   flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+#   flextable::bold(i = 1:2, part = "header") |>
+#   flextable::bold(i = 1:7, j = 1, part = "body") |>
+#   ftExtra::colformat_md() |> 
+#   flextable::autofit()
+  
+
+# Flextable built-in themes:
+  # flextable::theme_alafoli()	|>  # BLAH
+  # flextable::theme_apa()  # THIS IS NICE
+  # flextable::theme_booktabs() |>  # NICE, MORE COMPACT
+  # flextable::theme_box() |>   # OK, INCLUDES CELL BORDERS
+  # flextable::theme_tron() |>  # 'DARK MODE' BLUE TEXT
+  # flextable::theme_tron_legacy() |>   # 'DARK MODE' YELLOW TEXT
+  # flextable::theme_vader() |>    # 'DARK MODE' WHITE TEXT
+  # flextable::theme_vanilla() |>   # NOT SPECIAL
+  # flextable::theme_zebra()	|>
+  #
+
+# Flextable titles:
+  # flextable::colformat_double(j = c("Mean", "SD", "N"), big.mark = ",", digits = 1) |>
+  # flextable::flextable(variance_comparison) |>
+  #  flextable::add_header_lines(values = "The Within-Group vs Between-Group Variance Problem") |>
+
+# Flextable Title theming at table-level:
+  #  flextable::color(i = 1, color = "blue", part = "header") |>
+  #  flextable::italic(i = 1, part = "header") |>
+  #  flextable::align(i = 1, align = "center", part = "header") |>
+  #  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  #  flextable::bg(i = 1, bg = "white", part = "header") |>
+
+# Flextable standard table background colors:
+  #  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  
+
+# Flextable reading markdown:
+  #  ftExtra::colformat_md() |> 
+
+# Flextable auto-sizing cell widths:
+  #  flextable::autofit() 
+ 
+ # Flextable background based on SPECIFIC cell contents:
+  #
+  # flextable::bg(i = ~ Impact_on_Validity == "High", j = "Impact_on_Validity", bg = "#ffcccc") |>
+ # flextable::bg(i = ~ Impact_on_Validity == "Medium", j = "Impact_on_Validity", bg = "#ffffcc") |>
+  #
+  # 
+  # Apply yellow background to any cell containing "Yes":
+
+  # for (col in base::names(hypotheses_data)) {
+  #   yes_rows <- base::which(hypotheses_data[[col]] == "Yes")
+  #   if (base::length(yes_rows) > 0) {
+  #     ft <- ft |>
+  #       flextable::bg(i = yes_rows, j = col, bg = "yellow", part = "body")
+  #   }
+  # } 
+  #
+  # Apply to last row of table:
+  #
+  #
+
+
+
+# Set global theme for consistent plots
 ggplot2::theme_set(
-  ggplot2::theme_bw(base_size = 16) +
+  ggplot2::theme_minimal(base_size = 20) +
     ggplot2::theme(
       plot.title.position = "plot",
       plot.title = ggtext::element_textbox_simple(
@@ -148,11 +286,13 @@ ggplot2::theme_set(
         angle = 45,
         hjust = 1
       ),
+        # ggplot2::element_blank(),
       axis.title.x = ggtext::element_markdown(
         family = "Cabin",
         face = "bold",
         color = "blue",
         size = 14),
+        # ggplot2::element_blank(),
       axis.text.y = ggtext::element_markdown(
         family = "Cabin",
         face = "bold",
@@ -161,11 +301,13 @@ ggplot2::theme_set(
         angle = 45,
         hjust = 1
       ),
+        # ggplot2::element_blank(),
       axis.title.y = ggtext::element_markdown(
         family = "Cabin",
         face = "bold",
         color = "blue",
         size = 12),
+        # ggplot2::element_blank(),
       strip.text = ggtext::element_markdown(
         family = "Cabin",
         color = "black",
@@ -185,9 +327,14 @@ ggplot2::theme_set(
     )
 )
 
+
+
+  
 # Set seed for reproducibility
 base::set.seed(123)
+
 ```
+
 
 ## Introduction
 
