@@ -320,7 +320,7 @@ ggplot2::theme_set(
         color = "black"),
       panel.background = ggplot2::element_rect(fill = "white", color = NA),
       plot.background = ggplot2::element_rect(fill = "white", color = NA),
-      legend.position = "none",
+      legend.position = "bottom",
       panel.spacing.x = grid::unit(1.5, "cm"),
       panel.spacing.y = grid::unit(1.5, "cm"),
       plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
@@ -1296,7 +1296,7 @@ dept_summary |>
 ------------------------------------------------------------------------
 
 
-## Appendix F: Overtime Analysis
+## Appendix F: Overtime Analysis by Fiscal Year
 
 ```{r}
 #| label: overtime-analysis
@@ -1337,6 +1337,130 @@ overtime_summary |>
 
 
 
+# OVERTIME BY DEPARTMENT - TOP 3 
+
+```{r}
+#| label: fig-overtime-by-dept
+#| fig-cap: "Top 3 Departments by Overtime Usage"
+
+# ======================================================================
+# OVERTIME BY DEPARTMENT - TOP 3 LINE CHART
+# ======================================================================
+
+# STEP 1: Identify the top 3 departments by total overtime across all years
+# We need to know which departments to include before we can chart them
+
+top_3_depts <- all_data |>
+  # Group by department to aggregate across all fiscal years
+  dplyr::group_by(department) |>
+  # Calculate total overtime for each department (all years combined)
+  # na.rm = TRUE ignores missing values in the sum
+  dplyr::summarise(
+    total_ot = base::sum(overtime_earnings, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  # Keep only the 3 departments with highest total overtime
+  # slice_max automatically sorts descending and takes top n rows
+  dplyr::slice_max(order_by = total_ot, n = 3) |>
+  # Extract just the department names as a character vector
+  # This vector will be used to filter the main data
+dplyr::pull(department)
+
+# STEP 2: Summarize overtime by fiscal year for only those top 5 departments
+
+dept_overtime <- all_data |>
+  # Keep only rows where department is in our top 5 list
+  # %in% checks if each value exists in the vector
+  dplyr::filter(department %in% top_3_depts) |>
+  # Group by both fiscal_year and department
+  # This gives us one row per year-department combination
+  dplyr::group_by(fiscal_year, department) |>
+  # Sum overtime for each year-department combination
+  dplyr::summarise(
+    overtime_dollars = base::sum(overtime_earnings, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  # Create the label text that will appear above each point
+  # paste0 concatenates strings with no separator
+  # scales::dollar formats numbers as currency
+  # scale = 1e-3 divides by 1000, suffix = "K" adds K for thousands
+  # Result looks like "($150K)"
+  dplyr::mutate(
+    label_text = base::paste0(scales::dollar(overtime_dollars, 
+                                                   accuracy = 1, 
+                                                   scale = 1e-3, 
+                                                   suffix = "K"))
+  )
+
+# STEP 3: Build the line chart using ggplot2
+
+# Initialize the plot with data and aesthetic mappings
+# aes() maps data columns to visual properties
+# x = fiscal_year puts years on horizontal axis
+# y = overtime_dollars puts dollar amounts on vertical axis
+# color = department assigns a different color to each department
+# group = department tells geom_line to connect points within each department
+ggplot2::ggplot(dept_overtime, 
+                ggplot2::aes(x = fiscal_year, 
+                             y = overtime_dollars, 
+                             color = department, 
+                             group = department)) +
+
+  # Add lines connecting points for each department
+# linewidth controls thickness (1 is moderate)
+ggplot2::geom_line(linewidth = 2) +
+
+  # Add points at each data value
+# size = 3 makes points visible but not overwhelming
+ggplot2::geom_point(size = 4) +
+
+  # Add text labels above each point
+# aes(label = label_text) specifies which column contains the label
+# vjust = -1.2 moves labels up (negative = above, positive = below)
+# size = 3 controls text size
+# show.legend = FALSE prevents "a" appearing in legend
+ggplot2::geom_text(ggplot2::aes(label = label_text),
+                   vjust = -1.2,
+                   size = 5,
+                   color = "black",
+                   show.legend = FALSE) +
+
+ # Format the y-axis labels as dollars in thousands
+# expand = expansion(mult = c(0.05, 0.15)) adds padding:
+#   - 0.05 = 5% padding at bottom
+#   - 0.15 = 15% padding at top (makes room for labels)
+ggplot2::scale_y_continuous(
+  labels = scales::dollar_format(scale = 1e-3, suffix = "K"),
+  expand = ggplot2::expansion(mult = c(0.05, 0.15))
+) +
+
+  # Add titles and axis labels
+# title = main chart title
+# subtitle = secondary descriptive text
+# x = x-axis label
+# y = y-axis label
+# color = legend title (matches the aes color mapping)
+ggplot2::labs(
+  title = "Overtime Usage by Department",
+  subtitle = "Top 5 Departments by Total Overtime",
+  x = "Fiscal Year",
+  y = "Overtime ($)",
+  color = "Department"
+) 
+
+  # Apply a clean, minimal theme
+# Removes gray background, uses light gridlines
+# ggplot2::theme_minimal() +
+
+  # Customize specific theme elements
+# legend.position = "bottom" moves legend below chart (saves horizontal space)
+# element_text(face = "bold") makes the title bold
+# ggplot2::theme(
+#   legend.position = "bottom",
+#   plot.title = ggplot2::element_text(face = "bold")
+# )
+
+```
 ------------------------------------------------------------------------
 
 
