@@ -1442,7 +1442,7 @@ ggplot2::scale_y_continuous(
 # color = legend title (matches the aes color mapping)
 ggplot2::labs(
   title = "Overtime Usage by Department",
-  subtitle = "Top 5 Departments by Total Overtime",
+  subtitle = "Top 3 Departments by Total Overtime Used",
   x = "Fiscal Year",
   y = "Overtime ($)",
   color = "Department"
