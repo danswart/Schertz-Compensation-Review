@@ -4,46 +4,52 @@ format: html
 ---
 
 
-file_info        = list of files to be imported
-filepath         = Path specifications
-df                = Read each raw_data file and capture column names: WIDE; df in objects is last yr imported; includes totals columns per Excel data
-column_maps      = List OF column names present by year
+file_info        = user defined list of files to be imported
+filepath         = user defined Path specifications
+df                = WIDE; From each raw_data file and capture column names; df in objects is last yr imported; includes totals columns per Excel data
+column_maps      = LIST; List of column names present by year
 
-all_data          = Combined original data for ALL FY; WIDE; EE key added; Calc'd totals per R; Totals per Excel for comparisons
+all_data          = WIDE; Combined original data for ALL years; EE key added; Calc'd totals per R; Totals per Excel for comparisons
 
-final_df          = all_data in LONG form; user friendly column names
-validation        = all_data subset into totals per FY to compare source with computed totals
+final_df          = LONG; all_data in LONG form; user friendly column names
+validation        = WIDE; all_data subset into totals per FY to compare source with computed totals
 
-component_breakdown = from final_df includes total earnings and total compensation columns calc'd by R
+component_breakdown = WIDE; from final_df (LONG) includes total earnings and total compensation columns calc'd by R
 
-component_summary = from final_df; total comp by type of payout; no total columns from component_breakdown; grand total calc'd by R
+component_summary = WIDE; from final_df (LONG); total comp by type of payout; no total columns from component_breakdown; grand total calc'd by R
 
-yearly_summary    = from final_df; total comp, total # of employees, average pay/employee by FY
+yearly_summary    = WIDE; from final_df (LONG); subset to total comp, total # of employees, average pay/employee by FY
 
-col_comparison    = table of logical values for display of which years each column is present
+col_comparison    = WIDE; table of logical values to display which years each column is present
 
-missing_names     = check for missing names in the all_data object (blank or NA in the names field)
+missing_names     = SHOULD BE EMPTY; check for missing names in the all_data object (blank or NA in the names field)
 
-duplicates        = check for duplicates in the employee_key in the all_data object
+duplicates        = SHOULD BE EMPTY; check for duplicates in the employee_key in the all_data object
 
-negative_amounts  = Check all_data for negative amounts
+negative_amounts  = SHOULD BE EMPTY; Check all_data for negative amounts
 
-yoy_summary       = year-over-year comparisons of EE compensation, # of EEs, Pct change, and Avg Comp; from yearly_summary 
+yoy_summary       = WIDE; year-by-year comparisons of EE compensation; subset to # of EEs, Pct change, and Avg Comp; from yearly_summary 
 
-top_10_earners    = The top 10 earners from all_data; all depts; calc'd by R
+top_10_earners    = LONG; The top 10 earners from all_data; all depts; amounts calc'd by R
 
-dept_summary      = comparing departments on # of EEs, comp, and avg comp by FY; from all_data
+dept_overtime     = LONG; Summarize overtime by fiscal year for the top 3 departments; from all-data (WIDE)
 
-overtime_summary  = comparing overtime by FY with % of all employees receiving OT; from all_data
+dept_summary      = comparing departments on # of EEs, comp, and avg comp by FY; from all_data (WIDE)
 
-dept_ranks_all    = Calculate rank in total compensation by year for all departments; from final_df
+overtime_summary  = LONG; overtime by FY with % of all employees receiving OT; from all_data (WIDE)
+
+dept_ranks_all    = LONG; Calculates rank in total compensation by year for all departments; from final_df (LONG)
 
 dept_ranks        = Total compensation rankings by year for top 10 departments; from dept_ranks_all
 
-city_manager_data = City Mgr compensation of time; from final_df
+dept_ranks_top_10 = LONG; from dept_ranks_all (LONG)
 
-growth_data       = from yearly_summary; total compensation, total comp growth rate and growth %
+city_manager_data = LONG; City Mgr compensation of time; from final_df (LONG)
+
+growth_data       = WIDE; from yearly_summary (WIDE); subset to total compensation, total comp growth rate and growth %
  
+comp_types        = user-defined
+
 
 
 
