@@ -1,28 +1,351 @@
 ---
 title: "From Watchdog to Decision Architecture"
 subtitle: "A Conversation About Civic Consulting and the Five Questions Framework"
-date: "December 27, 2025"
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+  - name: "Claude Sonnet 4.5"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
 format:
   html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: false     # Fast for drafts. Override for sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
     toc: true
-    toc-depth: 3
-    number-sections: true
-  pdf:
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    # fig-width: 13
+    E fig-height: 8
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
     toc: true
-    number-sections: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
+execute:
+  echo: true
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+
 ---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+
+# install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
+
+# census_api_key("95496766c51541ee6f402c1e1a8658581285b759", install = TRUE, overwrite = TRUE)
+
+
+# # load libraries - NOT NEEDED
+
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+
+#
+# # Sample Code:
+# flextable::flextable(violations) |>
+ #  flextable::set_header_labels(
+ #    Variable = "Variable",
+ #    Measurement = "Measurement",
+ #    Likely_Impact = "Likely Impact"
+ #  ) |>
+#    flextable::add_header_lines(values = "Frequent Violations of Scientific Method in Current So-Called 'Equity' Research") |>
+#   flextable::color(i = 1, color = "blue", part = "header") |>
+#   flextable::italic(i = 1, part = "header") |>
+#   flextable::align(i = 1, align = "center", part = "header") |>
+#   flextable::fontsize(i = 1, size = 14, part = "header") |>
+#   flextable::bg(i = 1, bg = "white", part = "header") |>
+#   flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+#   flextable::bold(i = 1:2, part = "header") |>
+#   flextable::bold(i = 1:7, j = 1, part = "body") |>
+#   ftExtra::colformat_md() |> 
+#   flextable::autofit()
+  
+
+# Flextable built-in themes:
+  # flextable::theme_alafoli()	|>  # BLAH
+  # flextable::theme_apa()  # THIS IS NICE
+  # flextable::theme_booktabs() |>  # NICE, MORE COMPACT
+  # flextable::theme_box() |>   # OK, INCLUDES CELL BORDERS
+  # flextable::theme_tron() |>  # 'DARK MODE' BLUE TEXT
+  # flextable::theme_tron_legacy() |>   # 'DARK MODE' YELLOW TEXT
+  # flextable::theme_vader() |>    # 'DARK MODE' WHITE TEXT
+  # flextable::theme_vanilla() |>   # NOT SPECIAL
+  # flextable::theme_zebra()	|>
+  #
+
+# Flextable titles:
+  # flextable::colformat_double(j = c("Mean", "SD", "N"), big.mark = ",", digits = 1) |>
+  # flextable::flextable(variance_comparison) |>
+  #  flextable::add_header_lines(values = "The Within-Group vs Between-Group Variance Problem") |>
+
+# Flextable Title theming at table-level:
+  #  flextable::color(i = 1, color = "blue", part = "header") |>
+  #  flextable::italic(i = 1, part = "header") |>
+  #  flextable::align(i = 1, align = "center", part = "header") |>
+  #  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  #  flextable::bg(i = 1, bg = "white", part = "header") |>
+
+# Flextable standard table background colors:
+  #  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  
+
+# Flextable reading markdown:
+  #  ftExtra::colformat_md() |> 
+
+# Flextable auto-sizing cell widths:
+  #  flextable::autofit() 
+ 
+ # Flextable background based on SPECIFIC cell contents:
+  #
+  # flextable::bg(i = ~ Impact_on_Validity == "High", j = "Impact_on_Validity", bg = "#ffcccc") |>
+ # flextable::bg(i = ~ Impact_on_Validity == "Medium", j = "Impact_on_Validity", bg = "#ffffcc") |>
+  #
+  # 
+  # Apply yellow background to any cell containing "Yes":
+
+  # for (col in base::names(hypotheses_data)) {
+  #   yes_rows <- base::which(hypotheses_data[[col]] == "Yes")
+  #   if (base::length(yes_rows) > 0) {
+  #     ft <- ft |>
+  #       flextable::bg(i = yes_rows, j = col, bg = "yellow", part = "body")
+  #   }
+  # } 
+  #
+  # Apply to last row of table:
+  #
+  #
+
+
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 16,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 14,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 14,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 14),
+        # ggplot2::element_blank(),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+        # ggplot2::element_blank(),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 12,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+
+
+  
+# Set seed for reproducibility
+base::set.seed(123)
+
+```
 
 # The Problem: Why Bother?
 
 ## The Frustration
+<br>
 
-For several years I've worked hard to learn R programming and examine data from school boards. I prepared a 186-page book filled with beautiful charts showing the ups and downs of nearly every metric mandated by the Texas Education Association, as well as other internal metrics. I released the book to the Board of Trustees and the Superintendent.
+For several years I've worked hard to learn R programming and examine data for our local school board. Among other things, I prepared a 186-page book filled with beautiful charts showing the ups and downs of nearly every metric mandated by the Texas Education Association, as well as other internal metrics.  It covered 29 years of data.  I released the completed book to the Board of Trustees and the Superintendent.
 
 The response: crickets. Not a soul was interested in any of it. Mounds of information did not even spark a conversation. Not one.
 
-Now I have a concerned citizen who wants to influence a city council who (it appears) has increased compensation of every type in a shocking way. There may be a rational explanation for this spending spree, but it will take some serious time to reveal it. I expect the exact same response—crickets.
+Now, as part of a very small group of concerned citizens who wants to influence a city council who (it appears) has increased compensation of every type in a shocking way. There may be a rational explanation for this spending spree, but it will take some serious time to reveal it. I expect the exact same response — expressions of concern, empathy, then CRICKETS.
 
-I'm having a difficult time justifying the amazing time and brain commitment it takes to build a case that would affect the city council in any way. Everywhere you look, APATHY is the main thing you observe. Extremely low voter turnout, elected officials with little or no regard for safeguarding the public money. Elections are won based on identifying and attacking "the bad guys." Rational decision-making is largely absent.
+I'm having a difficult time justifying the amazing time and brain commitment it takes to build a case that might, possibly, maybe could affect the city council in any way. Everywhere you look, APATHY is the main thing you observe. Extremely low voter turnout, elected officials with little or no incentives for careful, analytic examination of staff recommendations. Elections are won based on identifying and attacking "the bad guys." Rational decision-making is largely absent.
 
 **The question: Why is public watchdogging even worthwhile? What are the principled, higher-level reasons for putting forth all the effort?**
 
@@ -34,25 +357,24 @@ The frustration is real and earned. Producing 186 pages of careful analysis—wo
 
 ### The Watchman's Paradox
 
-One of the most important effects of public scrutiny is invisible. Officials who know someone is watching behave differently than those who believe no one is looking at the books. A 186-page document may spark no visible conversations, but it announces something: *Someone is paying attention. Someone has the skills to find irregularities. Someone will notice.* That awareness changes behavior in ways that will never be directly observed. The absence of malfeasance is not nothing—it's just invisible.
+One of the most important effects of public scrutiny is invisible. Officials who know someone is watching behave differently than those who believe no one is looking at the books. It announces something: ***Someone is paying attention. Someone has the skills to find irregularities. Someone will notice.***  That awareness changes behavior in ways that will never be directly observed. The effect of scrutiny is not nothing — it's just invisible.
 
-### The Record Exists
-
-When patterns of spending, compensation growth, or educational outcomes are documented, something is created that persists beyond the immediate moment of indifference. Future board members, journalists, candidates, or citizens may find that record when circumstances make it relevant. This work speaks not just to today's audience—it builds an archive that waits for its moment. Many whistleblowers and analysts have seen their work ignored for years, then suddenly become the crucial evidence when scandal breaks or leadership changes.
 
 ### The Civic Virtue Argument
 
-There's a philosophical tradition—going back to the Romans and Greeks—that holds certain activities are intrinsically worthwhile because they express the kind of person you want to be and the kind of society you want to live in. Voting when a single vote won't determine the outcome, serving on a jury, documenting public spending: these acts matter not primarily because of their immediate instrumental effects but because they constitute citizenship itself. The engaged citizen that democracy requires is being embodied, whether or not others join. The alternative—disengagement, cynicism, letting it all slide—is a kind of capitulation that costs something internally.
+There's a philosophical tradition — going back to the Romans and Greeks — that holds certain activities are intrinsically worthwhile because they express the kind of person you want to be and the kind of society you want to live in. Voting when a single vote won't determine the outcome, serving on a jury, documenting public spending: these acts matter not primarily because of their immediate instrumental effects but because they constitute citizenship itself. The engaged citizen that a democratic republic requires is being embodied, whether or not others join. The alternative of disengagement, cynicism, letting it all slide is a kind of capitulation that costs something internally.
+
 
 ### The Threshold Problem
 
-Social change almost never happens through gradual persuasion. It happens when pressure accumulates invisibly until some threshold is crossed and what was ignored suddenly becomes undeniable. This work adds weight to a scale. No one can know how close to tipping it might be. The concerned citizen who came asking about city compensation—that person exists *because* the information exists. One becomes two becomes a coalition, or doesn't. But without the work, the possibility doesn't exist at all.
+Change almost never happens through gradual persuasion. It happens when pressure accumulates visibly and invisibly until some threshold is crossed and what was ignored suddenly becomes important. This work adds weight to the scale. No one can know how close to tipping it might be. The concerned citizen who came asking about city compensation — that person can make a challenge ***because*** the information exists. One becomes two becomes a coalition, or doesn't. But without the initial work, the possibility doesn't exist at all.
+
 
 ### The Honest Counter-Argument
 
-It's also possible this work will never produce visible results. That some battles are simply lost in advance because the structural incentives favor inattention. That this is, in fact, shouting into a void. If that's true, then the question becomes whether the work itself—the learning, the rigor, the craftsmanship—has value independent of its reception. For some people, the answer is no, and that's legitimate. For others, the practice of clear seeing is its own reward.
+It's also possible this work will never produce visible results. That some battles are simply lost in advance because the structural incentives favor inattention. That this is, in fact, shouting into a hurricane. If that's true, then the question becomes whether the work itself — the learning, the rigor, the craftsmanship — has value independent of its reception. For some people, the answer is no, and that's legitimate. For others, the practice of advocacy is its own reward.
 
-**The narrower question:** Not whether public watchdogging is "worth it" in the abstract, but whether *this particular project*, for *this particular citizen*, with *this particular data*, is worth the time right now. Partial engagement is still valuable. Battles can be chosen. What's already done isn't erased by the silence that followed.
+**The narrower question:** Not whether public watchdogging is "worth it" in the abstract, but whether *this particular project*, for *this particular citizen*, with *this particular data*, is worth the time right now. Partial engagement is still valuable. Battles can be chosen.
 
 ---
 
@@ -65,10 +387,10 @@ The citizen wants to form a company specializing in municipal watchdogging. Here
 | Name | Tagline |
 |------|---------|
 | **Civic Sentinel** | *Because someone should be watching.* / *Vigilance in the public interest.* |
-| **Daylight Analytics** | *Sunlight for public dollars.* / *Transparency you can measure.* |
+| **Illumination Analytics** | *Sunlight for public dollars.* / *Transparency you can measure.* |
 | **Open Ledger Group** | *Your money. Clear answers.* / *Public funds deserve public scrutiny.* |
 | **Clearwater Research** | *Clarity for communities.* / *See what's beneath the surface.* |
-| **Steward Partners** | *Helping governance work.* / *Because fiduciary duty isn't optional.* |
+| **Stewardship Partners** | *Helping governance work.* / *Because fiduciary duty isn't optional.* |
 | **Fiduciary Watch** | *Holding the line on public trust.* / *The audit your taxpayers deserve.* |
 | **Lighthouse Civic Research** | *Guiding communities toward clarity.* / *A signal in the fog.* |
 | **The Benchmark Group** | *The standard your citizens expect.* / *How does your city measure up?* |
@@ -79,22 +401,22 @@ The citizen wants to form a company specializing in municipal watchdogging. Here
 
 **Top recommendations:**
 
-- **Daylight Analytics** — *Sunlight for public dollars.* (Principled, professional, memorable)
-- **Steward Partners** — *Because fiduciary duty isn't optional.* (Reframes watchdogging as helping governance work)
-- **The Benchmark Group** — *How does your city measure up?* (Invitational, comparative, not accusatory)
+- **Illumination Analytics** — *Sunlight for public dollars.* (Principled, professional, memorable)
+- **Stewardship Partners** — *Because fiduciary duty isn't optional.* (Reframes watchdogging as helping governance work)
+
 
 ---
 
 ## Reframing the Tone
 
-The phrase "How does your city measure up?" is not accusatory. Instead, it is:
+Taglines should not be accusatory. Instead, it should be:
 
 - **Invitational** — Asks a question rather than leveling a charge
-- **Comparative** — Positions the work as benchmarking against peers, not prosecuting failures
-- **Constructive** — Implies the goal is improvement, not exposure
+- **Comparative** — Positions the work as benchmarking against internal policy and commitments, not prosecuting failures
+- **Constructive** — Implies the goal is better decisions in the future, not exposure
 - **Consultative** — Offers expertise, not investigations
 - **Diagnostic** — Like a physician reading lab results. No blame, just assessment
-- **Collegial** — Treats officials as partners in good governance who *want* to know where they stand
+- **Collegial** — Treats officials as partners in improving governance who *want* to know where they stand
 
 The word to reach for most often: **constructive**. It signals that the point isn't to embarrass anyone—it's to make things work better. That framing might actually get in the door with city managers and finance directors who would slam it shut on anyone who sounds like they're building a case against them.
 
@@ -108,11 +430,11 @@ The word to reach for most often: **constructive**. It signals that the point is
 
 Decisions are made without examining all the pertinent areas. Boards and councils tend to make decisions based on rhetoric rather than knowledge. Someone has to direct the search for relevant information—and that means knowing what *is* relevant information.
 
-Most elected officials don't have that framework. They're handed a packet and asked to vote. If the packet looks thorough, they assume it *is* thorough. They don't know what's missing because they don't know what *should* be there.
+Most elected officials don't have that framework, nor the time for independent study of pending decisions. They're handed a packet and asked to vote. If the packet looks thorough, they likely assume it *is* thorough. They likely don't know what's missing because they don't know what *should* be there.
 
 ## The Reframe
 
-The service isn't analysis—it's **decision architecture**. Providing the template for what a fully-informed compensation decision looks like, or a bond decision, or a contract renewal. Teaching officials to recognize completeness versus the *appearance* of completeness.
+The service isn't strictly analysis — it's **decision architecture**. Providing the template for what a fully-informed compensation decision looks like, or a bond decision, or a contract renewal. Teaching officials to recognize completeness versus the *appearance* of completeness.
 
 This reframes everything:
 
