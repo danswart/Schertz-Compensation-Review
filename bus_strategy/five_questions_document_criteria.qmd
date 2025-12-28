@@ -1,0 +1,980 @@
+---
+title: "Five Questions Framework: Document Request Specifications"
+subtitle: "TPIA/FOIA Request Criteria for Municipal Fiscal Analysis"
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+  - name: "Claude Sonnet 4.5"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
+format:
+  html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: false     # Fast for drafts. Override for sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    # fig-width: 13
+    E fig-height: 8
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
+execute:
+  echo: true
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+
+# install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
+
+# census_api_key("95496766c51541ee6f402c1e1a8658581285b759", install = TRUE, overwrite = TRUE)
+
+
+# # load libraries - NOT NEEDED
+
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+
+#
+# # Sample Code:
+# flextable::flextable(violations) |>
+ #  flextable::set_header_labels(
+ #    Variable = "Variable",
+ #    Measurement = "Measurement",
+ #    Likely_Impact = "Likely Impact"
+ #  ) |>
+#    flextable::add_header_lines(values = "Frequent Violations of Scientific Method in Current So-Called 'Equity' Research") |>
+#   flextable::color(i = 1, color = "blue", part = "header") |>
+#   flextable::italic(i = 1, part = "header") |>
+#   flextable::align(i = 1, align = "center", part = "header") |>
+#   flextable::fontsize(i = 1, size = 14, part = "header") |>
+#   flextable::bg(i = 1, bg = "white", part = "header") |>
+#   flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+#   flextable::bold(i = 1:2, part = "header") |>
+#   flextable::bold(i = 1:7, j = 1, part = "body") |>
+#   ftExtra::colformat_md() |> 
+#   flextable::autofit()
+  
+
+# Flextable built-in themes:
+  # flextable::theme_alafoli()	|>  # BLAH
+  # flextable::theme_apa()  # THIS IS NICE
+  # flextable::theme_booktabs() |>  # NICE, MORE COMPACT
+  # flextable::theme_box() |>   # OK, INCLUDES CELL BORDERS
+  # flextable::theme_tron() |>  # 'DARK MODE' BLUE TEXT
+  # flextable::theme_tron_legacy() |>   # 'DARK MODE' YELLOW TEXT
+  # flextable::theme_vader() |>    # 'DARK MODE' WHITE TEXT
+  # flextable::theme_vanilla() |>   # NOT SPECIAL
+  # flextable::theme_zebra()	|>
+  #
+
+# Flextable titles:
+  # flextable::colformat_double(j = c("Mean", "SD", "N"), big.mark = ",", digits = 1) |>
+  # flextable::flextable(variance_comparison) |>
+  #  flextable::add_header_lines(values = "The Within-Group vs Between-Group Variance Problem") |>
+
+# Flextable Title theming at table-level:
+  #  flextable::color(i = 1, color = "blue", part = "header") |>
+  #  flextable::italic(i = 1, part = "header") |>
+  #  flextable::align(i = 1, align = "center", part = "header") |>
+  #  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  #  flextable::bg(i = 1, bg = "white", part = "header") |>
+
+# Flextable standard table background colors:
+  #  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  
+
+# Flextable reading markdown:
+  #  ftExtra::colformat_md() |> 
+
+# Flextable auto-sizing cell widths:
+  #  flextable::autofit() 
+ 
+ # Flextable background based on SPECIFIC cell contents:
+  #
+  # flextable::bg(i = ~ Impact_on_Validity == "High", j = "Impact_on_Validity", bg = "#ffcccc") |>
+ # flextable::bg(i = ~ Impact_on_Validity == "Medium", j = "Impact_on_Validity", bg = "#ffffcc") |>
+  #
+  # 
+  # Apply yellow background to any cell containing "Yes":
+
+  # for (col in base::names(hypotheses_data)) {
+  #   yes_rows <- base::which(hypotheses_data[[col]] == "Yes")
+  #   if (base::length(yes_rows) > 0) {
+  #     ft <- ft |>
+  #       flextable::bg(i = yes_rows, j = col, bg = "yellow", part = "body")
+  #   }
+  # } 
+  #
+  # Apply to last row of table:
+  #
+  #
+
+
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 16,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 14,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 14,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 14),
+        # ggplot2::element_blank(),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+        # ggplot2::element_blank(),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 12,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+
+
+  
+# Set seed for reproducibility
+base::set.seed(123)
+
+```
+
+
+```{r}
+#| label: load-libraries
+#| include: false
+
+# =============================================================================
+# LOAD LIBRARIES
+# =============================================================================
+
+# Required packages
+base::library(dplyr)
+base::library(flextable)
+base::library(ftExtra)
+
+# Set flextable defaults
+flextable::set_flextable_defaults(
+
+  font.size = 10,
+  padding = 3
+)
+```
+
+# Overview
+
+This document provides detailed specifications for public records requests supporting the **Five Questions Framework** for municipal fiscal analysis. Each section corresponds to one of the five core analytical questions and lists the specific documents needed to complete that analysis.
+
+**Framework Questions:**
+
+1. **Trajectory** — Where does this decision lead?
+2. **Proportionality** — What share of the budget is this?
+3. **Reversibility** — How locked in are we?
+4. **Assumption Exposure** — What has to be true for this to work?
+5. **Opportunity Cost** — What else could this money buy?
+
+---
+
+# Question 1: Trajectory
+
+**Purpose:** Calculate compound annual growth rates for compensation, headcount, and revenue. Project future obligations and identify unsustainable trends.
+
+```{r}
+#| label: tbl-trajectory
+#| tbl-cap: "Documents Required for Trajectory Analysis"
+
+# =============================================================================
+# QUESTION 1: TRAJECTORY - WHERE DOES THIS LEAD?
+# =============================================================================
+
+trajectory_docs <- dplyr::tibble(
+  item_no = 1:7,
+  document = c(
+    "Employee Compensation Reports",
+    "Position Classification and Pay Plans",
+    "Authorized Position Schedules",
+    "Headcount Reports",
+    "Pay Plan Amendments",
+    "COLA Documentation",
+    "Merit/Step Increase Policies"
+  ),
+  description = c(
+    "Annual listing of all employees showing: name, department, job title, base salary, overtime pay, additional earnings, benefits, total compensation",
+    "Official pay grade/step tables showing minimum, midpoint, and maximum salary for each classification",
+    "List of all authorized (budgeted) positions by department, whether filled or vacant",
+    "Monthly or annual employee counts by department (FTE and headcount)",
+    "Resolutions, ordinances, or council actions amending pay scales, adding positions, or approving compensation changes",
+    "Records of COLA percentages approved by council, effective dates, and methodology",
+    "Written policies governing automatic step increases, merit increase pools, and eligibility criteria"
+  ),
+  years_needed = c(
+    "FY2015–FY2024 (10 years)",
+    "FY2015–FY2024",
+    "FY2015–FY2024",
+    "FY2015–FY2024",
+    "FY2015–FY2024",
+    "FY2015–FY2024",
+    "Current + prior versions"
+  ),
+  likely_availability = c(
+    "May require compilation",
+    "Usually public/online",
+    "Usually in budget documents",
+    "May require compilation",
+    "Council minutes/ordinances",
+    "Council minutes",
+    "HR policy manual"
+  ),
+  analysis_use = c(
+    "Calculate CAGR for total compensation",
+    "Identify structural pay increases",
+    "Track position growth over time",
+    "Normalize compensation by headcount",
+    "Identify discrete council decisions",
+    "Separate COLA from merit increases",
+    "Project automatic future increases"
+  )
+)
+
+trajectory_docs |>
+  flextable::flextable() |>
+  flextable::set_header_labels(
+    item_no = "#",
+    document = "Document",
+    description = "Specific Description",
+    years_needed = "Years Needed",
+    likely_availability = "Likely Availability",
+    analysis_use = "Analysis Use"
+  ) |>
+  flextable::add_header_lines("Question 1: Trajectory — Where Does This Lead?") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::width(j = "item_no", width = 0.3) |>
+  flextable::width(j = "document", width = 1.2) |>
+  flextable::width(j = "description", width = 2.0) |>
+  flextable::width(j = "years_needed", width = 1.0) |>
+  flextable::width(j = "likely_availability", width = 1.0) |>
+  flextable::width(j = "analysis_use", width = 1.2) |>
+  flextable::valign(valign = "top", part = "body") |>
+  flextable::autofit()
+```
+
+---
+
+# Question 2: Proportionality
+
+**Purpose:** Calculate personnel costs as a percentage of total budget. Identify what categories are being crowded out over time.
+
+```{r}
+#| label: tbl-proportionality
+#| tbl-cap: "Documents Required for Proportionality Analysis"
+
+# =============================================================================
+# QUESTION 2: PROPORTIONALITY - WHAT SHARE OF THE BUDGET IS THIS?
+# =============================================================================
+
+proportionality_docs <- dplyr::tibble(
+  item_no = 8:14,
+  document = c(
+    "Adopted Annual Budgets",
+    "Budget Summaries by Expenditure Category",
+    "Budget Summaries by Department",
+    "Budget-to-Actual Reports",
+    "Comprehensive Annual Financial Reports (CAFR/ACFR)",
+    "Fund Balance Reports",
+    "Revenue Reports by Source"
+  ),
+  description = c(
+    "Complete adopted budget documents including all funds (General Fund, Enterprise Funds, Special Revenue Funds, Capital Projects Funds, Debt Service Funds)",
+    "Summary tables showing total expenditures by category: Personnel/Salaries, Benefits, Supplies, Contracted Services, Capital Outlay, Debt Service, Transfers",
+    "Summary tables showing total expenditures by department",
+    "Year-end reports comparing budgeted amounts to actual expenditures by category and department",
+    "Audited annual financial statements including all required schedules and notes",
+    "Year-end fund balance statements for all funds, showing reserved, unreserved, assigned, committed, and unassigned balances",
+    "Annual revenue summaries by source: property tax, sales tax, franchise fees, permits, fines, intergovernmental, charges for services, interest, other"
+  ),
+  years_needed = c(
+    "FY2015–FY2025",
+    "FY2015–FY2024",
+    "FY2015–FY2024",
+    "FY2015–FY2024",
+    "FY2015–FY2024",
+    "FY2015–FY2024",
+    "FY2015–FY2024"
+  ),
+  likely_availability = c(
+    "Usually online",
+    "In budget documents",
+    "In budget documents",
+    "May require request",
+    "Usually online",
+    "In CAFR",
+    "In CAFR/budget"
+  ),
+  analysis_use = c(
+    "Total budget baseline for ratios",
+    "Personnel as % of total spending",
+    "Department growth comparison",
+    "Variance analysis; assumption testing",
+    "Audited actuals; fund balances",
+    "Reserve adequacy over time",
+    "Revenue growth vs. expense growth"
+  )
+)
+
+proportionality_docs |>
+  flextable::flextable() |>
+  flextable::set_header_labels(
+    item_no = "#",
+    document = "Document",
+    description = "Specific Description",
+    years_needed = "Years Needed",
+    likely_availability = "Likely Availability",
+    analysis_use = "Analysis Use"
+  ) |>
+  flextable::add_header_lines("Question 2: Proportionality — What Share of the Budget Is This?") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::width(j = "item_no", width = 0.3) |>
+  flextable::width(j = "document", width = 1.2) |>
+  flextable::width(j = "description", width = 2.0) |>
+  flextable::width(j = "years_needed", width = 1.0) |>
+  flextable::width(j = "likely_availability", width = 1.0) |>
+  flextable::width(j = "analysis_use", width = 1.2) |>
+  flextable::valign(valign = "top", part = "body") |>
+  flextable::autofit()
+```
+
+---
+
+# Question 3: Reversibility
+
+**Purpose:** Determine what percentage of future budgets is already committed by contracts, pensions, debt service, and policy. Assess fiscal flexibility.
+
+```{r}
+#| label: tbl-reversibility
+#| tbl-cap: "Documents Required for Reversibility Analysis"
+
+# =============================================================================
+# QUESTION 3: REVERSIBILITY - HOW LOCKED IN ARE WE?
+# =============================================================================
+
+reversibility_docs <- dplyr::tibble(
+  item_no = 15:24,
+  document = c(
+    "Collective Bargaining Agreements / MOUs",
+    "Employment Contracts",
+    "TMRS Actuarial Valuations",
+    "OPEB Actuarial Valuations",
+    "Debt Service Schedules",
+    "Multi-Year Contracts",
+    "Lease Agreements",
+    "Pension Contribution Rate History",
+    "Health Insurance Premium History",
+    "Step Increase Cost Projections"
+  ),
+  description = c(
+    "All current and recently expired agreements with police associations, fire associations, or other employee groups",
+    "Individual employment contracts for City Manager, department heads, or other contracted executive positions",
+    "Texas Municipal Retirement System actuarial reports showing contribution rates, unfunded liability, and funding ratio",
+    "Other Post-Employment Benefits (retiree health insurance) actuarial reports showing liability and funding status",
+    "Amortization schedules for all outstanding bonds, certificates of obligation, and other debt showing annual P&I by year",
+    "List of all contracts with terms exceeding one year, showing vendor, annual cost, and expiration date",
+    "All lease agreements for equipment, vehicles, or facilities with terms exceeding one year",
+    "Annual employer contribution rates to TMRS",
+    "Annual employer cost per employee for health insurance premiums by plan type",
+    "Any documents projecting the cost of automatic step increases for upcoming fiscal years"
+  ),
+  years_needed = c(
+    "Current + prior 2 agreements",
+    "All currently in effect",
+    "FY2015–FY2024",
+    "FY2015–FY2024",
+    "Current schedules through maturity",
+    "Currently in effect",
+    "Currently in effect",
+    "FY2015–FY2024",
+    "FY2015–FY2024",
+    "Most recent available"
+  ),
+  likely_availability = c(
+    "Should be public",
+    "Usually public in TX",
+    "Annual reports available",
+    "Less common; may need request",
+    "In CAFR or bond documents",
+    "May require compilation",
+    "May require compilation",
+    "TMRS provides",
+    "HR/Finance records",
+    "May not exist"
+  ),
+  analysis_use = c(
+    "Identify contractual salary obligations",
+    "Executive compensation commitments",
+    "Future pension cost trajectory",
+    "Future retiree benefit obligations",
+    "Fixed debt payments by year",
+    "Committed expenditures",
+    "Fixed lease obligations",
+    "Pension cost trend analysis",
+    "Benefit cost trend analysis",
+    "Automatic future personnel costs"
+  )
+)
+
+reversibility_docs |>
+  flextable::flextable() |>
+  flextable::set_header_labels(
+    item_no = "#",
+    document = "Document",
+    description = "Specific Description",
+    years_needed = "Years Needed",
+    likely_availability = "Likely Availability",
+    analysis_use = "Analysis Use"
+  ) |>
+  flextable::add_header_lines("Question 3: Reversibility — How Locked In Are We?") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::width(j = "item_no", width = 0.3) |>
+  flextable::width(j = "document", width = 1.2) |>
+  flextable::width(j = "description", width = 2.0) |>
+  flextable::width(j = "years_needed", width = 1.0) |>
+  flextable::width(j = "likely_availability", width = 1.0) |>
+  flextable::width(j = "analysis_use", width = 1.2) |>
+  flextable::valign(valign = "top", part = "body") |>
+  flextable::autofit()
+```
+
+---
+
+# Question 4: Assumption Exposure
+
+**Purpose:** Identify the assumptions embedded in budget projections and test whether past assumptions proved accurate. Expose hidden risks.
+
+```{r}
+#| label: tbl-assumptions
+#| tbl-cap: "Documents Required for Assumption Exposure Analysis"
+
+# =============================================================================
+# QUESTION 4: ASSUMPTION EXPOSURE - WHAT HAS TO BE TRUE?
+# =============================================================================
+
+assumption_docs <- dplyr::tibble(
+  item_no = 25:34,
+  document = c(
+    "Revenue Projections/Forecasts",
+    "Sales Tax Projections",
+    "Property Tax Calculations",
+    "Budget Preparation Instructions/Guidelines",
+    "Five-Year Financial Forecasts",
+    "Variance Analysis Reports",
+    "Quarterly Financial Reports",
+    "Economic Development Projections",
+    "Actuarial Assumption Documentation",
+    "Health Insurance Renewal Documents"
+  ),
+  description = c(
+    "Documents prepared during budget development projecting sales tax, property tax, and other revenues for upcoming fiscal years",
+    "Specific forecasts of sales tax revenue used in budget preparation, including methodology and data sources",
+    "Certified tax rolls, effective tax rate calculations, rollback rate calculations, and property value growth assumptions",
+    "Internal memos or guidelines issued to departments for budget preparation, including inflation assumptions, salary increase assumptions, and growth projections",
+    "Any long-range financial projections or forecasts prepared by staff or consultants",
+    "Staff reports or memos explaining significant differences between budgeted and actual revenues or expenditures",
+    "Interim financial reports presented to council showing year-to-date performance vs. budget",
+    "Any projections of new development, population growth, or commercial growth used in financial planning",
+    "Documents showing assumed rates of return, mortality tables, and other assumptions used in pension/OPEB valuations",
+    "Annual renewal documents showing projected premium increases and plan design changes"
+  ),
+  years_needed = c(
+    "FY2018–FY2025",
+    "FY2018–FY2025",
+    "FY2018–FY2025",
+    "FY2020–FY2025",
+    "Most recent 3 versions",
+    "FY2018–FY2024",
+    "FY2020–FY2024",
+    "FY2018–FY2025",
+    "Most recent valuations",
+    "FY2020–FY2025"
+  ),
+  likely_availability = c(
+    "Internal working papers",
+    "May be in budget message",
+    "Tax office records",
+    "Internal documents",
+    "May not exist",
+    "May require request",
+    "Council packet materials",
+    "Economic development dept",
+    "In actuarial reports",
+    "HR/Finance records"
+  ),
+  analysis_use = c(
+    "Compare projected vs. actual revenue",
+    "Test sales tax assumptions",
+    "Test property value assumptions",
+    "Identify embedded assumptions",
+    "Compare forecasts to outcomes",
+    "Understand past forecast accuracy",
+    "Track in-year performance",
+    "Test growth assumptions",
+    "Assess actuarial risk exposure",
+    "Test benefit cost assumptions"
+  )
+)
+
+assumption_docs |>
+  flextable::flextable() |>
+  flextable::set_header_labels(
+    item_no = "#",
+    document = "Document",
+    description = "Specific Description",
+    years_needed = "Years Needed",
+    likely_availability = "Likely Availability",
+    analysis_use = "Analysis Use"
+  ) |>
+  flextable::add_header_lines("Question 4: Assumption Exposure — What Has to Be True?") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::width(j = "item_no", width = 0.3) |>
+  flextable::width(j = "document", width = 1.2) |>
+  flextable::width(j = "description", width = 2.0) |>
+  flextable::width(j = "years_needed", width = 1.0) |>
+  flextable::width(j = "likely_availability", width = 1.0) |>
+  flextable::width(j = "analysis_use", width = 1.2) |>
+  flextable::valign(valign = "top", part = "body") |>
+  flextable::autofit()
+```
+
+---
+
+# Question 5: Opportunity Cost
+
+**Purpose:** Identify deferred projects, unfunded needs, and alternative uses of funds. Quantify trade-offs in concrete terms.
+
+```{r}
+#| label: tbl-opportunity
+#| tbl-cap: "Documents Required for Opportunity Cost Analysis"
+
+# =============================================================================
+# QUESTION 5: OPPORTUNITY COST - WHAT ELSE COULD THIS MONEY BUY?
+# =============================================================================
+
+opportunity_docs <- dplyr::tibble(
+  item_no = 35:44,
+  document = c(
+    "Capital Improvement Plans (CIP)",
+    "Unfunded Project Lists",
+    "Deferred Maintenance Assessments",
+    "Equipment Replacement Schedules",
+    "Reserve Fund Policies",
+    "Strategic Plans",
+    "Citizen Survey Results",
+    "Department Budget Requests vs. Adopted",
+    "Council Budget Workshop Materials",
+    "Grant Applications (Unfunded)"
+  ),
+  description = c(
+    "Multi-year capital project plans showing project descriptions, costs, funding sources, and timing",
+    "Any lists of projects identified as needs but not included in adopted budgets or CIP due to funding constraints",
+    "Assessments or reports documenting maintenance backlogs for streets, facilities, utilities, parks, or equipment",
+    "Schedules showing planned replacement of vehicles, equipment, or infrastructure and associated costs",
+    "Written policies governing minimum fund balance levels, emergency reserves, stabilization funds, or rainy day funds",
+    "Adopted strategic plans identifying council priorities, goals, or performance measures",
+    "Results of any citizen satisfaction surveys identifying service priorities, concerns, or unmet needs",
+    "Original department budget requests as submitted compared to final adopted amounts (showing what was cut)",
+    "Presentation materials from budget workshops showing options, alternatives, or trade-offs presented to council",
+    "Applications for grants that were submitted but not awarded, showing unfunded project needs"
+  ),
+  years_needed = c(
+    "FY2018–FY2025",
+    "FY2020–FY2025",
+    "Most recent available",
+    "Current schedule",
+    "Current policy",
+    "Most recent version",
+    "FY2018–FY2024",
+    "FY2020–FY2025",
+    "FY2020–FY2025",
+    "FY2020–FY2024"
+  ),
+  likely_availability = c(
+    "Usually public/online",
+    "Internal working papers",
+    "Public works/facilities dept",
+    "Fleet/facilities records",
+    "Finance policy manual",
+    "Usually public/online",
+    "City manager/comm. dept",
+    "May not be maintained",
+    "Council packet materials",
+    "Grant administration records"
+  ),
+  analysis_use = c(
+    "Identify planned vs. deferred projects",
+    "Quantify unfunded needs",
+    "Calculate infrastructure gap",
+    "Assess equipment condition/risk",
+    "Evaluate reserve adequacy",
+    "Compare spending to stated priorities",
+    "Identify citizen-perceived gaps",
+    "Quantify budget reductions by area",
+    "Understand alternatives considered",
+    "Identify unfunded opportunities"
+  )
+)
+
+opportunity_docs |>
+  flextable::flextable() |>
+  flextable::set_header_labels(
+    item_no = "#",
+    document = "Document",
+    description = "Specific Description",
+    years_needed = "Years Needed",
+    likely_availability = "Likely Availability",
+    analysis_use = "Analysis Use"
+  ) |>
+  flextable::add_header_lines("Question 5: Opportunity Cost — What Else Could This Money Buy?") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::width(j = "item_no", width = 0.3) |>
+  flextable::width(j = "document", width = 1.2) |>
+  flextable::width(j = "description", width = 2.0) |>
+  flextable::width(j = "years_needed", width = 1.0) |>
+  flextable::width(j = "likely_availability", width = 1.0) |>
+  flextable::width(j = "analysis_use", width = 1.2) |>
+  flextable::valign(valign = "top", part = "body") |>
+  flextable::autofit()
+```
+
+---
+
+# Master Document Checklist
+
+```{r}
+#| label: tbl-master
+#| tbl-cap: "Complete Document Request Checklist"
+
+# =============================================================================
+# MASTER CHECKLIST - ALL DOCUMENTS
+# =============================================================================
+
+master_checklist <- dplyr::bind_rows(
+  trajectory_docs |> dplyr::mutate(framework_question = "1. Trajectory"),
+  proportionality_docs |> dplyr::mutate(framework_question = "2. Proportionality"),
+  reversibility_docs |> dplyr::mutate(framework_question = "3. Reversibility"),
+  assumption_docs |> dplyr::mutate(framework_question = "4. Assumptions"),
+  opportunity_docs |> dplyr::mutate(framework_question = "5. Opportunity Cost")
+) |>
+  dplyr::select(
+    item_no,
+    framework_question,
+    document,
+    years_needed,
+    likely_availability
+  ) |>
+  dplyr::mutate(
+    received = "",
+    notes = ""
+  )
+
+master_checklist |>
+  flextable::flextable() |>
+  flextable::set_header_labels(
+    item_no = "#",
+    framework_question = "Framework Question",
+    document = "Document",
+    years_needed = "Years Needed",
+    likely_availability = "Likely Availability",
+    received = "Received?",
+    notes = "Notes"
+  ) |>
+  flextable::add_header_lines("Master Document Request Checklist") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::width(j = "item_no", width = 0.3) |>
+  flextable::width(j = "framework_question", width = 1.0) |>
+  flextable::width(j = "document", width = 1.5) |>
+  flextable::width(j = "years_needed", width = 1.0) |>
+  flextable::width(j = "likely_availability", width = 1.0) |>
+  flextable::width(j = "received", width = 0.6) |>
+  flextable::width(j = "notes", width = 1.0) |>
+  flextable::valign(valign = "top", part = "body") |>
+  flextable::autofit()
+```
+
+---
+ 
+# Request Strategy Notes
+
+## Phased Approach
+
+Consider submitting requests in phases to manage response time and costs:
+ 
+| Phase | Priority | Focus | Documents |
+|-------|----------|-------|-----------|
+| 1 | High | Core Financial | Budgets, CAFRs, Compensation Reports (#1, 8-14) |
+| 2 | High | Commitments | Contracts, actuarial reports, debt schedules (#15-23) |
+| 3 | Medium | Assumptions | Forecasts, variance reports, internal memos (#24-34) |
+| 4 | Lower | Opportunity Cost | CIP, deferred maintenance, workshop materials (#35-44) |
+
+## Documents Likely Available Online
+
+Many Texas cities post these documents publicly:
+
+- Adopted annual budgets
+- Comprehensive Annual Financial Reports (CAFR/ACFR)
+- Capital Improvement Plans
+- Strategic plans
+- Pay plans / salary schedules
+- Council meeting agendas and minutes
+
+**Always check the city website first** before submitting a formal TPIA request.
+
+## Documents Requiring Formal Request
+
+These typically require a written request:
+
+- Individual employee compensation data
+- Internal budget preparation memos
+- Department budget requests (pre-adoption)
+- Variance analysis reports
+- Multi-year contract inventories
+- Deferred maintenance assessments
+
+## Potential Challenges
+
+| Document Type | Potential Issue | Response Strategy |
+|--------------|-----------------|-------------------|
+| Internal memos | May claim "working papers" exception | Request final versions only; narrow scope |
+| Pending negotiations | May claim deliberative process | Request completed/expired agreements only |
+| Individual salaries | Rarely contested in TX | Cite Tex. Gov't Code § 552.022 |
+| Cost estimates | High compilation costs | Request phased delivery; negotiate scope |
+
+---
+
+# Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | `r Sys.Date()` | Initial document |

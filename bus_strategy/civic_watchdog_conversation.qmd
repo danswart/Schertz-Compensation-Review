@@ -1,0 +1,353 @@
+---
+title: "Civic Watchdogging: A Business Model for Decision Accountability"
+subtitle: "A Conversation About Why It Matters and How to Make It Work"
+date: "December 27, 2025"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+  pdf:
+    toc: true
+    number-sections: true
+---
+
+# The Motivation Problem
+
+## The Challenge
+
+For several years, I worked hard to learn R programming and examine data from school boards. I prepared a 186-page book filled with beautiful charts showing the ups and downs of nearly every metric mandated by the Texas Education Association, as well as other internal metrics. I released the book to the Board of Trustees and the Superintendent.
+
+The response: crickets. Not a soul was interested in any of it. Mounds of information did not even spark a conversation. Not one.
+
+Now I have a concerned citizen who wants to influence a city council who (it appears) has increased compensation of every type in a shocking way. There may be a rational explanation for this spending spree, but it will take serious time to reveal it. I expect the exact same response—crickets.
+
+I'm having a difficult time justifying the amazing time and brain commitment it takes to build a case that would affect the city council in any way. Everywhere you look, apathy is the main thing you observe. Extremely low voter turnout, elected officials with little or no regard for safeguarding public money. Elections are won based on identifying and attacking "the bad guys." Rational decision-making is largely absent.
+
+## Why Public Watchdogging Is Worthwhile: Principled Reasons
+
+### The Watchman's Paradox
+
+One of the most important effects of public scrutiny is invisible. Officials who know someone is watching behave differently than those who believe no one is looking at the books. A 186-page document may have sparked no conversations that were witnessed, but it announced something: *Someone is paying attention. Someone has the skills to find irregularities. Someone will notice.* That awareness changes behavior in ways that will never be directly observed. The absence of malfeasance is not nothing—it's just invisible.
+
+### The Record Exists
+
+When patterns of spending, compensation growth, or educational outcomes are documented, something is created that persists beyond the immediate moment of indifference. Future board members, journalists, candidates, or citizens may find that record when circumstances make it relevant. This isn't just speaking to today's audience—it's building an archive that waits for its moment. Many whistleblowers and analysts have seen their work ignored for years, then suddenly become the crucial evidence when scandal breaks or leadership changes.
+
+### The Civic Virtue Argument
+
+There's a philosophical tradition—going back to the Romans and Greeks—that holds certain activities are intrinsically worthwhile because they express the kind of person you want to be and the kind of society you want to live in. Voting when your single vote won't determine the outcome, serving on a jury, documenting public spending: these acts matter not primarily because of their immediate instrumental effects but because they constitute citizenship itself. The alternative—disengagement, cynicism, letting it all slide—is a kind of capitulation that would cost something internally.
+
+### The Threshold Problem
+
+Social change almost never happens through gradual persuasion. It happens when pressure accumulates invisibly until some threshold is crossed and what was ignored suddenly becomes undeniable. This work is adding weight to a scale. The concerned citizen who came forward about city compensation—that person exists *because* the information exists. One becomes two becomes a coalition, or doesn't. But without the work, the possibility doesn't exist at all.
+
+### The Honest Counter-Argument
+
+It's also possible that this work will never produce visible results. That some battles are simply lost in advance because the structural incentives favor inattention. If that's true, then the question becomes whether the work itself—the learning, the rigor, the craftsmanship—has value independent of its reception. For some people, the answer is no, and that's legitimate. For others, the practice of clear seeing is its own reward.
+
+---
+
+# Early Business Name Exploration
+
+## Initial Names: Watchdog Framing
+
+| Name | Tagline |
+|------|---------|
+| Civic Sentinel | *Because someone should be watching.* |
+| Daylight Analytics | *Sunlight for public dollars.* |
+| Open Ledger Group | *Your money. Clear answers.* |
+| Clearwater Research | *Clarity for communities.* |
+| Steward Partners | *Helping governance work.* |
+| Fiduciary Watch | *Holding the line on public trust.* |
+| Lighthouse Civic Research | *Guiding communities toward clarity.* |
+| The Benchmark Group | *How does your city measure up?* |
+| Public Trust Analytics | *Earned, measured, protected.* |
+| Civic Lantern | *Light for local government.* |
+| Guardian Metrics | *Protecting what belongs to everyone.* |
+| First Light Research | *Revealing what was always there.* |
+
+## Reframing: Constructive, Not Accusatory
+
+The word "accusatory" implies blame. Better framing:
+
+- **Invitational** — Asks a question rather than leveling a charge
+- **Comparative** — Positions the work as benchmarking against peers, not prosecuting failures
+- **Constructive** — Implies the goal is improvement, not exposure
+- **Consultative** — Offering expertise, not launching investigations
+- **Diagnostic** — Like a physician reading lab results. No blame, just assessment
+- **Collegial** — Treats officials as partners in good governance who *want* to know where they stand
+
+**Key phrase:** *Constructive scrutiny*
+
+## "Looking Deeper" Names
+
+| Name | Tagline |
+|------|---------|
+| Deeper Look Research | *Past the talking points.* |
+| Below the Summary | *What's underneath the motion.* |
+| Beneath the Motion | *The layer they didn't reach.* |
+| Second Layer Analytics | *Below the executive summary.* |
+| Below the Line Analytics | *What the summary didn't show.* |
+| Root Analysis | *Decisions have depth. So should the analysis.* |
+| The Fine Print Group | *The data beneath the debate.* |
+
+---
+
+# The Core Insight: Decision Architecture
+
+## The Real Problem
+
+What this seems to boil down to is understanding what you need to know to make a good decision on any given topic. If you don't know the answer to that, you're helpless before the summary provided by staff. Great staff, great decisions. But information is not free. Someone has to direct the search for relevant information. And that means you have to know what *is* relevant information.
+
+## Technical Transparency vs. Functional Transparency
+
+The current model assumes: **Access equals accountability.** Release the budget spreadsheet, stream the meetings, post the minutes—transparency achieved. But that's a fiction.
+
+**Technical transparency:** The data exists. The meetings are open. Legally, everything is available.
+
+**Functional transparency:** A citizen can actually understand *why* a decision was made. What was considered. What was ignored. What assumptions drove the outcome.
+
+Almost no government achieves functional transparency. Not because they're hiding things—but because *no one has done the work* of connecting the numbers to the reasoning to the outcome in a form a citizen can actually use.
+
+## The Training Gap
+
+From four years on a local school board: there is tons of training provided to these boards. But it's all cliché-based. Buzzwords. Feel-good words. Without ever penetrating the weighing of consequences and coherence.
+
+The training is designed by the system, for the system. State associations, consultants, professional organizations—they're not incentivized to create skeptical board members. They're incentivized to create *smooth* board members. The training serves institutional continuity, not decision quality.
+
+**The unfilled niche:** Training that teaches the thing no one teaches. Not how to run a meeting. How to *evaluate a recommendation.* How to read a budget with a questioning eye. How to ask the second question when the first answer sounds reasonable. How to distinguish rhetoric from reasoning.
+
+---
+
+# The Business Model
+
+## Who Pays?
+
+The people who most need this—ordinary citizens—generally can't pay. The entities with money—governments—might not want the scrutiny. So the business model has to be creative about who the actual customer is.
+
+### Possible Customer Segments
+
+1. **Government entities themselves** — New city managers, newly elected officials, or councils that just had a scandal. They *want* someone to audit past decisions, establish better frameworks, and give them cover for changing course. Risk management positioning.
+
+2. **Candidates and campaign committees** — Challengers need exactly what this produces: clear analysis of incumbent decisions. Opposition research reframed as policy analysis.
+
+3. **Citizen coalitions** — Ten people paying $200/month is $24,000 a year. A neighborhood association or taxpayer group might pool resources for ongoing oversight.
+
+4. **Local news organizations** — Investigative capacity has collapsed at local papers. Produce the analysis, they get the story, you get credited and visible.
+
+5. **Newly elected officials** — Training and onboarding. "Here's how to read a budget. Here's what questions to ask about a contract renewal."
+
+6. **Unions and employee associations** — Strong interest in compensation transparency and usually have funds.
+
+7. **Grant-funded public interest work** — Foundations supporting good government, transparency, civic engagement.
+
+### Possible Revenue Streams
+
+- Project-based analysis (one-time deep dives)
+- Retainer relationships (ongoing monitoring)
+- Training workshops for officials
+- Decision framework templates (licensed or sold)
+- Subscription reports for citizen groups
+- Expert witness or litigation support
+
+### Hybrid Model
+
+Do visible, grant-funded or low-cost public interest work that demonstrates value and builds credibility. That generates inbound interest from paying customers: governments wanting audits, candidates wanting analysis, news organizations wanting partners, officials wanting training.
+
+**What you're really selling:** Not data. Not accusation. Not transparency theater. **Decision competence.** The ability to know what you need to know before you vote.
+
+---
+
+# The Apathy Problem
+
+## Why Citizens Don't Engage
+
+Citizens have correctly calculated that their individual attention won't change outcomes, and their daily lives won't noticeably suffer from any single decision. That's not ignorance—it's accurate. The pain is real but diffused: an extra $200 a year across 20,000 households is $4 million in spending, but no single household feels it as a crisis.
+
+Every morning they wake up, police are still there. The fire department comes to a fire. Emergency teams go into action. Streetlights work. All these things happen no matter who's in office.
+
+## Breaking Through
+
+The audience may not be "citizens" in the aggregate. It may be:
+
+- The fifteen people who actually show up
+- The reporter who needs a story
+- The candidate who needs an issue
+- The one board member who feels uneasy but can't articulate why
+
+Influence doesn't require mass mobilization. It requires reaching the right five people at the right moment.
+
+**Trajectory might break through where snapshots don't.** Not "here's what you spent" but "here's where you'll be in ten years if this continues." A projection is harder to ignore than a report.
+
+**Internal logic as the lever.** Forget other cities. Ask: What did *you* say you were going to do? What did *you* assume when you approved this? Were *you* right? That's not comparison. That's accountability to their own stated reasoning.
+
+---
+
+# The Five Questions Framework
+
+## Core Metrics for Evaluating Any Expense Decision
+
+### Question 1: What's the Trajectory?
+
+Where does this lead?
+
+- What's the compound annual growth rate?
+- Where are we in 5 years if this continues?
+- What assumptions about revenue are embedded in this path?
+
+### Question 2: What's the Proportion?
+
+What's it crowding out?
+
+- What share of the total budget is this category?
+- How has that share shifted over time?
+- Is one area slowly crowding out others?
+
+### Question 3: What's the Commitment?
+
+How locked in are we?
+
+- How sticky is this decision?
+- One-time expense vs. permanent obligation?
+- What percentage of next year's budget is already committed before you vote on anything?
+
+### Question 4: What's the Assumption?
+
+What has to be true for this to work?
+
+- What revenue growth did we assume?
+- What inflation rate?
+- What turnover?
+- Were our past assumptions correct?
+
+### Question 5: What's the Trade-Off?
+
+What else could this money buy?
+
+- Every dollar here is a dollar not there
+- Can you quantify the trade-off?
+
+**If a board asked these five questions consistently, they'd be ahead of 90% of public bodies.**
+
+---
+
+# Applied Example: Schertz Compensation Analysis
+
+## 1. Trajectory Analysis
+
+If compensation grew at 15-18% annually to double in five years:
+
+| If CAGR is... | Compensation doubles every... | 10-year projection from FY24 base |
+|---------------|-------------------------------|-----------------------------------|
+| 15% | 4.9 years | ~4x current |
+| 18% | 4.2 years | ~5x current |
+| 20% | 3.8 years | ~6x current |
+
+**The question for council:** What revenue growth rate did you assume when you approved these increases? If revenue is growing at 5% and compensation is growing at 18%, the math doesn't work.
+
+## 2. Proportionality Analysis
+
+| Fiscal Year | Total Compensation | Total City Budget | Personnel as % of Budget |
+|-------------|-------------------|-------------------|-------------------------|
+| FY20 | $ | $ | % |
+| FY24 | $ | $ | % |
+
+If personnel went from 55% to 68% of the budget, *something else shrank*. What?
+
+## 3. Reversibility Analysis
+
+- What percentage of compensation growth is **base salary** (permanent) vs. **one-time** (overtime, bonuses)?
+- Are there **contractual escalators** (automatic step increases, COLA clauses)?
+- What's the **pension liability** trajectory?
+- How much of next year's budget is **already committed** before council votes on anything?
+
+## 4. Assumption Exposure
+
+- What **sales tax growth** did they assume?
+- What **property value growth** did they assume?
+- What **inflation rate** did they assume for non-personnel costs?
+- What **turnover rate** did they assume?
+- **Were past assumptions correct?**
+
+## 5. Opportunity Cost Analysis
+
+Take the compensation increase from one year—say $3 million above baseline growth. What else does $3 million buy?
+
+- X police vehicles
+- Y miles of road resurfacing
+- Z new positions in a different department
+- A% reduction in property tax rate
+- B months of reserve fund
+
+---
+
+# Final Business Names: Five Questions Framing
+
+## Initial "Five Questions" Names
+
+| Name | Tagline |
+|------|---------|
+| Five Questions Consulting | *Before you vote, know what you need to know.* |
+| Decision Architecture Group | *Building the framework your budget deserves.* |
+| Trajectory Analytics | *Where does this decision lead?* |
+| The Assumption Audit | *What has to be true for this to work?* |
+| Trade-Off Partners | *Every yes is a no to something else.* |
+| Complete Picture Consulting | *The analysis that should have happened.* |
+| Coherence Research | *Does your budget match your priorities?* |
+| Framework Partners | *Teaching officials what to ask.* |
+| The Missing Analysis | *The work that wasn't done—until now.* |
+| Consequence Mapping | *Tracing decisions to their endpoints.* |
+| Lock-In Analytics | *How much of tomorrow's budget did you just commit?* |
+
+## Elevated Variations on "Five Questions"
+
+| Name | Tagline |
+|------|---------|
+| Fifth Question Group | *The one nobody asked.* |
+| 5Q Advisory | *Five questions. Complete clarity.* |
+| The Fifth Lens | *Seeing what the summary doesn't show.* |
+| Quintet Research | *Five dimensions of every decision.* |
+| Five-Point Analytics | *The framework for fiscal clarity.* |
+| 5th Order Consulting | *Beyond the obvious. Before the vote.* |
+| The Five Criteria Group | *A standard your decisions can meet.* |
+| Pentad Advisory | *Five lenses. One clear picture.* |
+| Five Tests Research | *Does this decision pass?* |
+| The Fifth Standard | *What complete analysis looks like.* |
+
+## Top Recommendations
+
+1. **Fifth Question Group** — *The one nobody asked.*
+   Implies there are four obvious questions everyone asks, and you bring the fifth one nobody thought of. Sophisticated without being pretentious.
+
+2. **5Q Advisory** — *Five questions. Complete clarity.*
+   Clean, modern, slightly technical. Works well on a business card.
+
+3. **Five Tests Research** — *Does this decision pass?*
+   Positions the work as pass/fail evaluation. Rigorous but not accusatory.
+
+4. **The Fifth Standard** — *What complete analysis looks like.*
+   Suggests you're defining what quality looks like. Aspirational.
+
+---
+
+# Data Requirements for Full Analysis
+
+To build a complete decision-architecture analysis:
+
+1. **Compensation data** (available from prior work)
+2. **Total budget by year** (public record, annual budget documents)
+3. **Revenue by source** (sales tax, property tax, fees, etc.)
+4. **Budget-to-actual variance reports** (what did they project vs. what happened)
+5. **Pension/OPEB actuarial reports** (future obligations)
+6. **Any contracts or MOUs with employee groups**
+
+---
+
+# Conclusion
+
+The service isn't "we'll dig through your data looking for problems." It's "we'll reconstruct the decision logic and show you what was actually weighed, what wasn't, and whether the reasoning holds up."
+
+That's not accusatory. It's not adversarial. It's **translation**—from raw transparency into usable understanding.
+
+**What you're really selling:** Decision competence. The ability to know what you need to know before you vote.
