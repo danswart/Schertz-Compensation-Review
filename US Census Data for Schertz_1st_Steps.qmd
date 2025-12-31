@@ -1,5 +1,7 @@
 ---
-title: "US Census Data"
+title: "Schertz Population and Housing Growth"
+subtitle: "2010 - 2024"
+description: "US Census Data"
 authors: 
   - name: "Dan Swart, CPA (ret)"
   - name: "Claude Sonnet 4.5"
@@ -433,6 +435,7 @@ flextable::flextable(schertz_pop_2010_2024)
 
 ```{r}
 schertz_pop_2010_2024_with_changes <- schertz_pop_2010_2024 |>
+  dplyr::mutate(year = as.character(year)) |> 
   arrange(year) |>
   mutate(
     pop        = value,
@@ -454,7 +457,7 @@ dplyr::glimpse(schertz_pop_2010_2024_with_changes)
 ```{r}
 # writexl::write_xlsx(
 #   schertz_pop_2010_2024_with_changes,
-#   "RAW-schertz_pop_2010_2024_with_changes.xlsx"
+#   "schertz_pop_2010_2024_with_changes.xlsx"
 # )
 ```
 
@@ -467,11 +470,11 @@ dplyr::glimpse(schertz_pop_2010_2024_with_changes)
 ### Get Housing Units and Changes from ACS5
 
 ```{r}
-#| label: get-housing-units_and_changes
+#| label: get-housing-units_with_changes
 
 years <- 2009:2022
 
-schertz_housing_2009_2022_and_changes <- purrr::map(years, \(yr) {
+schertz_housing_2009_2022_with_changes <- purrr::map(years, \(yr) {
   tidycensus::get_acs(
     geography = "place",
     state = "TX",
@@ -483,13 +486,14 @@ schertz_housing_2009_2022_and_changes <- purrr::map(years, \(yr) {
 }) |> 
   purrr::list_rbind() |> 
   dplyr::filter(stringr::str_detect(NAME, "Schertz")) |> 
+  dplyr::mutate(year = as.character(year)) |> 
   dplyr::arrange(year) |> 
   dplyr::mutate(
     change = estimate - dplyr::lag(estimate),
     pct_change = change / dplyr::lag(estimate) * 100
   )
 
-flextable::flextable(schertz_housing_2009_2022_and_changes)
+flextable::flextable(schertz_housing_2009_2022_with_changes)
 
 ```
 
@@ -498,8 +502,8 @@ flextable::flextable(schertz_housing_2009_2022_and_changes)
 
 ```{r}
 # writexl::write_xlsx(
-#   schertz_housing_2009_2022_and_changes,
-#   "schertz_housing_2009_2022.xlsx"
+#   schertz_housing_2009_2022_with_changes,
+#   "schertz_housing_2009_2022_with_changes.xlsx"
 # )
 ```
 
@@ -516,7 +520,7 @@ flextable::flextable(schertz_housing_2009_2022_and_changes)
 
 # Plot 1: Annual change in number of housing units
 ggplot2::ggplot(
-  schertz_housing_2009_2022_and_changes,
+  schertz_housing_2009_2022_with_changes,
   ggplot2::aes(x = year, y = change)
 ) +
   ggplot2::geom_col(fill = "steelblue") +
@@ -526,7 +530,7 @@ ggplot2::ggplot(
     x = NULL,
     y = "Units Added"
   ) +
-  ggplot2::scale_x_continuous(breaks = years)
+  ggplot2::scale_x_discrete(breaks = years)
   # ggplot2::theme_minimal()
 
 ```
@@ -534,26 +538,21 @@ ggplot2::ggplot(
 ### Annual Percentage Change in Housing Units
 
 ```{r}
-
-# Plot 2: Annual percentage change
 ggplot2::ggplot(
-  schertz_housing_2009_2022_and_changes,
-  ggplot2::aes(x = year, y = pct_change / 100)
-) +
+  schertz_housing_2009_2022_with_changes,
+  ggplot2::aes(x = factor(year, 
+                          levels = as.character(2009:2022)), 
+               y = pct_change / 100)) +
   ggplot2::geom_col(fill = "darkgreen") +
   ggplot2::scale_y_continuous(labels = scales::percent_format(accuracy = 0.1)) +
+  ggplot2::scale_x_discrete(drop = FALSE) +
   ggplot2::labs(
-    title = "Annual Percentage Change in Housing Units",
+    title = "Annual Percent Change in Housing Units",
     subtitle = "Schertz, TX (ACS 5-Year Estimates)",
     x = NULL,
-    y = NULL
-  ) +
-  ggplot2::scale_x_continuous(breaks = years) 
-  # ggplot2::theme_minimal()
-
-
+    y = "Pct Change"
+  )
+  
 ```
-
-
 
 
