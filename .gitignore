@@ -1,4 +1,4 @@
-# Current as of: 2025-12-23
+# Current as of: 2025-12-31
 
 #####  NO INLINE COMMENTS!  #####
 
@@ -97,6 +97,7 @@ data-raw/
 raw-data/
 data_raw/
 raw_data/
+*.csv
 
 # Auto-generated plots
 Rplots.pdf
