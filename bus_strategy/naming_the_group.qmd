@@ -1,6 +1,6 @@
 ---
 title: "From Watchdog to Decision Architecture"
-subtitle: "A Conversation About Civic Consulting and the Five Questions Framework"
+subtitle: "A Business Plan for Civic Analysis Consulting and the 5Q Decision Architecture™ Framework"
 authors: 
   - name: "Dan Swart, CPA (ret)"
   - name: "Claude Sonnet 4.5"
@@ -334,61 +334,17 @@ base::set.seed(123)
 
 ```
 
-# The Problem: Why Bother?
-
-## The Frustration
-<br>
-
-For several years I've worked hard to learn R programming and examine data for our local school board. Among other things, I prepared a 186-page book filled with beautiful charts showing the ups and downs of nearly every metric mandated by the Texas Education Association, as well as other internal metrics.  It covered 29 years of data.  I released the completed book to the Board of Trustees and the Superintendent.
-
-The response: crickets. Not a soul was interested in any of it. Mounds of information did not even spark a conversation. Not one.
-
-Now, as part of a very small group of concerned citizens who wants to influence a city council who (it appears) has increased compensation of every type in a shocking way. There may be a rational explanation for this spending spree, but it will take some serious time to reveal it. I expect the exact same response — expressions of concern, empathy, then CRICKETS.
-
-I'm having a difficult time justifying the amazing time and brain commitment it takes to build a case that might, possibly, maybe could affect the city council in any way. Everywhere you look, APATHY is the main thing you observe. Extremely low voter turnout, elected officials with little or no incentives for careful, analytic examination of staff recommendations. Elections are won based on identifying and attacking "the bad guys." Rational decision-making is largely absent.
-
-**The question: Why is public watchdogging even worthwhile? What are the principled, higher-level reasons for putting forth all the effort?**
-
----
-
-## A Response: Why It Matters Anyway
-
-The frustration is real and earned. Producing 186 pages of careful analysis—work requiring hundreds of hours of learning, coding, debugging, and synthesizing—only to be met with silence stings. Not because praise is needed, but because the implicit promise of democratic governance is that *evidence matters*, that *someone is paying attention*. When that promise proves hollow, it raises the uncomfortable question: Why bother?
-
-### The Watchman's Paradox
-
-One of the most important effects of public scrutiny is invisible. Officials who know someone is watching behave differently than those who believe no one is looking at the books. It announces something: ***Someone is paying attention. Someone has the skills to find irregularities. Someone will notice.***  That awareness changes behavior in ways that will never be directly observed. The effect of scrutiny is not nothing — it's just invisible.
-
-
-### The Civic Virtue Argument
-
-There's a philosophical tradition — going back to the Romans and Greeks — that holds certain activities are intrinsically worthwhile because they express the kind of person you want to be and the kind of society you want to live in. Voting when a single vote won't determine the outcome, serving on a jury, documenting public spending: these acts matter not primarily because of their immediate instrumental effects but because they constitute citizenship itself. The engaged citizen that a democratic republic requires is being embodied, whether or not others join. The alternative of disengagement, cynicism, letting it all slide is a kind of capitulation that costs something internally.
-
-
-### The Threshold Problem
-
-Change almost never happens through gradual persuasion. It happens when pressure accumulates visibly and invisibly until some threshold is crossed and what was ignored suddenly becomes important. This work adds weight to the scale. No one can know how close to tipping it might be. The concerned citizen who came asking about city compensation — that person can make a challenge ***because*** the information exists. One becomes two becomes a coalition, or doesn't. But without the initial work, the possibility doesn't exist at all.
-
-
-### The Honest Counter-Argument
-
-It's also possible this work will never produce visible results. That some battles are simply lost in advance because the structural incentives favor inattention. That this is, in fact, shouting into a hurricane. If that's true, then the question becomes whether the work itself — the learning, the rigor, the craftsmanship — has value independent of its reception. For some people, the answer is no, and that's legitimate. For others, the practice of advocacy is its own reward.
-
-**The narrower question:** Not whether public watchdogging is "worth it" in the abstract, but whether *this particular project*, for *this particular citizen*, with *this particular data*, is worth the time right now. Partial engagement is still valuable. Battles can be chosen.
-
----
-
 # Naming the Enterprise
 
-## Initial Brainstorm: 12 Names and Taglines
+## Initial Brainstorming: Names and Taglines
 
-The citizen wants to form a company specializing in municipal watchdogging. Here are twelve initial names:
+Here are several initial name ideas:
 
 | Name | Tagline |
 |------|---------|
-| **Civic Sentinel** | *Because someone should be watching.* / *Vigilance in the public interest.* |
-| **Illumination Analytics** | *Sunlight for public dollars.* / *Transparency you can measure.* |
-| **Open Ledger Group** | *Your money. Clear answers.* / *Public funds deserve public scrutiny.* |
+| **Civic Consultants** | *Because someone should be watching.* / *Vigilance in the public interest.* |
+| **Illumination Analytics** | *Sunlight for public dollars.* / *Transparency you can rely on.* |
+| **Civic Analysis Advisers** | *Because someone should be watching.* / *Vigilance in the public interest.* |
 | **Clearwater Research** | *Clarity for communities.* / *See what's beneath the surface.* |
 | **Stewardship Partners** | *Helping governance work.* / *Because fiduciary duty isn't optional.* |
 | **Fiduciary Watch** | *Holding the line on public trust.* / *The audit your taxpayers deserve.* |
@@ -402,67 +358,9 @@ The citizen wants to form a company specializing in municipal watchdogging. Here
 **Top recommendations:**
 
 - **Illumination Analytics** — *Sunlight for public dollars.* (Principled, professional, memorable)
-- **Stewardship Partners** — *Because fiduciary duty isn't optional.* (Reframes watchdogging as helping governance work)
+- **Stewardship Partners** — *Because fiduciary duty isn't optional.* (Re-frames watch-dogging as helping governance work)
 
-
----
-
-## Reframing the Tone
-
-Taglines should not be accusatory. Instead, it should be:
-
-- **Invitational** — Asks a question rather than leveling a charge
-- **Comparative** — Positions the work as benchmarking against internal policy and commitments, not prosecuting failures
-- **Constructive** — Implies the goal is better decisions in the future, not exposure
-- **Consultative** — Offers expertise, not investigations
-- **Diagnostic** — Like a physician reading lab results. No blame, just assessment
-- **Collegial** — Treats officials as partners in improving governance who *want* to know where they stand
-
-The word to reach for most often: **constructive**. It signals that the point isn't to embarrass anyone—it's to make things work better. That framing might actually get in the door with city managers and finance directors who would slam it shut on anyone who sounds like they're building a case against them.
-
-*Constructive scrutiny* as a phrase has weight.
-
----
-
-# The Deeper Insight: Decision Architecture
-
-## The Real Problem
-
-Decisions are made without examining all the pertinent areas. Boards and councils tend to make decisions based on rhetoric rather than knowledge. Someone has to direct the search for relevant information—and that means knowing what *is* relevant information.
-
-Most elected officials don't have that framework, nor the time for independent study of pending decisions. They're handed a packet and asked to vote. If the packet looks thorough, they likely assume it *is* thorough. They likely don't know what's missing because they don't know what *should* be there.
-
-## The Reframe
-
-The service isn't strictly analysis — it's **decision architecture**. Providing the template for what a fully-informed compensation decision looks like, or a bond decision, or a contract renewal. Teaching officials to recognize completeness versus the *appearance* of completeness.
-
-This reframes everything:
-
-- **Not adversarial.** Equipping decision-makers, not second-guessing them.
-- **Scalable.** Frameworks can be taught, reused, adapted.
-- **Upstream.** Shaping how questions get asked before staff even writes the report.
-
----
-
-## Technical vs. Functional Transparency
-
-The current model assumes: **Access equals accountability.** Release the budget spreadsheet, stream the meetings, post the minutes—transparency achieved.
-
-But that's a fiction. The spreadsheet has no narrative. The meetings are hours of procedural tedium with the critical thirty seconds of actual reasoning buried somewhere in the middle. The minutes are summaries of summaries.
-
-**Technical transparency:** The data exists. The meetings are open. Legally, everything is available.
-
-**Functional transparency:** A citizen can actually understand *why* a decision was made. What was considered. What was ignored. What assumptions drove the outcome.
-
-Almost no government achieves functional transparency. Not because they're hiding things—but because *no one has done the work* of connecting the numbers to the reasoning to the outcome in a form a citizen can actually use.
-
-**That's the gap.**
-
-The service isn't "we'll dig through your data looking for problems." It's "we'll reconstruct the decision logic and show you what was actually weighed, what wasn't, and whether the reasoning holds up."
-
-That's not accusatory. It's not even adversarial. It's **translation.** From raw transparency into usable understanding.
-
----
+----------
 
 ## Names Built Around "Looking Deeper"
 
@@ -477,11 +375,21 @@ That's not accusatory. It's not even adversarial. It's **translation.** From raw
 
 ---
 
+
+
+# Decision Architecture
+
+## The Reframe
+
+The service isn't strictly analysis — it's **decision architecture**. Providing the template for what a fully-informed decision looks like, or a bond decision, or a contract renewal. Teaching officials to recognize completeness versus the *appearance* of completeness.
+
+
+----------
+
+
+
 # The Business Model
 
-## Core Offering
-
-Translating technical transparency into functional transparency. Reconstructing the decision logic behind public actions. Identifying what a complete information picture looks like for specific decision types. Making the "why" visible.
 
 ## The Problem: Who Pays?
 
@@ -491,13 +399,13 @@ The people who most need this—ordinary citizens—generally can't pay. The ent
 
 1. **Government entities themselves.** New city managers, newly elected officials, or councils that just had a scandal. They *want* someone to audit past decisions, establish better frameworks, and give them cover for changing course. Not the enemy—risk management.
 
-2. **Candidates and campaign committees.** Challengers need exactly what this produces: clear analysis of incumbent decisions. Opposition research reframed as policy analysis.
+2. **Candidates and campaign committees.** Challengers need exactly what this produces: clear analysis of incumbent decisions. Opposition research re-framed as policy analysis.
 
 3. **Citizen coalitions.** Ten people paying $200/month is $24,000 a year. A neighborhood association or taxpayer group might pool resources for ongoing oversight.
 
 4. **Local news organizations.** Investigative capacity has collapsed at local papers. Produce the analysis, they get the story, credit and visibility follow.
 
-5. **Newly elected officials.** Training and onboarding. "Here's how to read a budget. Here's what questions to ask about a contract renewal." Workshop-based or retainer consulting.
+5. **Newly elected officials.** Training and on-boarding. "Here's how to read a budget. Here's what questions to ask about a contract renewal." Workshop-based or retainer consulting.
 
 6. **Unions and employee associations.** Strong interest in compensation transparency and usually have funds.
 
@@ -516,29 +424,25 @@ The people who most need this—ordinary citizens—generally can't pay. The ent
 
 Do visible, grant-funded or low-cost public interest work that demonstrates value and builds credibility. That generates inbound interest from the paying customers: governments wanting audits, candidates wanting analysis, news organizations wanting partners, officials wanting training.
 
-## What's Really Being Sold
-
-Not data. Not accusation. Not transparency theater.
-
-**Decision competence.** The ability to know what you need to know before you vote.
 
 ----------
 
-# The Training Gap
+# Opportunity:  The Training Gap
 
 ## The Problem with Existing Training
 
-There's tons of training provided to boards. But it's all cliché-based. Buzzwords. Feel-good words. Without ever penetrating the weighing of consequences and coherence.
+There are many sources of training available to boards. But it's all cliché-based. Buzzwords. Feel-good words. Without ever penetrating the weighing of consequences and coherence.
 
 Training that teaches people how to *sound* like they're governing well: Robert's Rules, strategic planning retreats, stakeholder engagement, equity frameworks, continuous improvement. The language of competence without the mechanics of it.
 
-No one teaches: Here's a $2 million line item. How do you know if it's the right number? What would you need to see? What questions expose weak assumptions? How do you calculate what you're giving up to fund this? How do you pressure-test a staff recommendation without being adversarial?
+No one teaches: Here's a $2 million line item. How do you know if it's the best number? What would you need to see? What questions will expose weak assumptions? How do you calculate what you're giving up to fund this? How do you pressure-test a staff recommendation without being adversarial?
 
 That's not buzzwords. That's craft. And it's almost completely absent.
 
+
 ## Why This Happens
 
-- **The training is designed by the system, for the system.** State associations, consultants, professional organizations—they're not incentivized to create skeptical board members. They're incentivized to create *smooth* board members.
+- **Current training is designed by the system, for the system.** State associations, consultants, professional organizations — they are not incentivized to create skeptical board members. They're incentivized to create *smooth* board members.
 
 - **Buzzwords protect everyone.** If a decision fails, no one can be blamed for following "best practices" and "stakeholder input." The vocabulary provides cover. Real decision analysis would create accountability.
 
@@ -651,7 +555,7 @@ If personnel went from 55% to 68% of the budget, *something else shrank* or *tax
 ## 3. Reversibility: How Locked In Are We?
 
 - What percentage of compensation growth is **base salary** (permanent) vs. **one-time** (overtime, bonuses)?
-- Are **COLAs, bonuses, overtime, benefits** considered a "given"?  By whom?
+- Are **COLA s, bonuses, overtime, benefits** considered a "given"?  By whom?
 - Are there **contractual escalators** (automatic step increases, COLA clauses)?
 - What's the **pension liability** trajectory?
 - How much of next year's budget is **already committed** before council votes?
@@ -691,7 +595,7 @@ A starting point:   **5Q Decision Architecture™**
 | Name | Tagline |
 |------|---------|
 | **Five Questions Group** | *For quality decision-making.* |
-| **5Q Advisors** | *Five questions. Complete clarity.* |
+| **5Q Advisers** | *Five questions. Complete clarity.* |
 | **The Fifth Lens** | *Seeing what the summary doesn't show.* |
 | **Five-Point Analytics** | *A framework for fiscal clarity.* |
 | **5th Order Consulting** | *Beyond the obvious. Before the vote.* |

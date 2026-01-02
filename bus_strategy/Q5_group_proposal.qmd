@@ -1,0 +1,700 @@
+---
+title: "***Personal and Confidential***"
+subtitle: "Business Proposal: Civic Fiscal Analysis Using the 5Q Decision Architecture™ Framework"
+description: "" 
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+  - name: "Claude Sonnet 4.5"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
+format:
+  html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: false     # Fast for drafts. Override for sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    # fig-width: 13
+    E fig-height: 8
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
+execute:
+  echo: true
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+
+# install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
+
+# census_api_key("95496766c51541ee6f402c1e1a8658581285b759", install = TRUE, overwrite = TRUE)
+
+
+# # load libraries - NOT NEEDED
+
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+
+#
+# # Sample Code:
+# flextable::flextable(violations) |>
+ #  flextable::set_header_labels(
+ #    Variable = "Variable",
+ #    Measurement = "Measurement",
+ #    Likely_Impact = "Likely Impact"
+ #  ) |>
+#    flextable::add_header_lines(values = "Frequent Violations of Scientific Method in Current So-Called 'Equity' Research") |>
+#   flextable::color(i = 1, color = "blue", part = "header") |>
+#   flextable::italic(i = 1, part = "header") |>
+#   flextable::align(i = 1, align = "center", part = "header") |>
+#   flextable::fontsize(i = 1, size = 14, part = "header") |>
+#   flextable::bg(i = 1, bg = "white", part = "header") |>
+#   flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+#   flextable::bold(i = 1:2, part = "header") |>
+#   flextable::bold(i = 1:7, j = 1, part = "body") |>
+#   ftExtra::colformat_md() |> 
+#   flextable::autofit()
+  
+
+# Flextable built-in themes:
+  # flextable::theme_alafoli()	|>  # BLAH
+  # flextable::theme_apa()  # THIS IS NICE
+  # flextable::theme_booktabs() |>  # NICE, MORE COMPACT
+  # flextable::theme_box() |>   # OK, INCLUDES CELL BORDERS
+  # flextable::theme_tron() |>  # 'DARK MODE' BLUE TEXT
+  # flextable::theme_tron_legacy() |>   # 'DARK MODE' YELLOW TEXT
+  # flextable::theme_vader() |>    # 'DARK MODE' WHITE TEXT
+  # flextable::theme_vanilla() |>   # NOT SPECIAL
+  # flextable::theme_zebra()	|>
+  #
+
+# Flextable titles:
+  # flextable::colformat_double(j = c("Mean", "SD", "N"), big.mark = ",", digits = 1) |>
+  # flextable::flextable(variance_comparison) |>
+  #  flextable::add_header_lines(values = "The Within-Group vs Between-Group Variance Problem") |>
+
+# Flextable Title theming at table-level:
+  #  flextable::color(i = 1, color = "blue", part = "header") |>
+  #  flextable::italic(i = 1, part = "header") |>
+  #  flextable::align(i = 1, align = "center", part = "header") |>
+  #  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  #  flextable::bg(i = 1, bg = "white", part = "header") |>
+
+# Flextable standard table background colors:
+  #  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  
+
+# Flextable reading markdown:
+  #  ftExtra::colformat_md() |> 
+
+# Flextable auto-sizing cell widths:
+  #  flextable::autofit() 
+ 
+ # Flextable background based on SPECIFIC cell contents:
+  #
+  # flextable::bg(i = ~ Impact_on_Validity == "High", j = "Impact_on_Validity", bg = "#ffcccc") |>
+ # flextable::bg(i = ~ Impact_on_Validity == "Medium", j = "Impact_on_Validity", bg = "#ffffcc") |>
+  #
+  # 
+  # Apply yellow background to any cell containing "Yes":
+
+  # for (col in base::names(hypotheses_data)) {
+  #   yes_rows <- base::which(hypotheses_data[[col]] == "Yes")
+  #   if (base::length(yes_rows) > 0) {
+  #     ft <- ft |>
+  #       flextable::bg(i = yes_rows, j = col, bg = "yellow", part = "body")
+  #   }
+  # } 
+  #
+  # Apply to last row of table:
+  #
+  #
+
+
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 16,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 14,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 14,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 14),
+        # ggplot2::element_blank(),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+        # ggplot2::element_blank(),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 12,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+
+
+  
+# Set seed for reproducibility
+base::set.seed(123)
+
+```
+
+# Problem Statement
+
+## What We Have Now
+
+Governmental bodies currently use 'compliance disclosure'.  Compliance disclosure is what governments do to satisfy the law.  
+
+Compliance disclosure means records released in formats that satisfy legal requirements but obstruct analysis. PDFs instead of spreadsheets. Summaries without line items. Charts and graphs without making the underlying data accessible.  Replies that technically respond to requests but make evaluation nearly impossible.  Transparency is not the right word for current practice.
+
+**Compliance Disclosure:** The data exists. The meetings are open. Legally, all required data is available.
+
+
+
+## What We Need Now
+
+What is needed is **Functional Transparency™** - information organized and readily accessible in ways that allow citizens to evaluate the ***quality*** of decisions, not just their existence.
+
+**Functional Transparency™** is when a citizen can actually understand *why* a decision was made. What was considered. What was ignored. What assumptions drove the outcome.
+
+Almost no government achieves **Functional Transparency™**. Not because they're hiding things—but because *no one has done the work* of connecting the numbers to the reasoning to the outcome in a form a citizen can actually use.
+
+Decisions are often made without examining all the pertinent areas. Boards and councils tend to make decisions based on rhetoric rather than empirical knowledge. Someone has to direct the search for relevant information—and that means knowing what *is* relevant information.
+
+Most elected officials don't have a framework, nor the time for independent study of pending decisions. They're handed a packet and asked to vote. If the packet looks thorough, they likely assume it *is* thorough. They likely don't know what's missing because they don't know what *should* be there.
+
+----------
+
+# Business Proposal
+
+***Goal***
+
+To build a scalable model for civic engagement based on forming investigative teams to monitor and analyze local government decisions.  
+
+
+***Purpose***
+
+To improve access to public information from 'data-dump compliance' to Functional Transparency™.  Additionally, to provide incentives and methods for governing bodies to make well-considered decisions based on sufficient information that often is readily available.  The implicit promise of democratic governance is that *evidence matters*, and that *someone is paying attention*.
+
+***Core Offering***
+
+Translating compliance disclosure into **Functional Transparency™**. Reconstructing the decision logic behind public actions. Identifying what a complete information picture looks like for specific decision types. Making the "why" visible.
+
+
+***What's Really Being Sold***
+
+**Decision competency.**  The ability to know what you need to know before you vote.
+
+
+***Methodology***
+
+Refine the operational uses of the 5Q Decision Architecture™ Framework by using the Schertz, TX compensation study to test the effectiveness and relevancy of the framework in action.
+
+We will reconstruct the decision logic and show what was actually weighed, what wasn't, and whether the reasoning holds up."
+
+
+***Skills Needed***
+
+*  Ability to persuasively request information from any official, regardless of rank.  
+*  Investigative mindset.
+*  Data analysis skills that create presentation-quality charts, graphs, and visualizations.  Some statistical background helpful.
+*  Expertise on the internal functioning of the governmental body involved, including the limitations and requirements under local policies.
+
+----------
+
+# Example Workflow
+
+A question is posed.  For example, "Why has total compensation doubled in just the last five years?  It seems very excessive."
+
+The team follows the 5Q Decision Architecture™ Framework which guides and focuses the information gathering needed to answer the question.  The framework should be customized for the each specific engagement.
+
+A report, presentation, or letter is prepared based on the empirical evidence gathered.
+
+
+
+## Abbreviated Example of Using The 5Q Decision Architecture™ Framework
+
+Every significant fiscal decision can be evaluated against five essential questions:
+
+
+## 1. Trajectory
+
+What are the short-term and long-term consequences?
+
+- What's the compound annual growth rate (CAGR)? 
+- Where are we in 5–10 years if this continues? 
+- What revenue assumptions are embedded in this path?
+- What new incentives are created
+
+## 2. Proportionality
+
+What share of the total budget does the category represent? 
+
+- How has that share shifted over time? 
+- What categories are being crowded out? 
+- If personnel grew from 62% to 74%, what shrank to make room?
+- Is it small enough to be ignored?
+
+## 3. Reversibility
+
+How 'sticky' is this decision? 
+
+- One-time expense or permanent obligation? 
+- Fixed costs or variable? (Variable is usually preferable.)
+- Contracts, pensions, union agreements, debt service—these lock in future budgets.
+- Was a part-time or contract solution considered? 
+- Where is the 'elbow room'?
+- What percentage of next year's budget is already committed before anyone votes? 
+-
+
+## 4. Opportunity Cost
+
+What are you *not* doing by doing this? 
+
+- Every dollar in one category is a dollar not elsewhere.
+- Can you quantify the trade-off in concrete terms? 
+- Example: "This raise costs the equivalent of four police vehicles per year."
+
+
+## 5. Assumption Exposure
+
+What has to be true for this to be effective? 
+
+- What growth rates, turnover rates, inflation rates were assumed? 
+- Were past assumptions correct? (Usually the answer is revealing.)
+
+
+## Supporting Metrics
+
+In addition to the five core questions, we may employ supplementary analyses:
+
+| Metric | Description |
+|--------|-------------|
+| **Per-Unit Analysis** | Cost per employee, cost per resident served, cost per student |
+| **Variance History** | What did we budget vs. what did we actually spend? |
+| **Commitment Creep** | What future obligations does this decision create? |
+| **Sensitivity Testing** | What happens if revenue drops 10%? (e.g., new property tax exemptions) |
+| **Internal Coherence** | Does this spending match our stated priorities? |
+
+----------
+
+
+# "Stress Testing" The Methodology
+
+We must determine how much penetration can be achieved through:
+
+- Texas Public Information Act (TPIA) requests
+- Publicly available budget and financial documents
+- External data sources (U.S. Census Bureau, Texas Comptroller, state agencies)
+- Meeting minutes, agendas, and recordings
+- Other publicly accessible records
+
+We will analyze the available data and **challenge decisions where warranted** — publicly, with documented evidence and reasoned argument. The goal is not to embarrass, but to establish a standard of scrutiny that makes poorly-reasoned decisions harder to make or sustain.
+
+----------
+
+# Phase I: Proof of Concept
+
+Phase I operates as a **continuous quality improvement cycle**: test, document, refine, repeat. Methods and materials remain in active development throughout.
+
+
+## Location
+
+City of Schertz, Texas
+
+## Focus
+
+Sharp increase in employee compensation found in FY2020–FY2024
+
+
+## Methodology
+
+
+### 1. Compensation Study
+
+Complete 5Q analysis of workforce compensation trends, including:
+
+- Trajectory projections (CAGR, 5-year and 10-year forecasts)
+- Budget proportionality (personnel as share of total expenditures)
+- Commitment analysis (locked-in costs, contractual obligations)
+- Assumption testing (revenue projections vs. actuals)
+- Opportunity cost quantification
+
+
+### 2. TPIA Request Templates
+
+Standardized document request specifications tied to each framework question, refined through actual use and response patterns. Templates will include:
+
+- Document descriptions with specificity sufficient to avoid "we don't have that" responses
+- Recommended fiscal year ranges
+- Notes on likely availability
+- Guidance on phased request strategies
+
+
+### 3. Analytical Tools
+
+R-based data pipelines and workflows, documented for replication:
+
+- Data import and cleaning pipelines
+- Reconciliation and validation checkpoints
+- Visualization templates (trajectory charts, proportionality analysis, etc.)
+- Reusable functions for CAGR calculation, variance analysis, and projection
+
+
+### 4. Lessons Learned Documentation
+
+Systematic capture of what worked, what didn't:
+
+- What documents were readily available?
+- What required formal TPIA requests?
+- What was withheld, and on what grounds?
+- What data gaps remained despite best efforts?
+- What analytical approaches proved most effective?
+
+### 5. Letters, Published Reports and Presentations
+
+Public-facing analysis with:
+
+- Key findings
+- Methodology notes (reproducible)
+- Data sources and limitations
+- Recommendations (if warranted)
+- Framework for ongoing monitoring
+
+
+----------
+
+# Future Development
+
+## Scaling the Model
+
+The templates, tools, and methodology developed in Phase I become the foundation for replication. Other analysts, whether independent researchers, citizen groups, or journalists can adopt the 5Q framework and associated materials to examine their own local governments.
+
+Key assets for scaling:
+
+- Standardized TPIA request templates adaptable to any Texas municipality
+- Analytically pipelines requiring only local data substitution
+- Training documentation for framework application
+- Quality standards for analysis and publication
+
+
+## Chapter Development
+
+The long-term vision may include establishing affiliated analysis teams ("chapters") in other jurisdictions, operating under shared standards and methodology while maintaining local independence.
+
+Chapter model characteristics:
+
+- Shared 5Q Decision Architecture™ methodology
+- Common quality and documentation standards
+- Local operational independence
+- Network for knowledge sharing and mutual support
+- Potential for coordinated multi-jurisdiction analysis
+
+
+## Training and Education Opportunity
+
+The 5Q Decision Architecture™ framework can be taught. Potential audiences include:
+
+| Audience | Application |
+|----------|-------------|
+| **Newly elected officials** | Analytical frameworks for evaluating staff recommendations |
+| **Citizen oversight groups** | Structured methodology for fiscal monitoring |
+| **Journalism programs** | Investigative techniques for local government coverage |
+| **Civic education initiatives** | Curriculum for engaged citizenship |
+| **Government finance professionals** | External perspective on decision quality |
+
+
+Training formats may include:
+
+- Workshops (half-day or full-day)
+- Online modules
+- Written guides and workbooks
+- Mentored application to real decisions
+
+----------
+
+
+# What We Are Not
+
+We are clear about what we are not:
+
+- **We are not consultants seeking government contracts.** Our independence requires separation from the entities we examine.
+
+- **We are not partisan operatives building cases for candidates.** Our analysis applies the same standards regardless of who holds office.
+
+- **We are not hobbyists who will lose interest after one cycle.** We are building institutional capacity for sustained scrutiny.
+
+- **We are not collaborators helping officials feel better about their decisions.** We are independent examiners who will report what we find.
+
+We are building an institution; methodical, persistent, and serious—because local government accountability is the best antidote for government sprawl and administrative overreach.
+
+----------
+
+
+# Summary
+
+
+One of the most important effects of public scrutiny is invisible. Officials who know someone is watching behave differently than those who believe no one is looking at the books. It announces something: ***Someone is paying attention. Someone has the skills to find irregularities. Someone will notice.***  That awareness changes behavior in ways that will never be directly observed. The effect of scrutiny is not nothing — it's just invisible.
+
+There's a philosophical tradition — going back to the Romans and Greeks — that holds certain activities are intrinsically worthwhile because they express the kind of person you want to be and the kind of society you want to live in. Voting when a single vote won't determine the outcome, serving on a jury, documenting public spending: these acts matter not primarily because of their immediate instrumental effects but because they constitute citizenship itself. The engaged citizen that a democratic republic requires is being embodied, whether or not others join. The alternative of disengagement, cynicism, letting it all slide is a kind of capitulation that costs something internally.
+
+```{r}
+#| label: tbl-summary
+#| echo: false
+#| message: false
+
+base::library(flextable)
+
+summary_df <- data.frame(
+  Element = c(
+    "Stance",
+    "Method",
+    "Phase I Location",
+    "Phase I Focus",
+    "Key Outputs",
+    "Future Vision"
+  ),
+  Description = c(
+    "Investigative journalism model: independent, rigorous, willing to challenge publicly",
+    "5Q Decision Architecture™ Framework (Trajectory, Proportionality, Reversibility, Opportunity Cost, Assumption Exposure)",
+    "City of Schertz, Texas",
+    "Municipal employee compensation study, FY2015–FY2024",
+    "Templates, analytical tools, methodology documentation, published analysis, lessons learned",
+    "Scalable model for chapters nationwide; training for officials and citizens"
+  )
+)
+
+summary_df |>
+  flextable::flextable() |>
+  flextable::set_header_labels(
+    Element = "Element",
+    Description = "Description"
+  ) |>
+  flextable::add_header_lines("Fifth Question Group: Summary") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::width(j = "Element", width = 1.5) |>
+  flextable::width(j = "Description", width = 5.0) |>
+  flextable::valign(valign = "top", part = "body") |>
+  flextable::autofit()
+```
+
+---
+
+# Contact
+
+[Contact information to be added]
+
+----------
+
+# Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 0.10 | `r Sys.Date()` | Initial proposal |
+
+----------
+
+*Fifth Question Group*
+*Civic Fiscal Analysis*
+*5Q Decision Architecture™*
