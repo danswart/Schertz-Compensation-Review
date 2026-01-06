@@ -1,0 +1,86 @@
+---
+title: "Schertz Compensation Review - Append New Data"
+author: "Compensation Review Project"
+date: today
+format: html
+editor: visual
+---
+
+## Overview
+
+This pipeline processes City of Schertz employee compensation data from FY20 through FY25 (and beyond). It handles the different Excel file structures automatically.
+
+**To add a new fiscal year, you only need ONE line of code.**
+
+------------------------------------------------------------------------
+
+## Setup
+
+```{r}
+#| label: setup
+#| message: false
+
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(janitor)
+library(purrr)
+library(lubridate)
+library(here)
+
+# Load pipeline components
+source(here::here("schertz_config.R"))
+source(here::here("schertz_processing.R"))
+```
+
+------------------------------------------------------------------------
+## Adding a New Fiscal Year (The Easy Way)
+
+When you receive a new Excel file (e.g., FY26):
+
+### Step 1: Place the file in your data_raw folder
+
+Copy the Excel file to: `data_raw/`
+
+### Step 2: Preview it (optional but recommended)
+
+```{r}
+#| label: preview-new-file
+#| eval: false
+
+# See what the file contains before adding it
+preview_file("Employee_Compensation_Report_FY25.xlsx")
+```
+
+This shows you:
+
+-   Detected fiscal year
+-   Detected structure type
+-   All column names
+-   First/last rows (to check for totals)
+
+### Step 3: Add and process with ONE command
+
+```{r}
+#| label: add-new-year
+#| eval: false
+
+# This does everything:
+#   - Auto-detects fiscal year from filename
+#   - Auto-detects structure type from columns
+#   - Adds to file registry
+#   - Runs the full pipeline
+source(here::here("append_fy25.R"))
+```
+
+That's it! The pipeline:
+
+1.  Detects whether it's FY26 from the filename or column names
+2.  Figures out the column structure automatically
+3.  Maps columns to standardized names
+4.  Filters out total/subtotal rows
+5.  Cleans names and creates employee keys
+6.  Combines with all previous years
+
+------------------------------------------------------------------------

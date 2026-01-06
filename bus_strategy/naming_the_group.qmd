@@ -1,9 +1,9 @@
 ---
-title: "From Watchdog to Decision Architecture"
-subtitle: "A Business Plan for Civic Analysis Consulting and the 5Q Decision Architecture™ Framework"
+title: "Naming the Enterprise"
+subtitle: "and Possible Funding Ideas"
 authors: 
   - name: "Dan Swart, CPA (ret)"
-  - name: "Claude Sonnet 4.5"
+  - name: "Claude Opus 4.5"
 date: today
 date-format: long
 # bibliography: manual-refs.bib
@@ -379,19 +379,13 @@ Here are several initial name ideas:
 
 # Decision Architecture
 
-## The Reframe
-
 The service isn't strictly analysis — it's **decision architecture**. Providing the template for what a fully-informed decision looks like, or a bond decision, or a contract renewal. Teaching officials to recognize completeness versus the *appearance* of completeness.
 
 
 ----------
 
 
-
-# The Business Model
-
-
-## The Problem: Who Pays?
+# The Problem: Who Pays?
 
 The people who most need this—ordinary citizens—generally can't pay. The entities with money—governments—might not want the scrutiny. So the business model has to be creative about who the actual customer is.
 
@@ -455,176 +449,3 @@ That's not buzzwords. That's craft. And it's almost completely absent.
 That's a genuinely unfilled niche.
 
 ----------
-
-# The 5Q Decision Architecture™ Framework
-
-## Core Metrics for Evaluating Any Budget Decision
-
-### 1. Trajectory / Growth Projection
-
-- What are the compound annual growth rates (CAGR)?
-- Where are we in 5 or 10 years if this continues?
-- What assumptions about revenue are embedded in the decision?
-
-
-### 2. Proportionality
-
-- What share of the total budget is this category?
-- How has that share shifted over time?
-- Is one area slowly crowding out others?
-- Example: Personnel was 62% of budget in 2015, now it's 74%. What shrank to make room?
-
-
-### 3. Reversibility
-
-- How 'sticky' is this decision?
-- One-time expense vs. permanent obligation?
-- Are you adding fixed costs, or variable costs for future years?  You should always prefer variable costs.
-- Contracts, pensions, union agreements, debt service — these lock in future budgets.  
-- Where is the 'elbow room' in the budget?
-- Was a 'part-time' solution considered?
-- An interesting question: What percentage of next year's budget is already committed before you vote on anything?
-
-
-### 4. Opportunity Cost
-
-- What, if anything, are you *not* doing by doing this?
-- Every dollar 'here' is a dollar not 'elsewhere'
-- Can you quantify the trade-offs? "This raise costs the equivalent of four police vehicles per year."
-
-
-### 5. Assumption Exposure
-
-- What has to be true for this to be effective?
-- What revenue growth did we assume?
-- What inflation rate?
-- What turnover?
-- Then: Were our past assumptions correct? (Usually the answer is revealing.)
-
-## Additional Useful Metrics
-
-- **Per-Unit Analysis:** Cost per employee, cost per resident served, cost per student
-- **Variance History:** What did we budget vs. what did we actually spend?
-- **Commitment Creep:** What future obligations does this create?
-- **Sensitivity Testing:** What happens if revenue drops 10% (e.g., new property tax exemptions)?
-- **Internal Coherence:** Does this match our stated priorities?
-
------------
-
-
-## A Simple Framework for Any Budget Decision
-
-1. What's the trajectory?     (What are the long-term consequences?)
-2. What are the proportions?  (What is being crowded out?)
-3. What are the commitments?  (How locked in are we?)
-4. What are the assumptions?  (What has to be true for this to be effective?)
-5. What are the trade-offs?   (What else could this buy?  What are the incentives now)
-
-
-**Just five questions. If a board or council asked these consistently, they'd be ahead of at least 90% of public bodies.**
-
-----------
-
-# Applying the 5Q Decision Architecture™: Schertz Compensation Example
-
-
-## 1. Trajectory: What are the Long-Term Consequences?
-
-For example, Compound Average Growth Rate (CAGR) calculation can reveal how growth accelerates over time. For example, if compensation grew at 15%, 18%, or 20% annually how many years would it take to double:
-
-| If CAGR is... | Compensation doubles every... | 10-year projection |
-|---------------|-------------------------------|-------------------|
-| 15% | 4.9 years | ~4x current |
-| 18% | 4.2 years | ~5x current |
-| 20% | 3.8 years | ~6x current |
-
-**The question for governance:** What revenue growth rate did you assume when you approved these increases? If revenue is growing at 5% and compensation is growing at 18%, the math doesn't work. It's not opinion—it's arithmetic.
-
-A key component of evaluating trajectory is to expose any deficit spending patterns.
-
-
-## 2. Proportionality: What Share of the Budget Is This?
-
-| Fiscal Year | Total Compensation | Total City Budget | Personnel as % of Budget |
-|-------------|-------------------|-------------------|-------------------------|
-| FY20 | $X | $Y | ?% |
-| FY24 | $X | $Y | ?% |
-
-If personnel went from 55% to 68% of the budget, *something else shrank* or *taxes were raised*. What? Road maintenance? Parks? Reserves? Maybe both.
-
-## 3. Reversibility: How Locked In Are We?
-
-- What percentage of compensation growth is **base salary** (permanent) vs. **one-time** (overtime, bonuses)?
-- Are **COLA s, bonuses, overtime, benefits** considered a "given"?  By whom?
-- Are there **contractual escalators** (automatic step increases, COLA clauses)?
-- What's the **pension liability** trajectory?
-- How much of next year's budget is **already committed** before council votes?
-
-
-
-## 4. Assumption Exposure: What Has to Be True for This to be Effective?
-
-- What **sales tax growth** did they assume?
-- What **property value growth** did they assume?
-- What **inflation rate** did they assume for non-personnel costs?
-- What **employee turnover rate** did they assume?
-- What **health insurance cost growth** did they assume?
-
-Then ask: **Were past assumptions correct in the short-term?  In the long-term**
-
-
-
-## 5. Opportunity Cost: What Else Could This Money Buy?
-
-For example:  the compensation increase from one year—say $3 million above baseline growth:
-
-- X police vehicles
-- Y miles of road resurfacing
-- Z new positions in a different department
-- A% reduction in property tax rate
-- B months of reserve fund
-
--------------
-
-# Naming the Company
-
-A starting point:   **5Q Decision Architecture™**
-
-## Ten Variations
-
-| Name | Tagline |
-|------|---------|
-| **Five Questions Group** | *For quality decision-making.* |
-| **5Q Advisers** | *Five questions. Complete clarity.* |
-| **The Fifth Lens** | *Seeing what the summary doesn't show.* |
-| **Five-Point Analytics** | *A framework for fiscal clarity.* |
-| **5th Order Consulting** | *Beyond the obvious. Before the vote.* |
-| **The Five Criteria Group** | *A standard your decisions can meet.* |
-| **The Fifth Standard** | *What complete analysis looks like.* |
-
-
-## Early Recommendation
-
-- **5Q Advisory** — Clean, modern, slightly technical. Works well on a business card.
-
--------------
-
-# Summary: What This Business Offers
-
-**Investigative Analysis and Consulting based on the 5Q Decision Architecture™**
-
-**Independent evaluation of decisions made, or proposed.**
-
-**Transition from data dumping to Functional Transparency.**
-
-**The consulting service:** Training for officials and citizens on how to gather sufficient information for a well-grounded decision — before and after the vote.
-
-**The method:** Based on the 5Q Decision Architecture™ framework that any governing member can learn.
-
-**The positioning:** Investigative Reporting Approach.  Neither friend nor foe, but will get to the bottom of the situation.  
-
-  - ***DEFINATELY NOT*** "constructive, comparative, collegial, helping governance work, not catching people doing wrong".  Outside a quality improvement environment I have observed that these are weak and ineffective approaches for modifying behavior.
-
-**The customers:** New officials seeking training, challengers seeking analysis, citizen groups seeking oversight, news organizations seeking stories, governments seeking reviews.
-
-**The value proposition:** Learning what to ask, and why, before and after the vote is called.

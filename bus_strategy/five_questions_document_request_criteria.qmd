@@ -1,9 +1,10 @@
 ---
-title: "Five Questions Framework: Document Request Specifications"
-subtitle: "TPIA/FOIA Request Criteria for Municipal Fiscal Analysis"
+title: "TPIA/FOIA Request Template for Municipal Fiscal Analysis"
+subtitle: "Following the 5Q Decision Architecture Framework™"
+description:  ""
 authors: 
   - name: "Dan Swart, CPA (ret)"
-  - name: "Claude Sonnet 4.5"
+  - name: "Claude Opus 4.5"
 date: today
 date-format: long
 # bibliography: manual-refs.bib
@@ -365,7 +366,7 @@ This document provides detailed specifications for public records requests suppo
 1. **Trajectory** — Where does this decision lead?
 2. **Proportionality** — What share of the budget is this?
 3. **Reversibility** — How locked in are we?
-4. **Assumption Exposure** — What has to be true for this to work?
+4. **Assumption Testing** — What has to be true for this to work?
 5. **Opportunity Cost** — What else could this money buy?
 
 ---
@@ -655,16 +656,16 @@ reversibility_docs |>
 
 ---
 
-# Question 4: Assumption Exposure
+# Question 4: Assumption Testing
 
-**Purpose:** Identify the assumptions embedded in budget projections and test whether past assumptions proved accurate. Expose hidden risks.
+**Purpose:** Identify the assumptions embedded in budget projections and test whether past assumptions proved accurate. Expose hidden risks and incompatible assumptions.
 
 ```{r}
 #| label: tbl-assumptions
-#| tbl-cap: "Documents Required for Assumption Exposure Analysis"
+#| tbl-cap: "Documents Required for Assumption Testing Analysis"
 
 # =============================================================================
-# QUESTION 4: ASSUMPTION EXPOSURE - WHAT HAS TO BE TRUE?
+# QUESTION 4: ASSUMPTION Testing - WHAT HAS TO BE TRUE?
 # =============================================================================
 
 assumption_docs <- dplyr::tibble(
@@ -741,7 +742,7 @@ assumption_docs |>
     likely_availability = "Likely Availability",
     analysis_use = "Analysis Use"
   ) |>
-  flextable::add_header_lines("Question 4: Assumption Exposure — What Has to Be True?") |>
+  flextable::add_header_lines("Question 4: Assumption Testing — What Has to Be True?") |>
   flextable::color(i = 1, color = "darkblue", part = "header") |>
   flextable::italic(i = 1, part = "header") |>
   flextable::align(i = 1, align = "left", part = "header") |>
@@ -760,7 +761,7 @@ assumption_docs |>
 
 ---
 
-# Question 5: Opportunity Cost
+# Question 5: Opportunity Costs
 
 **Purpose:** Identify deferred projects, unfunded needs, and alternative uses of funds. Quantify trade-offs in concrete terms.
 
@@ -769,7 +770,7 @@ assumption_docs |>
 #| tbl-cap: "Documents Required for Opportunity Cost Analysis"
 
 # =============================================================================
-# QUESTION 5: OPPORTUNITY COST - WHAT ELSE COULD THIS MONEY BUY?
+# QUESTION 5: OPPORTUNITY COSTS - WHAT ELSE COULD THIS MONEY BUY?
 # =============================================================================
 
 opportunity_docs <- dplyr::tibble(
@@ -977,4 +978,4 @@ These typically require a written request:
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.0 | `r Sys.Date()` | Initial document |
+| 0.10 | `r Sys.Date()` | Initial document |

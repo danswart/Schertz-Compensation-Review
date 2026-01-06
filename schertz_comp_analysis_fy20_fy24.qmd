@@ -679,7 +679,7 @@ safe_extract <- function(df, col_name) {
 ## Step 6: Process Each File for Each Year
 
 ```{r}
-#| label: process-files
+#| label: process-files-into-wide
 
 # =============================================================================
 # PROCESS EACH FILE INTO WIDE FORMAT
@@ -1033,17 +1033,17 @@ if (!base::dir.exists(paths$data_clean)) {
 # Export
 test_suffix <- base::ifelse(report_settings$test_mode, "_TEST", "")
 
-rds_path <- base::file.path(paths$data_clean, base::paste0("compensation_long", test_suffix, ".rds"))
+rds_path <- base::file.path(paths$data_clean, base::paste0("compensation_long_fy20_fy24", test_suffix, ".rds"))
 base::saveRDS(final_df, file = rds_path)
 
-csv_path <- base::file.path(paths$data_clean, base::paste0("compensation_long", test_suffix, ".csv"))
+csv_path <- base::file.path(paths$data_clean, base::paste0("compensation_long_fy20_fy24", test_suffix, ".csv"))
 readr::write_csv(final_df, file = csv_path)
 
 # Also export the wide format for convenience
-wide_rds_path <- base::file.path(paths$data_clean, base::paste0("compensation_wide", test_suffix, ".rds"))
+wide_rds_path <- base::file.path(paths$data_clean, base::paste0("compensation_wide_fy20_fy24", test_suffix, ".rds"))
 base::saveRDS(all_data, file = wide_rds_path)
 
-wide_csv_path <- base::file.path(paths$data_clean, base::paste0("compensation_wide", test_suffix, ".csv"))
+wide_csv_path <- base::file.path(paths$data_clean, base::paste0("compensation_wide_fy20_fy24", test_suffix, ".csv"))
 readr::write_csv(all_data, file = wide_csv_path)
 
 base::cat("Data exported:\n")

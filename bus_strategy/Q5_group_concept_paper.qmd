@@ -1,10 +1,10 @@
 ---
 title: "***Personal and Confidential***"
-subtitle: "Business Proposal: Civic Fiscal Analysis Using the 5Q Decision Architecture™ Framework"
-description: "" 
+subtitle: "Proof of Concept Proposal"
+description: "Civic Fiscal Analysis Using the 5Q Decision Architecture Framework™" 
 authors: 
   - name: "Dan Swart, CPA (ret)"
-  - name: "Claude Sonnet 4.5"
+  - name: "Claude Opus 4.5"
 date: today
 date-format: long
 # bibliography: manual-refs.bib
@@ -339,31 +339,35 @@ base::set.seed(123)
 
 ## What We Have Now
 
-Governmental bodies currently use 'compliance disclosure'.  Compliance disclosure is what governments do to satisfy the law.  
+Governmental bodies currently use what can be called 'Compliance Disclosure' to satisfy the law.  
 
-Compliance disclosure means records released in formats that satisfy legal requirements but obstruct analysis. PDFs instead of spreadsheets. Summaries without line items. Charts and graphs without making the underlying data accessible.  Replies that technically respond to requests but make evaluation nearly impossible.  Transparency is not the right word for current practice.
+Compliance disclosure means records released in formats that satisfy legal requirements but obstruct analysis. PDFs instead of spreadsheets. Summaries without line items. Charts and graphs without making the underlying data accessible.  Replies that technically respond to requests but make evaluation nearly impossible.  'Transparency' is not the right word for 'Compliance Disclosure'.
 
-**Compliance Disclosure:** The data exists. The meetings are open. Legally, all required data is available.
+**Compliance Disclosure:** The data exists. The meetings are open. Legally, all required data is available.  Obscures more than it reveals.
 
 
 
 ## What We Need Now
 
-What is needed is **Functional Transparency™** - information organized and readily accessible in ways that allow citizens to evaluate the ***quality*** of decisions, not just their existence.
+**Functional Transparency™** is what we need - information organized and readily accessible in ways that allow citizens to evaluate the ***quality*** of decisions, not just their existence.
 
 **Functional Transparency™** is when a citizen can actually understand *why* a decision was made. What was considered. What was ignored. What assumptions drove the outcome.
 
-Almost no government achieves **Functional Transparency™**. Not because they're hiding things—but because *no one has done the work* of connecting the numbers to the reasoning to the outcome in a form a citizen can actually use.
+Almost no government achieves **Functional Transparency™**.  Perhaps, not because they're hiding things—but because *no one has done the work* of connecting the numbers to the reasoning to the outcome in a form a citizen can actually use. DATA -> REASONING -> DECISIONS
 
 Decisions are often made without examining all the pertinent areas. Boards and councils tend to make decisions based on rhetoric rather than empirical knowledge. Someone has to direct the search for relevant information—and that means knowing what *is* relevant information.
 
-Most elected officials don't have a framework, nor the time for independent study of pending decisions. They're handed a packet and asked to vote. If the packet looks thorough, they likely assume it *is* thorough. They likely don't know what's missing because they don't know what *should* be there.
+
+Determining what is 'relevant' is always a judgement based on incentives, context and available evidence.  
+Many elected officials don't have a framework or experience to identify what may be essential, or the time for independent study of pending decisions. 
+
+They receive an information packet and asked to vote. If the packet looks thorough, they may assume it *is* thorough. They may not know what's missing because they don't know what else *should* be there.
 
 ----------
 
 # Business Proposal
 
-***Goal***
+***Phase I Goal***
 
 To build a scalable model for civic engagement based on forming investigative teams to monitor and analyze local government decisions.  
 
@@ -372,102 +376,86 @@ To build a scalable model for civic engagement based on forming investigative te
 
 To improve access to public information from 'data-dump compliance' to Functional Transparency™.  Additionally, to provide incentives and methods for governing bodies to make well-considered decisions based on sufficient information that often is readily available.  The implicit promise of democratic governance is that *evidence matters*, and that *someone is paying attention*.
 
+
 ***Core Offering***
 
-Translating compliance disclosure into **Functional Transparency™**. Reconstructing the decision logic behind public actions. Identifying what a complete information picture looks like for specific decision types. Making the "why" visible.
+Translating 'compliance disclosures' into **Functional Transparency™** - reconstructing the decision logic behind public actions.  Making the "why" visible.
 
-
-***What's Really Being Sold***
+Our team will analyze the available data and **challenge decisions where warranted** — publicly, with documented evidence and reasoned argument. The goal is not to embarrass, but to establish a standard of decision development that makes certain all relevant aspects are considered.
 
 **Decision competency.**  The ability to know what you need to know before you vote.
 
 
 ***Methodology***
 
-Refine the operational uses of the 5Q Decision Architecture™ Framework by using the Schertz, TX compensation study to test the effectiveness and relevancy of the framework in action.
+The 5Q Decision Architecture Framework™ and TPIA/FOIA data request Template are the heart of the system.  The goal in Phase I is to stress-test and improve those instruments.  I expect many improvements will be made during Phase I.  If Phase I develops into a viable system further development will be considered.
 
-We will reconstruct the decision logic and show what was actually weighed, what wasn't, and whether the reasoning holds up."
+The Schertz, TX compensation study will be the stress-test to refine the effectiveness and relevancy of the framework in action.
+
+***The Challenge***
+
+Using the 5Q Decision Architecture Framework™, can we reconstruct the decision logic and show what information and data were weighed, what wasn't, and whether the reasoning is consistent with stated policies and goals.
 
 
 ***Skills Needed***
 
-*  Ability to persuasively request information from any official, regardless of rank.  
-*  Investigative mindset.
-*  Data analysis skills that create presentation-quality charts, graphs, and visualizations.  Some statistical background helpful.
+*  Ability to fully describe and persuasively request information from any official, regardless of rank or notoriety. 
+*  Ability to persuasively present the findings.
+*  Investigative mindset.  
+*  Data analysis skills that can create presentation-quality charts, graphs, and visualizations (coding, Excel, etc).  Basic statistical background helpful.
 *  Expertise on the internal functioning of the governmental body involved, including the limitations and requirements under local policies.
+*  Ability to create and improve data collection forms and techniques.
 
 ----------
 
-# Example Workflow
+# Example Phase I Workflow
 
-A question is posed.  For example, "Why has total compensation doubled in just the last five years?  It seems very excessive."
+A question is posed:  ***"Why has total compensation doubled in just the last five years?  It seems excessive."***
 
-The team follows the 5Q Decision Architecture™ Framework which guides and focuses the information gathering needed to answer the question.  The framework should be customized for the each specific engagement.
+The team follows the 5Q Decision Architecture Framework™ which guides and focuses the information gathering needed to answer the question.  The framework will be customized for each specific engagement.
 
-A report, presentation, or letter is prepared based on the empirical evidence gathered.
+Information is gathered and analyzed numerically and contextually.
+
+A report, presentation, or letter is prepared based on the empirical evidence gathered.   (duties remain the same?)
 
 
 
-## Abbreviated Example of Using The 5Q Decision Architecture™ Framework
+## Abbreviated Example of Using The 5Q Decision Architecture Framework™
 
 Every significant fiscal decision can be evaluated against five essential questions:
 
 
-## 1. Trajectory
+1. Trajectory
 
-What are the short-term and long-term consequences?
+What are the short-term and long-term consequences, financially and organizationally?
 
-- What's the compound annual growth rate (CAGR)? 
-- Where are we in 5–10 years if this continues? 
-- What revenue assumptions are embedded in this path?
-- What new incentives are created
-
-## 2. Proportionality
+2. Proportionality
 
 What share of the total budget does the category represent? 
 
-- How has that share shifted over time? 
-- What categories are being crowded out? 
-- If personnel grew from 62% to 74%, what shrank to make room?
-- Is it small enough to be ignored?
+3. Reversibility
 
-## 3. Reversibility
+How 'sticky' is the decision?  Should 'sunset' provisions be considered?
 
-How 'sticky' is this decision? 
+4. Assumption Testing
 
-- One-time expense or permanent obligation? 
-- Fixed costs or variable? (Variable is usually preferable.)
-- Contracts, pensions, union agreements, debt service—these lock in future budgets.
-- Was a part-time or contract solution considered? 
-- Where is the 'elbow room'?
-- What percentage of next year's budget is already committed before anyone votes? 
--
+What has to be true for this proposal to be effective in achieving the stated goals provided? 
 
-## 4. Opportunity Cost
+5. Opportunity Cost
 
-What are you *not* doing by doing this? 
-
-- Every dollar in one category is a dollar not elsewhere.
-- Can you quantify the trade-off in concrete terms? 
-- Example: "This raise costs the equivalent of four police vehicles per year."
+Would there be greater civic benefit if the funds were directed elsewhere?
 
 
-## 5. Assumption Exposure
-
-What has to be true for this to be effective? 
-
-- What growth rates, turnover rates, inflation rates were assumed? 
-- Were past assumptions correct? (Usually the answer is revealing.)
 
 
 ## Supporting Metrics
 
-In addition to the five core questions, we may employ supplementary analyses:
+In addition to the five core questions, our team may employ supplementary analyses.  For example:
 
 | Metric | Description |
 |--------|-------------|
 | **Per-Unit Analysis** | Cost per employee, cost per resident served, cost per student |
-| **Variance History** | What did we budget vs. what did we actually spend? |
+| **Variance History** | What did we budget vs. what did we actually spend on this decision in the past? | What results?
 | **Commitment Creep** | What future obligations does this decision create? |
 | **Sensitivity Testing** | What happens if revenue drops 10%? (e.g., new property tax exemptions) |
 | **Internal Coherence** | Does this spending match our stated priorities? |
@@ -475,21 +463,23 @@ In addition to the five core questions, we may employ supplementary analyses:
 ----------
 
 
-# "Stress Testing" The Methodology
+# Internal Evaluation of Phase I - Proof of Concept" 
 
 We must determine how much penetration can be achieved through:
 
 - Texas Public Information Act (TPIA) requests
-- Publicly available budget and financial documents
+- Federal Of Information Act (FOIA) requests
+- Publicly available budgets, financial documents, transcripts
 - External data sources (U.S. Census Bureau, Texas Comptroller, state agencies)
 - Meeting minutes, agendas, and recordings
 - Other publicly accessible records
+- Incidental correspondence (non-TIPA/FOIA requests)
 
-We will analyze the available data and **challenge decisions where warranted** — publicly, with documented evidence and reasoned argument. The goal is not to embarrass, but to establish a standard of scrutiny that makes poorly-reasoned decisions harder to make or sustain.
+Can ***anyone*** obtain the information needed for a detailed analytic analysis?
 
 ----------
 
-# Phase I: Proof of Concept
+# Phase I: Improvement Cycles
 
 Phase I operates as a **continuous quality improvement cycle**: test, document, refine, repeat. Methods and materials remain in active development throughout.
 
@@ -498,7 +488,7 @@ Phase I operates as a **continuous quality improvement cycle**: test, document, 
 
 City of Schertz, Texas
 
-## Focus
+## Focus Question
 
 Sharp increase in employee compensation found in FY2020–FY2024
 
@@ -510,18 +500,18 @@ Sharp increase in employee compensation found in FY2020–FY2024
 
 Complete 5Q analysis of workforce compensation trends, including:
 
-- Trajectory projections (CAGR, 5-year and 10-year forecasts)
-- Budget proportionality (personnel as share of total expenditures)
-- Commitment analysis (locked-in costs, contractual obligations)
-- Assumption testing (revenue projections vs. actuals)
-- Opportunity cost quantification
+- Trajectory projections (e.g., CAGR, 5-year and 10-year forecasts)
+- Budget proportionality (e.g., personnel as share of total expenditures)
+- Commitment analysis (e.g., locked-in costs, contractual obligations)
+- Assumption testing (e.g., revenue projections vs. actuals)
+- Opportunity costs of the decision
 
 
-### 2. TPIA Request Templates
+### 2. TIPA/FOIA Request Templates
 
-Standardized document request specifications tied to each framework question, refined through actual use and response patterns. Templates will include:
+Standardized information request specifications, including time requirements for response.  Templates may include:
 
-- Document descriptions with specificity sufficient to avoid "we don't have that" responses
+- Document descriptions with specificity sufficient to avoid "we don't have that" responses, including any required request forms.
 - Recommended fiscal year ranges
 - Notes on likely availability
 - Guidance on phased request strategies
@@ -529,33 +519,33 @@ Standardized document request specifications tied to each framework question, re
 
 ### 3. Analytical Tools
 
-R-based data pipelines and workflows, documented for replication:
+Code-based data pipelines and workflows, documented for replication:
 
 - Data import and cleaning pipelines
 - Reconciliation and validation checkpoints
 - Visualization templates (trajectory charts, proportionality analysis, etc.)
-- Reusable functions for CAGR calculation, variance analysis, and projection
+- Reusable coding functions (e.g., for CAGR calculation, variance analysis, and projection)
 
 
 ### 4. Lessons Learned Documentation
 
-Systematic capture of what worked, what didn't:
+Systematic capture of what worked, what didn't, and improvements made:
 
 - What documents were readily available?
-- What required formal TPIA requests?
+- What required formal TIPA/FOIA requests?
 - What was withheld, and on what grounds?
 - What data gaps remained despite best efforts?
 - What analytical approaches proved most effective?
 
 ### 5. Letters, Published Reports and Presentations
 
-Public-facing analysis with:
+Findings are customized for the target audience, including media outlets, social media platforms, presentations, and formal reporting of results.  Any given transmittal may include:
 
 - Key findings
 - Methodology notes (reproducible)
 - Data sources and limitations
 - Recommendations (if warranted)
-- Framework for ongoing monitoring
+- Detailed, but not limited to, framework for ongoing monitoring
 
 
 ----------
@@ -568,15 +558,16 @@ The templates, tools, and methodology developed in Phase I become the foundation
 
 Key assets for scaling:
 
-- Standardized TPIA request templates adaptable to any Texas municipality
-- Analytically pipelines requiring only local data substitution
+- Standardized TIPA/FOIA request templates adaptable to any Texas municipality
+- Software pipelines requiring only local data substitution (reusable code)
 - Training documentation for framework application
 - Quality standards for analysis and publication
+- Possibly, legislative analysis
 
 
 ## Chapter Development
 
-The long-term vision may include establishing affiliated analysis teams ("chapters") in other jurisdictions, operating under shared standards and methodology while maintaining local independence.
+The long-term vision may include establishing like-minded analysis teams ("chapters") in other jurisdictions, operating under shared standards and methodology while maintaining local independence.  Similar to a franchise or Turning Point USA chapters?
 
 Chapter model characteristics:
 
@@ -589,7 +580,7 @@ Chapter model characteristics:
 
 ## Training and Education Opportunity
 
-The 5Q Decision Architecture™ framework can be taught. Potential audiences include:
+The 5Q Decision Architecture Framework™ can be taught. Potential audiences include:
 
 | Audience | Application |
 |----------|-------------|
@@ -614,25 +605,31 @@ Training formats may include:
 
 We are clear about what we are not:
 
-- **We are not consultants seeking government contracts.** Our independence requires separation from the entities we examine.
+- **Our independence requires separation from the entities we examine.**  We may accept government contracts only if independence in appearance and in fact are maintained.
 
-- **We are not partisan operatives building cases for candidates.** Our analysis applies the same standards regardless of who holds office.
+- **We are not partisan operatives building cases for candidates.**  Our analysis applies the same standards regardless of who holds office.
 
-- **We are not hobbyists who will lose interest after one cycle.** We are building institutional capacity for sustained scrutiny.
+- **We are not hobbyists who will lose interest after one cycle.**  We are building institutional capacity for sustained governmental scrutiny.
 
-- **We are not collaborators helping officials feel better about their decisions.** We are independent examiners who will report what we find.
+- **We are not collaborators helping officials feel better about their decisions.**  We are independent examiners who will report what we find.
 
-We are building an institution; methodical, persistent, and serious—because local government accountability is the best antidote for government sprawl and administrative overreach.
+We are building an institution; methodical, persistent, and serious—because local government accountability is the best antidote for government sprawl and administrative overreach (The Swamp).
 
 ----------
 
 
 # Summary
 
+One of the most important effects of public scrutiny is invisible. Some officials who know someone is watching behave differently than those who believe no one is looking at the books. It announces something: ***Someone is paying attention. Someone has the skills to find irregularities. Someone will notice.***  
 
-One of the most important effects of public scrutiny is invisible. Officials who know someone is watching behave differently than those who believe no one is looking at the books. It announces something: ***Someone is paying attention. Someone has the skills to find irregularities. Someone will notice.***  That awareness changes behavior in ways that will never be directly observed. The effect of scrutiny is not nothing — it's just invisible.
+That awareness changes behavior in ways that will never be directly observed. The effect of scrutiny is not nothing — it's just invisible.
 
-There's a philosophical tradition — going back to the Romans and Greeks — that holds certain activities are intrinsically worthwhile because they express the kind of person you want to be and the kind of society you want to live in. Voting when a single vote won't determine the outcome, serving on a jury, documenting public spending: these acts matter not primarily because of their immediate instrumental effects but because they constitute citizenship itself. The engaged citizen that a democratic republic requires is being embodied, whether or not others join. The alternative of disengagement, cynicism, letting it all slide is a kind of capitulation that costs something internally.
+There's a philosophical tradition — going back to the Romans and Greeks — that holds certain activities are intrinsically worthwhile because they express the kind of person you want to be and the kind of society you want to live in. 
+
+Voting when a single vote won't determine the outcome, serving on a jury, documenting public spending: these acts matter not primarily because of their immediate instrumental effects but because they constitute citizenship itself. 
+
+This approach embodies the engaged citizen that a democratic republic requires, whether or not others join. It is the antidote to disengagement, cynicism, and apathy.
+
 
 ```{r}
 #| label: tbl-summary
@@ -652,7 +649,7 @@ summary_df <- data.frame(
   ),
   Description = c(
     "Investigative journalism model: independent, rigorous, willing to challenge publicly",
-    "5Q Decision Architecture™ Framework (Trajectory, Proportionality, Reversibility, Opportunity Cost, Assumption Exposure)",
+    "5Q Decision Architecture Framework™ (Trajectory, Proportionality, Reversibility, Opportunity Cost, Assumption Testing)",
     "City of Schertz, Texas",
     "Municipal employee compensation study, FY2015–FY2024",
     "Templates, analytical tools, methodology documentation, published analysis, lessons learned",
@@ -679,6 +676,20 @@ summary_df |>
   flextable::autofit()
 ```
 
+
+### ENTITY NAMING DISCUSSION
+
+Separate document
+
+### TPIA/FOIA SAMPLE REQUEST LETTER
+
+Separate document
+
+### TPIA/FOIA SAMPLE TEMPLATE FOLLOWING 5Q DECISION ARCHITECTURE FRAMEWORK™
+
+Separate document
+
+
 ---
 
 # Contact
@@ -695,6 +706,19 @@ summary_df |>
 
 ----------
 
-*Fifth Question Group*
-*Civic Fiscal Analysis*
-*5Q Decision Architecture™*
+*5Q Analytics Group*
+
+
+----------
+
+
+
+
+
+
+
+
+
+
+
+

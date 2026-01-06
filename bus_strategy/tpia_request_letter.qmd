@@ -1,5 +1,5 @@
 ---
-title: "Texas Public Information Act Request"
+title: "Texas Public Information Act (TPIA) Request"
 subtitle: "City of Schertz Municipal Records"
 date-format: long
 # bibliography: manual-refs.bib
@@ -339,8 +339,8 @@ base::set.seed(123)
 # =============================================================================
 
 # Requester Information
-requester_name <- "Dan [Last Name]"
-requester_organization <- "Fifth Question Group"  
+requester_name <- "Requestor [Last Name]"
+requester_organization <- "5Q Analysis Group"  
 requester_address <- "[Street Address]"
 requester_city_state_zip <- "Live Oak, Texas [ZIP]"
 requester_email <- "[email@domain.com]"
@@ -385,7 +385,24 @@ Pursuant to the Texas Public Information Act, Texas Government Code Chapter 552,
 
 ## Requested Records
 
-I am requesting the following categories of records for `r fiscal_years_requested` (or the most recent available where historical records are not maintained):
+(Texas PIA–Optimized)
+
+I am requesting the following categories of records for r fiscal_years_requested (or the most recent available year where historical records are not maintained). For all numeric information, please provide the original, machine-readable electronic files (such as Excel spreadsheets or comma-separated values (CSV) files), including all detailed line-item data used to create totals, summaries, or published figures.
+
+This request includes the final datasets and working spreadsheets actually used to prepare and publish the official reports for the requested jurisdiction, not solely rendered documents or summary tables. If multiple versions exist, please provide the version used for publication or final decision-making.
+
+***Burden-Minimization Clause (Recommended)***
+
+To reduce administrative burden, I am not requesting the creation of new records or analyses. Existing electronic records may be provided in the format in which they are ordinarily maintained. If responsive records exist across multiple files or systems, production of those files as-is is acceptable.
+
+***Rolling Production Clause***
+
+If responsive records are available on a rolling basis, please provide them as they are identified and ready, rather than waiting for the entire request to be completed.
+
+***Texas PIA Clarification (Subtle but Effective)***
+
+If any portion of this request is unclear, overly broad, or believed to be exempt from disclosure, please identify the specific concern and the applicable statutory citation, so the request may be clarified or narrowed if appropriate.
+
 
 ### Category A: Compensation and Personnel Records
 
