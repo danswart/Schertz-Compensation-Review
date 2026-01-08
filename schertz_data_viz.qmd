@@ -822,14 +822,16 @@ ggplot2::labs(
   x = "Fiscal Year",
   y = "Overtime ($)",
   color = "Department"
-) 
+) +
 
   # Apply a clean, minimal theme
 # Removes gray background, uses light gridlines
-# ggplot2::theme_minimal() +
+ggplot2::theme_minimal() +
+ggplot2::theme(legend.position = "bottom"
+               )
 
   # Customize specific theme elements
-# legend.position = "bottom" moves legend below chart (saves horizontal space)
+# legend.position = "bottom" # moves legend below chart (saves horizontal space)
 # element_text(face = "bold") makes the title bold
 # ggplot2::theme(
 #   legend.position = "bottom",
