@@ -1,0 +1,321 @@
+---
+title: "Issues-Priorities & Magnitude"
+subtitle: ""
+description: "Portions adapted from Weber, Jeremy G.. Statistics for Public Policy: A Practical Guide to Being Mostly Right (or at Least Respectably Wrong) Kindle Edition."
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+  - name: "Claude Sonnet 4.5"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
+format:
+  html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: false     # Fast for drafts. Override for sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    # fig-width: 13
+    E fig-height: 8
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
+execute:
+  echo: true
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+
+# # load libraries - NOT NEEDED
+
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 16,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 14,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 14,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 14),
+        # ggplot2::element_blank(),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+        # ggplot2::element_blank(),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 12,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+
+
+  
+# Set seed for reproducibility
+base::set.seed(123)
+
+```
+
+
+## Statistics Are a Special Type of Map 
+
+It is easy to think that the link between data and decision is straightforward. But statistics cannot tell us what to do any more than a map can tell us where to go.   
+
+
+We do not ask maps to give us a destination. Rather, we put in a destination, and the map app gives various routes and their travel times. 
+
+The map does not select the destination; it aids in choosing the ***best*** route to the user-provided destination. 
+
+Statistics can of course help us select among competing destinations, providing information like travel times to various destinations and the tolls associated with various routes. But the map does not tell us how to weigh travel time and toll cost, and much less how to weigh differences between the destinations themselves. 
+
+And so it is with statistics and decisions that governing bodies face. The map analogy helps to illustrate another point. 
+
+Maps are meant to accurately describe the actual relationships between one location and another and what lies between.
+
+Producers and presenters of statistics choose which data are worth collecting and which statistics are worth calculating and presenting. We also choose how to present the statistics so as to prompt particular thoughts in the minds of our audience.
+
+Statistics (a special type of map) can be decisive for a decision, informative but not decisive, or irrelevant.
+
+Whether a statistic is decisive, informative, or irrelevant for policy can therefore depend on convictions about what is good and just. And these convictions can vary from person to person. This has implications for how we present statistics and discuss their implications. Statistical enthusiasts would do well to be patient with those who find our statistics less relevant than we do while also being mindful of our own assumptions and beliefs that link a statistic to a policy decision.
+
+
+
+### Cases When Stats Can Be Decisive
+
+In ***Should I Care?*** cases, statistics can be decisive in whether an issue is a problem meriting attention.
+
+In ***Which Method?*** cases, statistics can also be decisive when the policy goal is clear and agreed upon but there is uncertainty as to which method best achieves it.
+
+
+## Informative but Not Decisive: 
+
+More common are cases when the map is relevant but not decisive for deciding where to go.  Most policy decisions involve weighing trade-offs—how happy are we with more of this and less of that.  Statistics, though, provide no easy answer to trade-off questions.
+
+Assessing the trade-off involves knowing the beliefs about the importance of the effects being traded off, both to decision-makers and to ourselves.   A particular finding is not, by itself, decisive for a policy decision.
+
+Should we highlight the trade-offs for them?
+
+
+
+## When Stats are Irrelevant  
+
+Last, the map can be irrelevant if we know that we do not want to go certain places. Some policies can be dismissed outright because they violate higher-order convictions.  In ***I'm Not Going There!*** cases, statistics can also be a show stopper. This is where a statistic reveals that the policy has an unacceptable consequence or risk.  It is easy to imagine outcomes that carry high political or public relations risk even though the policy behind them may benefit the average person.
+
+
+# Policy Aide or Gadfly?
+
+To inform a policy decision in a particular time and place, the policy aide must blend statistical and detective skills. Her detective side absorbs the details of the place and time and issue at hand—this city at this moment dealing with this particular rise in vandalism. Her statistical side steps back and looks at patterns in the city’s data over time and even the data from other cities. She does not draw conclusions based on a few high-profile cases.
+
+ 
+Integrating statistical knowledge with knowledge of the particulars of a context and issue yields statistics helpful to the policy maker.
+
+
+The academic wants to be nearly sure before concluding that a policy has worked. The forward-looking elected official might ask only that success is more likely than not.
+
+
+Baseline level of evidence is a mix of intuition and anecdotes, it makes little sense to admit additional evidence only if it meets academic standards.
+
+In policy analysis, the looser, but more appropriate, standard should be whether reliance on a model can lead to better results and avoid worse results than less disciplined guesswork.”
+
+
+
+
+
+
