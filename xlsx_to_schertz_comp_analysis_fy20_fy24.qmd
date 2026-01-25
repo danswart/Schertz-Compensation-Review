@@ -1,7 +1,7 @@
 ---
-title: "Schertz Compensation Data Pipeline - Explicit Column Version"
-subtitle: "Compensation Review Project"
-description: "Each earnings component explicitly captured and validated"
+title: "Schertz Compensation Study"
+subtitle: "Coding Pipeline"
+description: "(Each earnings component explicitly captured and validated)"
 authors: 
   - name: "Dan Swart, CPA (ret)"
   - name: "Claude Sonnet 4.5"
@@ -338,7 +338,7 @@ base::set.seed(123)
 
 ## Introduction
 
-This document implements **explicit column handling** for the Schertz compensation data pipeline. Every earnings component is captured distinctly, validated independently, and then summed to verify totals match.
+This document implements **explicit column handling** for the Schertz compensation data pipeline. Every earnings component is captured distinctly, validated independently, and then summed to verify that totals match.
 
 **Key Philosophy**: Each column name is specified **exactly** as it appears after `janitor::clean_names()`. No regex patterns, no guessing.
 
@@ -765,13 +765,13 @@ all_data <- purrr::map2_dfr(
   }
 )
 
-base::cat("Processed", base::nrow(all_data), "total rows\n")
+base::cat("Processed", base::nrow(all_data), "total xlsx rows\n")
 base::cat("Fiscal years:", base::paste(base::unique(all_data$fiscal_year), collapse = ", "), "\n")
 ```
 
 ------------------------------------------------------------------------
 
-## Step 7: Validation - Compare Calculated vs Source Totals
+## Step 7: Validation - Compare Calculated vs xlsx Source Totals
 
 ```{r}
 #| label: validation
@@ -961,6 +961,7 @@ component_breakdown <- component_breakdown |>
 
 # Display
 component_breakdown |>
+  dplyr::rename(FY = fiscal_year) |>
   dplyr::mutate(
     dplyr::across(dplyr::where(is.numeric), ~ scales::dollar(.x, accuracy = 1))
   ) |>
@@ -996,12 +997,15 @@ yearly_summary <- final_df |>
     .groups = "drop"
   ) |>
   dplyr::arrange(fiscal_year)
+  
 
 yearly_summary |>
   dplyr::mutate(
     total_compensation = scales::dollar(total_compensation, accuracy = 1),
     avg_compensation = scales::dollar(avg_compensation, accuracy = 1)
-  ) |>
+    ) |>
+  dplyr::rename(FY = fiscal_year, 'Total Comp' = total_compensation, EEs = total_employees, 'Avg Tot Comp' = avg_compensation) |>
+
   flextable::flextable() |>
   flextable::add_header_lines("Yearly Summary: Total Compensation and Headcount") |>
   flextable::color(i = 1, color = "darkblue", part = "header") |>
@@ -1201,6 +1205,7 @@ yoy_summary |>
     fiscal_year, total_employees, employee_change,
     total_compensation, total_change, total_pct_change, avg_compensation
   ) |>
+  dplyr::rename(FY = fiscal_year, EEs = total_employees, 'EE Chnge' = employee_change, 'Total Comp' = total_compensation, 'Total Chnge' = total_change, 'Pct Chnge' = total_pct_change, 'Avg Total Comp' = avg_compensation) |>
   flextable::flextable() |>
   flextable::add_header_lines("Year-over-Year Comparison") |>
   flextable::color(i = 1, color = "darkblue", part = "header") |>
@@ -1216,80 +1221,107 @@ yoy_summary |>
 ------------------------------------------------------------------------
 
 
-## Appendix D: Top 10 Earners by Year
+
+### Bump Chart - Top 3 in Total Compensation
 
 ```{r}
-#| label: top-10-earners-per-year
-
-# =============================================================================
-# APPENDIX D: TOP 10 EARNERS BY YEAR
-# =============================================================================
-
-top_10_earners <- all_data |>
-  dplyr::group_by(fiscal_year) |>
-  dplyr::slice_max(order_by = calc_total_compensation, n = 10) |>
-  dplyr::select(
-    fiscal_year, name, department, job_title, calc_total_compensation
+top_5_earners <- all_data |>
+  dplyr::slice_max(
+    order_by = calc_total_compensation, 
+    n = 5, 
+    by = fiscal_year
   ) |>
-  dplyr::mutate(
-    rank = dplyr::row_number()
-  ) |>
-  dplyr::ungroup()
+  dplyr::arrange(fiscal_year, dplyr::desc(calc_total_compensation)) |>
+  dplyr::mutate(rank = dplyr::row_number(), .by = fiscal_year)
 
-top_10_earners |>
-  dplyr::mutate(
-    calc_total_compensation = scales::dollar(calc_total_compensation, accuracy = 1)
-  ) |>
-  flextable::flextable() |>
-  flextable::add_header_lines("Top 10 Earners by Fiscal Year") |>
-  flextable::color(i = 1, color = "darkblue", part = "header") |>
-  flextable::italic(i = 1, part = "header") |>
-  flextable::align(i = 1, align = "left", part = "header") |>
-  flextable::fontsize(i = 1, size = 14, part = "header") |>
-  flextable::bg(i = 1, bg = "white", part = "header") |>
-  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
-  flextable::autofit()
+ggplot2::ggplot(
+  top_5_earners, 
+  ggplot2::aes(x = fiscal_year, y = rank, group = name, color = name)
+) +
+  ggplot2::geom_line(linewidth = 1.2) +
+  ggplot2::geom_point(size = 3) +
+  ggrepel::geom_text_repel(
+    data = dplyr::filter(top_5_earners, fiscal_year == max(fiscal_year)),
+    ggplot2::aes(label = name),
+    direction = "y",
+    hjust = 0,
+    nudge_x = 0.3,
+    segment.color = "gray70",
+    size = 3
+  ) +
+  ggplot2::scale_y_reverse(breaks = 1:5) +
+  ggplot2::scale_x_discrete(expand = ggplot2::expansion(add = c(0.2, 1.5))) +
+  ggplot2::labs(
+    title = "Top 3 in Total Compensation by Rank Over Time",
+    x = NULL,
+    y = "Rank"
+  ) +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(
+    legend.position = "none",
+    panel.grid.minor = ggplot2::element_blank()
+  )
 ```
 
 
 ------------------------------------------------------------------------
 
 
-## Appendix E: Department Summary
+## Appendix E: Department Bump Chart
 
 ```{r}
-#| label: department-summary
+#| label: department-bump
 
 # =============================================================================
-# APPENDIX E: DEPARTMENT SUMMARY
+# APPENDIX E: DEPARTMENT SUMMARY - BUMP CHART
 # =============================================================================
 
 dept_summary <- all_data |>
-  dplyr::group_by(fiscal_year, department) |>
   dplyr::summarise(
-    employees = dplyr::n(),
-    total_comp = base::sum(calc_total_compensation, na.rm = TRUE),
-    avg_comp = base::mean(calc_total_compensation, na.rm = TRUE),
-    .groups = "drop"
+    total_comp = sum(calc_total_compensation, na.rm = TRUE),
+    .by = c(fiscal_year, department)
   ) |>
-  dplyr::arrange(fiscal_year, dplyr::desc(total_comp))
+  dplyr::arrange(fiscal_year, dplyr::desc(total_comp)) |>
+  dplyr::mutate(rank = dplyr::row_number(), .by = fiscal_year)
 
-# Show FY24 as example
-dept_summary |>
-  dplyr::filter(fiscal_year == "FY24") |>
-  dplyr::mutate(
-    total_comp = scales::dollar(total_comp, accuracy = 1),
-    avg_comp = scales::dollar(avg_comp, accuracy = 1)
-  ) |>
-  flextable::flextable() |>
-  flextable::add_header_lines("Department Summary - FY24") |>
-  flextable::color(i = 1, color = "darkblue", part = "header") |>
-  flextable::italic(i = 1, part = "header") |>
-  flextable::align(i = 1, align = "left", part = "header") |>
-  flextable::fontsize(i = 1, size = 14, part = "header") |>
-  flextable::bg(i = 1, bg = "white", part = "header") |>
-  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
-  flextable::autofit()
+# Keep only top N departments for readability (adjust as needed)
+top_n_depts <- 8
+top_depts <- dept_summary |>
+  dplyr::filter(fiscal_year == max(fiscal_year), rank <= top_n_depts) |>
+  dplyr::pull(department)
+
+dept_bump <- dept_summary |>
+  dplyr::filter(department %in% top_depts)
+
+ggplot2::ggplot(
+  dept_bump,
+  ggplot2::aes(x = fiscal_year, y = rank, group = department, color = department)
+) +
+  ggplot2::geom_line(linewidth = 1.2) +
+  ggplot2::geom_point(size = 3) +
+  ggrepel::geom_text_repel(
+    data = dplyr::filter(dept_bump, fiscal_year == max(fiscal_year)),
+    ggplot2::aes(label = department),
+    direction = "y",
+    hjust = 0,
+    nudge_x = 0.3,
+    segment.color = "gray70",
+    size = 3.5,
+    fontface = "bold",
+    color = "black"
+  ) +
+  ggplot2::scale_y_reverse(breaks = seq_len(top_n_depts)) +
+  ggplot2::scale_x_discrete(expand = ggplot2::expansion(add = c(0.2, 2))) +
+  ggplot2::labs(
+    title = "Department Rankings by Total Compensation",
+    x = NULL,
+    y = "Rank"
+  ) +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(
+    legend.position = "none",
+    panel.grid.minor = ggplot2::element_blank()
+  )
 ```
 
 
@@ -1324,6 +1356,16 @@ overtime_summary |>
     overtime_pct = base::sprintf("%.1f%%", overtime_pct),
     pct_with_ot = base::sprintf("%.1f%%", pct_with_ot)
   ) |>
+  dplyr::rename(
+    FY = fiscal_year,
+    Overtime = total_overtime,
+    'Total Reg Pay' =  total_regular,
+    'Pct Reg Pay is OT' = overtime_pct,
+    'EEs with OT' = employees_with_ot,
+    'Total EEs' = total_employees,
+    'Pct EEs Rec OT' = pct_with_ot
+    ) |>
+  
   flextable::flextable() |>
   flextable::add_header_lines("Overtime Analysis by Fiscal Year") |>
   flextable::color(i = 1, color = "darkblue", part = "header") |>
@@ -1344,127 +1386,77 @@ overtime_summary |>
 #| fig-cap: "Top 3 Departments by Overtime Usage"
 
 # ======================================================================
-# OVERTIME BY DEPARTMENT - TOP 3 LINE CHART
+# OVERTIME BY DEPARTMENT - Top 3 LINE CHART
 # ======================================================================
 
 # STEP 1: Identify the top 3 departments by total overtime across all years
-# We need to know which departments to include before we can chart them
-
 top_3_depts <- all_data |>
-  # Group by department to aggregate across all fiscal years
-  dplyr::group_by(department) |>
-  # Calculate total overtime for each department (all years combined)
-  # na.rm = TRUE ignores missing values in the sum
   dplyr::summarise(
-    total_ot = base::sum(overtime_earnings, na.rm = TRUE),
-    .groups = "drop"
+    total_ot = sum(overtime_earnings, na.rm = TRUE),
+    .by = department
   ) |>
-  # Keep only the 3 departments with highest total overtime
-  # slice_max automatically sorts descending and takes top n rows
   dplyr::slice_max(order_by = total_ot, n = 3) |>
-  # Extract just the department names as a character vector
-  # This vector will be used to filter the main data
-dplyr::pull(department)
+  dplyr::pull(department)
 
-# STEP 2: Summarize overtime by fiscal year for only those top 3 departments
-
+# STEP 2: Summarize overtime by fiscal year for only those Top 3 departments
 dept_overtime <- all_data |>
-  # Keep only rows where department is in our top 5 list
-  # %in% checks if each value exists in the vector
   dplyr::filter(department %in% top_3_depts) |>
-  # Group by both fiscal_year and department
-  # This gives us one row per year-department combination
-  dplyr::group_by(fiscal_year, department) |>
-  # Sum overtime for each year-department combination
   dplyr::summarise(
-    overtime_dollars = base::sum(overtime_earnings, na.rm = TRUE),
-    .groups = "drop"
+    overtime_dollars = sum(overtime_earnings, na.rm = TRUE),
+    .by = c(fiscal_year, department)
   ) |>
-  # Create the label text that will appear above each point
-  # paste0 concatenates strings with no separator
-  # scales::dollar formats numbers as currency
-  # scale = 1e-3 divides by 1000, suffix = "K" adds K for thousands
-  # Result looks like "($150K)"
   dplyr::mutate(
-    label_text = base::paste0(scales::dollar(overtime_dollars, 
-                                                   accuracy = 1, 
-                                                   scale = 1e-3, 
-                                                   suffix = "K"))
+    label_text = scales::dollar(overtime_dollars, accuracy = 1, scale = 1e-3, suffix = "K")
   )
 
-# STEP 3: Build the line chart using ggplot2
-
-# Initialize the plot with data and aesthetic mappings
-# aes() maps data columns to visual properties
-# x = fiscal_year puts years on horizontal axis
-# y = overtime_dollars puts dollar amounts on vertical axis
-# color = department assigns a different color to each department
-# group = department tells geom_line to connect points within each department
-ggplot2::ggplot(dept_overtime, 
-                ggplot2::aes(x = fiscal_year, 
-                             y = overtime_dollars, 
-                             color = department, 
-                             group = department)) +
-
-  # Add lines connecting points for each department
-# linewidth controls thickness (1 is moderate)
-ggplot2::geom_line(linewidth = 2) +
-
-  # Add points at each data value
-# size = 3 makes points visible but not overwhelming
-ggplot2::geom_point(size = 4) +
-
-  # Add text labels above each point
-# aes(label = label_text) specifies which column contains the label
-# vjust = -1.2 moves labels up (negative = above, positive = below)
-# size = 3 controls text size
-# show.legend = FALSE prevents "a" appearing in legend
-ggplot2::geom_text(ggplot2::aes(label = label_text),
-                   vjust = -1.2,
-                   size = 5,
-                   color = "black",
-                   show.legend = FALSE) +
-
- # Format the y-axis labels as dollars in thousands
-# expand = expansion(mult = c(0.05, 0.15)) adds padding:
-#   - 0.05 = 5% padding at bottom
-#   - 0.15 = 15% padding at top (makes room for labels)
-ggplot2::scale_y_continuous(
-  labels = scales::dollar_format(scale = 1e-3, suffix = "K"),
-  expand = ggplot2::expansion(mult = c(0.05, 0.15))
+# STEP 3: Build the line chart
+ggplot2::ggplot(
+  dept_overtime, 
+  ggplot2::aes(x = fiscal_year, y = overtime_dollars, color = department, group = department)
 ) +
-
-  # Add titles and axis labels
-# title = main chart title
-# subtitle = secondary descriptive text
-# x = x-axis label
-# y = y-axis label
-# color = legend title (matches the aes color mapping)
-ggplot2::labs(
-  title = "Overtime Usage by Department",
-  subtitle = "Top 3 Departments by Total Overtime Used",
-  x = "Fiscal Year",
-  y = "Overtime ($)",
-  color = "Department"
-) 
-
-  # Apply a clean, minimal theme
-# Removes gray background, uses light gridlines
-# ggplot2::theme_minimal() +
-
-  # Customize specific theme elements
-# legend.position = "bottom" moves legend below chart (saves horizontal space)
-# element_text(face = "bold") makes the title bold
-# ggplot2::theme(
-#   legend.position = "bottom",
-#   plot.title = ggplot2::element_text(face = "bold")
-# )
+  ggplot2::geom_line(linewidth = 2) +
+  ggplot2::geom_point(size = 4) +
+  ggplot2::geom_text(
+    ggplot2::aes(label = label_text),
+    vjust = -1.2,
+    size = 5,
+    color = "black",
+    show.legend = FALSE
+  ) +
+  # Add endpoint labels instead of legend
+  ggrepel::geom_text_repel(
+    data = dplyr::filter(dept_overtime, fiscal_year == max(fiscal_year)),
+    ggplot2::aes(label = department),
+    direction = "y",
+    hjust = 0,
+    nudge_x = 0.2,
+    segment.color = "gray70",
+    size = 4,
+    fontface = "bold",
+    color = "black"
+  ) +
+  ggplot2::scale_y_continuous(
+    labels = scales::dollar_format(scale = 1e-3, suffix = "K"),
+    expand = ggplot2::expansion(mult = c(0.05, 0.15))
+  ) +
+  ggplot2::scale_x_discrete(expand = ggplot2::expansion(add = c(0.2, 1.5))) +
+  ggplot2::labs(
+    title = "Overtime Usage by Department",
+    subtitle = "Top 3 Departments by Total Overtime Used",
+    x = "Fiscal Year",
+    y = "Overtime ($)"
+  ) +
+  ggplot2::theme(
+  legend.position = "none",
+  axis.text.y = ggplot2::element_blank(),
+  axis.ticks.y = ggplot2::element_blank()
+)
 
 ```
 ------------------------------------------------------------------------
 
 
-## Appendix G: Department Compenstation Ranking Over Time (Bump Chart)
+## Appendix G: Department Total Compenstation Ranking Over Time (Bump Chart)
 ```{r}
 #| label: dept-rank-bump-chart
 #| fig-width: 13
@@ -1535,12 +1527,13 @@ ggplot2::ggplot(dept_ranks_top_10, ggplot2::aes(x = fiscal_year, y = rank,
   ggplot2::scale_y_reverse(breaks = 1:15) +
   ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = c(0.25, 0.35))) +
   ggplot2::labs(
-    title = "Department Compensation Rankings Over Time",
+    title = "Department Total Compensation Rankings Over Time",
     subtitle = "Rank 1 = highest total compensation. Lines show how departments moved in rankings relative to each other.",
     x = "Fiscal Year",
     y = "Rank (1 = Highest)"
   ) +
   ggplot2::theme(legend.position = "none")
+
 ```
 
 
@@ -1572,7 +1565,7 @@ dept_ranks_top_10 |>
 ------------------------------------------------------------------------
 
 
-## Appendix H: City Manager Total Compensation Over Time
+## Appendix H: Line Chart - City Manager Total Compensation Over Time
 
 ```{r}
 #| label: plot-city-manager-total-comp
@@ -1583,12 +1576,6 @@ dept_ranks_top_10 |>
 # APPENDIX H: CITY MANAGER COMPENSATION OVER TIME
 # =============================================================================
 
-
-# City Manager TOTAL COMPENSATION by Fiscal Year
-# Total compensation = Leave + Regular + Overtime + Additional + Deployment + Arbitration + Benefits
-
-# If you've already recoded earnings_type to pretty labels (e.g., "Regular"),
-# these are the labels to include:
 comp_types <- c(
   "Leave Payout", "Regular", "Overtime", "Additional",
   "Deployment", "Arbitration", "Benefits"
@@ -1599,22 +1586,23 @@ city_manager_data <- final_df |>
     job_title == "City Manager",
     earnings_type %in% comp_types
   ) |>
-  dplyr::group_by(fiscal_year, name) |>
   dplyr::summarise(
     total_compensation = sum(amount, na.rm = TRUE),
-    .groups = "drop"
+    .by = c(fiscal_year, name)
   )
 
-if (base::nrow(city_manager_data) > 0) {
-
+if (nrow(city_manager_data) > 0) {
+  
+  # Find each person's last fiscal year
+  endpoint_labels <- city_manager_data |>
+    dplyr::slice_max(order_by = fiscal_year, n = 1, by = name)
+  
   ggplot2::ggplot(
     city_manager_data,
     ggplot2::aes(x = fiscal_year, y = total_compensation, group = name, color = name)
   ) +
     ggplot2::geom_line(linewidth = 1) +
     ggplot2::geom_point(size = 3) +
-
-    # Value labels ABOVE points
     ggplot2::geom_text(
       ggplot2::aes(label = scales::dollar(total_compensation, accuracy = 1)),
       vjust = -1.5,
@@ -1622,32 +1610,36 @@ if (base::nrow(city_manager_data) > 0) {
       color = "black",
       show.legend = FALSE
     ) +
-
-    # Keep headroom for labels
+    ggrepel::geom_text_repel(
+      data = endpoint_labels,
+      ggplot2::aes(label = name),
+      direction = "y",
+      hjust = 0,
+      nudge_x = 0.2,
+      segment.color = "gray70",
+      size = 4,
+      fontface = "bold",
+      color = "black"
+    ) +
     ggplot2::scale_y_continuous(
       expand = ggplot2::expansion(mult = c(0, 0.15))
     ) +
-
+    ggplot2::scale_x_discrete(expand = ggplot2::expansion(add = c(0.2, 1.2))) +
     ggplot2::labs(
       title = "City Manager - Total Compensation by Fiscal Year",
       subtitle = "City of Schertz",
       x = "Fiscal Year",
-      y = NULL,
-      color = "Employee"
+      y = NULL
     ) +
-
-    # Remove y-axis clutter
     ggplot2::theme(
-      legend.position = "bottom",
-      axis.text.y  = ggplot2::element_blank(),
+      legend.position = "none",
+      axis.text.y = ggplot2::element_blank(),
       axis.ticks.y = ggplot2::element_blank(),
       panel.grid.major.y = ggplot2::element_blank()
     )
-
 } else {
-  base::cat("No City Manager records found in the data.\n")
+  cat("No City Manager records found in the data.\n")
 }
-
 ```
 
 
@@ -1687,7 +1679,7 @@ ggplot2::ggplot(yearly_summary,
     ) +
 
   ggplot2::labs(
-    title = "Total Employee Compensation by Fiscal Year - All Depts",
+    title = "Total Employee Compensation Growth by Fiscal Year - All Depts",
     subtitle = "City of Schertz",
     x = "Fiscal Year",
     y = "Total Compensation"
