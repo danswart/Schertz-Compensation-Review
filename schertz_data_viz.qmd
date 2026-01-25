@@ -167,83 +167,6 @@ flextable::set_flextable_defaults(
 )
 
 
-#
-# # Sample Code:
-# flextable::flextable(violations) |>
- #  flextable::set_header_labels(
- #    Variable = "Variable",
- #    Measurement = "Measurement",
- #    Likely_Impact = "Likely Impact"
- #  ) |>
-#    flextable::add_header_lines(values = "Frequent Violations of Scientific Method in Current So-Called 'Equity' Research") |>
-#   flextable::color(i = 1, color = "blue", part = "header") |>
-#   flextable::italic(i = 1, part = "header") |>
-#   flextable::align(i = 1, align = "center", part = "header") |>
-#   flextable::fontsize(i = 1, size = 14, part = "header") |>
-#   flextable::bg(i = 1, bg = "white", part = "header") |>
-#   flextable::bg(i = 2, bg = "palegreen", part = "header") |>
-#   flextable::bold(i = 1:2, part = "header") |>
-#   flextable::bold(i = 1:7, j = 1, part = "body") |>
-#   ftExtra::colformat_md() |> 
-#   flextable::autofit()
-  
-
-# Flextable built-in themes:
-  # flextable::theme_alafoli()	|>  # BLAH
-  # flextable::theme_apa()  # THIS IS NICE
-  # flextable::theme_booktabs() |>  # NICE, MORE COMPACT
-  # flextable::theme_box() |>   # OK, INCLUDES CELL BORDERS
-  # flextable::theme_tron() |>  # 'DARK MODE' BLUE TEXT
-  # flextable::theme_tron_legacy() |>   # 'DARK MODE' YELLOW TEXT
-  # flextable::theme_vader() |>    # 'DARK MODE' WHITE TEXT
-  # flextable::theme_vanilla() |>   # NOT SPECIAL
-  # flextable::theme_zebra()	|>
-  #
-
-# Flextable titles:
-  # flextable::colformat_double(j = c("Mean", "SD", "N"), big.mark = ",", digits = 1) |>
-  # flextable::flextable(variance_comparison) |>
-  #  flextable::add_header_lines(values = "The Within-Group vs Between-Group Variance Problem") |>
-
-# Flextable Title theming at table-level:
-  #  flextable::color(i = 1, color = "blue", part = "header") |>
-  #  flextable::italic(i = 1, part = "header") |>
-  #  flextable::align(i = 1, align = "center", part = "header") |>
-  #  flextable::fontsize(i = 1, size = 14, part = "header") |>
-  #  flextable::bg(i = 1, bg = "white", part = "header") |>
-
-# Flextable standard table background colors:
-  #  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
-  
-
-# Flextable reading markdown:
-  #  ftExtra::colformat_md() |> 
-
-# Flextable auto-sizing cell widths:
-  #  flextable::autofit() 
- 
- # Flextable background based on SPECIFIC cell contents:
-  #
-  # flextable::bg(i = ~ Impact_on_Validity == "High", j = "Impact_on_Validity", bg = "#ffcccc") |>
- # flextable::bg(i = ~ Impact_on_Validity == "Medium", j = "Impact_on_Validity", bg = "#ffffcc") |>
-  #
-  # 
-  # Apply yellow background to any cell containing "Yes":
-
-  # for (col in base::names(hypotheses_data)) {
-  #   yes_rows <- base::which(hypotheses_data[[col]] == "Yes")
-  #   if (base::length(yes_rows) > 0) {
-  #     ft <- ft |>
-  #       flextable::bg(i = yes_rows, j = col, bg = "yellow", part = "body")
-  #   }
-  # } 
-  #
-  # Apply to last row of table:
-  #
-  #
-
-
-
 # Set global theme for consistent plots
 ggplot2::theme_set(
   ggplot2::theme_minimal(base_size = 20) +
@@ -328,8 +251,6 @@ ggplot2::theme_set(
 )
 
 
-
-  
 # Set seed for reproducibility
 base::set.seed(123)
 
@@ -337,71 +258,78 @@ base::set.seed(123)
 
 
 
-### Load Long Data
+### Data
 
 ```{r}
-final_df <- readRDS(here::here("data_clean", "compensation_long_fy20_fy25.rds"))
+final_df_long <- readRDS(here::here("data_clean", "compensation_long_fy20_fy25.rds"))
 ```
 
-### Long format (what you have) is best for:
+#### Long format is best for:
 
 * Bar charts comparing earnings types across years
 * Faceted plots by earnings_type
 * Grouped summaries (total by year, by department, by earnings type)
 * Most ggplot2 work
 
-### Wide format is needed for:
+#### Wide format is needed for:
 
 * Calculating total compensation per employee (summing across columns)
 * Tables showing one row per employee with all earnings side-by-side
 * Scatter plots comparing two earnings types against each other
 * Validation checks (comparing calculated vs source totals)
 
-You can always pivot on the fly when needed:
+Pivot on the fly when needed
 
-### Create a Wide Format DF (When Needed)
+
+#### Load Long; Create Wide When Needed
 
 ```{r}
-# Long to wide (when you need it)
-wide_df <- final_df |>
+# Long to wide 
+final_df_wide <- final_df_long |>
   tidyr::pivot_wider(
     names_from = earnings_type,
     values_from = amount,
     values_fill = 0
   ) |>
   dplyr::mutate(
-    total_earnings = Leave + Regular + Overtime + Additional + Deployment + Arbitration,
-    total_compensation = total_earnings + Benefits
+    total_reg_earnings = Leave + Regular + Overtime + Additional + Deployment + Arbitration,
+    total_compensation = total_reg_earnings + Benefits
   )
 ```
 
 
 
-## Summary Statistics
+## Summary Statistics - Total Compensation
 
 ```{r}
-#| label: summary-statistics
+#| label: summary-total-comp
 
 # =============================================================================
-# SUMMARY STATISTICS
+# SUMMARY STATISTICS 
 # =============================================================================
 
-# Summary by year
-yearly_summary <- final_df |>
+# Create small dataframe of total comp by year
+# group_by(fiscal_year) — splits the dataframe into chunks, one per fiscal year
+# summarise(...) — reduces each chunk to one row with your computed values
+# Result: one row per fiscal year instead of one row per original observation
+
+yearly_summary_total_comp <- final_df_long |>
   dplyr::group_by(fiscal_year) |>
   dplyr::summarise(
     total_compensation = base::sum(amount, na.rm = TRUE),
     total_employees = dplyr::n_distinct(employee_key),
-    avg_compensation = total_compensation / total_employees,
+    avg_total_compensation = total_compensation / total_employees,
     .groups = "drop"
   ) |>
   dplyr::arrange(fiscal_year)
 
-yearly_summary |>
-  dplyr::mutate(
-    total_compensation = scales::dollar(total_compensation, accuracy = 1),
-    avg_compensation = scales::dollar(avg_compensation, accuracy = 1)
-  ) |>
+# Format columns
+yearly_summary_total_comp |>
+ dplyr::mutate(
+   total_compensation = scales::dollar(total_compensation, accuracy = 1),
+   avg_total_compensation = scales::dollar(avg_total_compensation, accuracy = 1)
+   ) |>
+
   flextable::flextable() |>
   flextable::add_header_lines("Yearly Summary: Total Compensation and Headcount") |>
   flextable::color(i = 1, color = "darkblue", part = "header") |>
@@ -412,6 +340,88 @@ yearly_summary |>
   flextable::bg(i = 2, bg = "palegreen", part = "header") |>
   flextable::autofit()
 ```
+
+
+## Summary Statistics - Regular Compensation
+
+```{r}
+#| label: summary-regular-comp
+
+# =============================================================================
+# SUMMARY STATISTICS 
+# =============================================================================
+
+# Summaries by year
+yearly_summary_reg_comp <- final_df_long |>
+  dplyr::filter(earnings_type != "Benefits") |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::summarise(
+    total_reg_comp = base::sum(amount, na.rm = TRUE),
+    total_employees = dplyr::n_distinct(employee_key),
+    avg_reg_comp = total_reg_comp / total_employees,
+    .groups = "drop"
+  ) |>
+  dplyr::arrange(fiscal_year)
+
+# Format certain columns
+yearly_summary_reg_comp |>
+ dplyr::mutate(
+   total_reg_comp = scales::dollar(total_reg_comp, accuracy = 1),
+   avg_reg_comp = scales::dollar(avg_reg_comp, accuracy = 1)
+   ) |>
+
+  flextable::flextable() |>
+  flextable::add_header_lines("Yearly Summary: All Comp, Excluding Benefits") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+
+### Combine both Tables for Side-by-Side Comparison
+
+```{r}
+#| label: summaries-combined
+
+# =============================================================================
+# COMBINED SUMMARY TABLE
+# =============================================================================
+yearly_summaries_combined <- dplyr::left_join(
+  yearly_summary_total_comp,
+  yearly_summary_reg_comp |> dplyr::select(-total_employees),
+  by = "fiscal_year"
+) |>
+  dplyr::mutate(
+    total_compensation = scales::dollar(total_compensation, accuracy = 1),
+    avg_total_compensation = scales::dollar(avg_total_compensation, accuracy = 1),
+    total_reg_comp = scales::dollar(total_reg_comp, accuracy = 1),
+    avg_reg_comp = scales::dollar(avg_reg_comp, accuracy = 1)
+  ) |>
+  dplyr::rename(
+    Year = fiscal_year,
+    `Total Comp` = total_compensation,
+    EEs = total_employees,
+    `Avg Tot Comp` = avg_total_compensation,
+    `Total Reg` = total_reg_comp,
+    `Avg Reg Pay` = avg_reg_comp
+  )
+
+yearly_summaries_combined |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Yearly Summaris: Total vs Regular Compensation") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
 
 
 ## City Manager Total Compensation Over Time
@@ -436,7 +446,7 @@ comp_types <- c(
   "Deployment", "Arbitration", "Benefits"
 )
 
-city_manager_data <- final_df |>
+city_manager_data <- final_df_long |>
   dplyr::filter(
     job_title == "City Manager",
     earnings_type %in% comp_types
@@ -501,7 +511,7 @@ if (base::nrow(city_manager_data) > 0) {
 ## Total Compensation Growth by Year
 
 ```{r}
-#| label: total-compensation-growth-by-year
+#| label: total-comp-growth-by-year
 #| fig-width: 10
 #| fig-height: 6
 
@@ -509,7 +519,7 @@ if (base::nrow(city_manager_data) > 0) {
 # APPENDIX I: TOTAL COMPENSATION GROWTH BY FISCAL YEAR - ALL DEPTS
 # =============================================================================
 
-ggplot2::ggplot(yearly_summary, 
+ggplot2::ggplot(yearly_summary_total_comp, 
                 ggplot2::aes(x = fiscal_year, y = total_compensation, group = 1)) +
   ggplot2::geom_line(linewidth = 1.5, color = "steelblue") +
   ggplot2::geom_point(size = 4, color = "steelblue") +
@@ -556,7 +566,7 @@ ggplot2::ggplot(yearly_summary,
 # APPENDIX C: YEAR-OVER-YEAR COMPARISON OF EE TOTALS, COMPENSATION, PCT, AVG COMP
 # =============================================================================
 
-yoy_summary <- yearly_summary |>
+yoy_summary <- yearly_summary_total_comp |>
   dplyr::mutate(
     prev_total = dplyr::lag(total_compensation),
     prev_employees = dplyr::lag(total_employees),
@@ -568,13 +578,54 @@ yoy_summary <- yearly_summary |>
 yoy_summary |>
   dplyr::mutate(
     total_compensation = scales::dollar(total_compensation, accuracy = 1),
-    avg_compensation = scales::dollar(avg_compensation, accuracy = 1),
+    avg_compensation = scales::dollar(avg_total_compensation, accuracy = 1),
     total_change = scales::dollar(total_change, accuracy = 1),
     total_pct_change = base::sprintf("%.1f%%", total_pct_change)
   ) |>
   dplyr::select(
     fiscal_year, total_employees, employee_change,
-    total_compensation, total_change, total_pct_change, avg_compensation
+    total_compensation, total_change, total_pct_change, avg_total_compensation
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Year-over-Year Comparison") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+```{r}
+yoy_summary <- yearly_summary_total_comp |>
+  dplyr::mutate(
+    prev_total = dplyr::lag(total_compensation),
+    prev_employees = dplyr::lag(total_employees),
+    total_change = total_compensation - prev_total,
+    total_pct_change = (total_change / prev_total) * 100,
+    employee_change = total_employees - prev_employees
+  )
+
+yoy_summary |>
+  dplyr::mutate(
+    total_compensation = scales::dollar(total_compensation, accuracy = 1),
+    avg_total_compensation = scales::dollar(avg_total_compensation, accuracy = 1),
+    total_change = scales::dollar(total_change, accuracy = 1),
+    total_pct_change = base::sprintf("%.1f%%", total_pct_change)
+  ) |>
+  dplyr::select(
+    fiscal_year, total_employees, employee_change,
+    total_compensation, total_change, total_pct_change, avg_total_compensation
+  ) |>
+  dplyr::rename(
+    Year = fiscal_year,
+    EEs = total_employees,
+    `EE Chg` = employee_change,
+    `Total Comp` = total_compensation,
+    `Change` = total_change,
+    `Chg %` = total_pct_change,
+    `Avg Total Comp` = avg_total_compensation
   ) |>
   flextable::flextable() |>
   flextable::add_header_lines("Year-over-Year Comparison") |>
@@ -600,7 +651,7 @@ yoy_summary |>
 # APPENDIX D: TOP 10 IN TOTAL COMPENSATION BY FY
 # =============================================================================
 
-top_10_earners <- wide_df |>
+top_10_earners <- final_df_wide |>
   dplyr::group_by(fiscal_year) |>
   dplyr::slice_max(order_by = total_compensation, n = 10) |>
   dplyr::select(
@@ -640,7 +691,7 @@ top_10_earners |>
 # APPENDIX E: DEPARTMENT SUMMARY
 # =============================================================================
 
-dept_summary <- wide_df |>
+dept_summary <- final_df_wide |>
   dplyr::group_by(fiscal_year, department) |>
   dplyr::summarise(
     employees = dplyr::n(),
@@ -681,7 +732,7 @@ dept_summary |>
 # APPENDIX F: OVERTIME ANALYSIS BY FY
 # =============================================================================
 
-overtime_summary <- wide_df |>
+overtime_summary <- final_df_wide |>
   dplyr::group_by(fiscal_year) |>
   dplyr::summarise(
     total_overtime = base::sum(Overtime, na.rm = TRUE),
@@ -726,7 +777,7 @@ overtime_summary |>
 # STEP 1: Identify the top 3 departments by total overtime across all years
 # We need to know which departments to include before we can chart them
 
-top_3_depts <- wide_df |>
+top_3_depts <- final_df_wide |>
   # Group by department to aggregate across all fiscal years
   dplyr::group_by(department) |>
   # Calculate total overtime for each department (all years combined)
@@ -744,7 +795,7 @@ dplyr::pull(department)
 
 # STEP 2: Summarize overtime by fiscal year for only those top 3 departments
 
-dept_overtime <- wide_df |>
+dept_overtime <- final_df_wide |>
   # Keep only rows where department is in our top 5 list
   # %in% checks if each value exists in the vector
   dplyr::filter(department %in% top_3_depts) |>
@@ -853,7 +904,7 @@ ggplot2::theme(legend.position = "bottom"
 # =============================================================================
 
 # Calculate ranks by year for all departments
-dept_ranks_all <- final_df |>
+dept_ranks_all <- final_df_long |>
   dplyr::group_by(department, fiscal_year) |>
   dplyr::summarise(
     total_compensation = base::sum(amount, na.rm = TRUE),
@@ -968,7 +1019,7 @@ comp_types <- c(
   "Deployment", "Arbitration", "Benefits"
 )
 
-city_manager_data <- final_df |>
+city_manager_data <- final_df_long |>
   dplyr::filter(
     job_title == "City Manager",
     earnings_type %in% comp_types
@@ -1041,7 +1092,7 @@ if (base::nrow(city_manager_data) > 0) {
 # APPENDIX I: TOTAL COMPENSATION GROWTH BY FISCAL YEAR - ALL DEPTS
 # =============================================================================
 
-ggplot2::ggplot(yearly_summary,
+ggplot2::ggplot(yearly_summary_total_comp,
                 ggplot2::aes(x = fiscal_year, y = total_compensation, group = 1)) +
   ggplot2::geom_line(linewidth = 1.5, color = "steelblue") +
   ggplot2::geom_point(size = 4, color = "steelblue") +
@@ -1086,7 +1137,7 @@ ggplot2::ggplot(yearly_summary,
 # APPENDIX J: YEAR-OVER-YEAR GROWTH RATE BAR CHART
 # =============================================================================
 
-growth_data <- yearly_summary |>
+growth_data <- yearly_summary_total_comp |>
   dplyr::arrange(fiscal_year) |>
   dplyr::mutate(
     prior_total = dplyr::lag(total_compensation),
