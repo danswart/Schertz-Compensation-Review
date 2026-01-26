@@ -1,9 +1,9 @@
 ---
-title: "Schertz Compensation Review - Append New Data"
-author: "Compensation Review Project"
+title: "Schertz Compensation Study"
+author: "Append New Data to xlsx File"
 date: today
 format: html
-editor: visual
+editor: source
 ---
 
 ## Overview

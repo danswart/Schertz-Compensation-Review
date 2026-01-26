@@ -1,5 +1,5 @@
 # ==============================================================================
-# SCHERTZ COMPENSATION DATA PIPELINE - PROCESSING FUNCTIONS
+# SCHERTZ COMPENSATION STUDY PIPELINE - PROCESSING FUNCTIONS
 # ==============================================================================
 #
 # Core data processing functions for import, cleaning, and transformation.
@@ -16,9 +16,13 @@
 #' @param pattern Regex pattern to match
 #' @return First matching column name, or NULL if no match
 find_column <- function(col_names, pattern) {
-  if (is.null(pattern)) return(NULL)
+  if (is.null(pattern)) {
+    return(NULL)
+  }
   matches <- col_names[stringr::str_detect(col_names, pattern)]
-  if (length(matches) > 0) return(matches[1])
+  if (length(matches) > 0) {
+    return(matches[1])
+  }
   return(NULL)
 }
 
@@ -44,7 +48,9 @@ safe_extract <- function(df, col_name, as_char = FALSE) {
 #' @param x Character vector with currency values
 #' @return Numeric vector
 parse_currency <- function(x) {
-  if (is.numeric(x)) return(x)
+  if (is.numeric(x)) {
+    return(x)
+  }
   x |>
     stringr::str_remove_all("[$,]") |>
     stringr::str_trim() |>
@@ -56,14 +62,18 @@ parse_currency <- function(x) {
 #' @param x Date values (character, numeric, or Date)
 #' @return Date vector
 parse_flex_date <- function(x) {
-  if (inherits(x, "Date")) return(x)
-  if (inherits(x, "POSIXct")) return(as.Date(x))
-  
+  if (inherits(x, "Date")) {
+    return(x)
+  }
+  if (inherits(x, "POSIXct")) {
+    return(as.Date(x))
+  }
+
   # Handle Excel numeric dates
   if (is.numeric(x)) {
     return(as.Date(x, origin = "1899-12-30"))
   }
-  
+
   # Character input - check if it's a numeric string (Excel date as character)
   if (is.character(x)) {
     # Try to detect if these are numeric Excel dates stored as character
@@ -76,10 +86,10 @@ parse_flex_date <- function(x) {
       }
     }
   }
-  
+
   # Try common date formats
   parsed <- lubridate::parse_date_time(
-    x, 
+    x,
     orders = c("mdy", "ymd", "dmy", "m/d/y", "y-m-d", "m/d/Y", "Y-m-d"),
     quiet = TRUE
   )
@@ -129,13 +139,15 @@ apply_corrections <- function(name_vec, corrections) {
 #' @return Logical vector (TRUE = keep, FALSE = exclude)
 is_data_row <- function(values, patterns = row_exclusion_patterns) {
   values_lower <- tolower(as.character(values))
-  
+
   # Check each exclusion pattern
   exclude <- sapply(values_lower, function(v) {
-    if (is.na(v) || v == "") return(TRUE)  # Exclude empty
+    if (is.na(v) || v == "") {
+      return(TRUE)
+    } # Exclude empty
     any(sapply(patterns, function(p) stringr::str_detect(v, p)))
   })
-  
+
   !exclude
 }
 
@@ -150,32 +162,35 @@ is_data_row <- function(values, patterns = row_exclusion_patterns) {
 #' @param structure_type Structure type for column mapping
 #' @param data_path Path to data directory
 #' @return Standardized tibble
-import_and_standardize <- function(fiscal_year, filename, structure_type, 
-                                    data_path = paths$data_raw) {
-  
+import_and_standardize <- function(
+  fiscal_year,
+  filename,
+  structure_type,
+  data_path = paths$data_raw
+) {
   filepath <- file.path(data_path, filename)
-  
+
   if (!file.exists(filepath)) {
     warning("File not found: ", filepath)
     return(NULL)
   }
-  
+
   message("  Processing ", fiscal_year, ": ", filename)
-  
- # Read raw data
+
+  # Read raw data
   raw_data <- readxl::read_excel(filepath)
   col_names <- names(janitor::clean_names(raw_data))
-  
+
   # Clean column names in the data frame
   df <- janitor::clean_names(raw_data)
-  
+
   # Get mapping for this structure type
   mapping <- column_mappings[[structure_type]]
-  
+
   if (is.null(mapping)) {
     stop("Unknown structure_type: ", structure_type)
   }
-  
+
   # Find actual column names using patterns
   cols <- list()
   for (field in names(mapping)) {
@@ -185,7 +200,7 @@ import_and_standardize <- function(fiscal_year, filename, structure_type,
       cols[[field]] <- find_column(col_names, mapping[[field]])
     }
   }
-  
+
   # Build standardized data frame based on name structure
   if (cols$name_source == "combined") {
     # Early structure: single name column
@@ -204,7 +219,7 @@ import_and_standardize <- function(fiscal_year, filename, structure_type,
       first_name = first_vals
     )
   }
-  
+
   # Add common fields
   result <- result |>
     dplyr::mutate(
@@ -215,36 +230,56 @@ import_and_standardize <- function(fiscal_year, filename, structure_type,
       employee_category = safe_extract(df, cols$employee_category),
       hire_date = safe_extract(df, cols$hire_date, as_char = TRUE),
       separation_date = safe_extract(df, cols$separation_date, as_char = TRUE),
-      
+
       # Financial fields (extract as character for consistent bind_rows)
       annual_salary = safe_extract(df, cols$annual_salary, as_char = TRUE),
       leave_payout = safe_extract(df, cols$leave_payout, as_char = TRUE),
-      regular_earnings = safe_extract(df, cols$regular_earnings, as_char = TRUE),
-      overtime_earnings = safe_extract(df, cols$overtime_earnings, as_char = TRUE),
-      additional_earnings = safe_extract(df, cols$additional_earnings, as_char = TRUE),
-      deployment_earnings = safe_extract(df, cols$deployment_earnings, as_char = TRUE),
+      regular_earnings = safe_extract(
+        df,
+        cols$regular_earnings,
+        as_char = TRUE
+      ),
+      overtime_earnings = safe_extract(
+        df,
+        cols$overtime_earnings,
+        as_char = TRUE
+      ),
+      additional_earnings = safe_extract(
+        df,
+        cols$additional_earnings,
+        as_char = TRUE
+      ),
+      deployment_earnings = safe_extract(
+        df,
+        cols$deployment_earnings,
+        as_char = TRUE
+      ),
       arbitration = safe_extract(df, cols$arbitration, as_char = TRUE),
       total_earnings = safe_extract(df, cols$total_earnings, as_char = TRUE),
       benefits = safe_extract(df, cols$benefits, as_char = TRUE),
-      total_compensation = safe_extract(df, cols$total_compensation, as_char = TRUE),
-      
+      total_compensation = safe_extract(
+        df,
+        cols$total_compensation,
+        as_char = TRUE
+      ),
+
       # Metadata
       fiscal_year = fiscal_year,
       source_file = filename
     )
-  
+
   # Filter out non-data rows (totals, subtotals, empty)
   name_col_for_filter <- if (cols$name_source == "combined") {
     result$name_original
   } else {
     result$last_name
   }
-  
+
   result <- result |>
     dplyr::filter(is_data_row(name_col_for_filter))
-  
+
   message("    -> ", nrow(result), " employee records")
-  
+
   result
 }
 
@@ -253,11 +288,12 @@ import_and_standardize <- function(fiscal_year, filename, structure_type,
 #' @param registry File registry tibble
 #' @param data_path Path to data directory
 #' @return Combined tibble
-process_all_files <- function(registry = file_registry, 
-                               data_path = paths$data_raw) {
-  
+process_all_files <- function(
+  registry = file_registry,
+  data_path = paths$data_raw
+) {
   message("\n=== STAGE 1: Import All Files ===\n")
-  
+
   all_data <- purrr::pmap(
     list(
       fiscal_year = registry$fiscal_year,
@@ -267,16 +303,21 @@ process_all_files <- function(registry = file_registry,
     import_and_standardize,
     data_path = data_path
   )
-  
+
   # Remove NULLs (files not found)
   all_data <- purrr::compact(all_data)
-  
+
   # Combine
   combined <- dplyr::bind_rows(all_data)
-  
-  message("\n  Combined ", nrow(combined), " rows from ", 
-          length(all_data), " files")
-  
+
+  message(
+    "\n  Combined ",
+    nrow(combined),
+    " rows from ",
+    length(all_data),
+    " files"
+  )
+
   combined
 }
 
@@ -289,14 +330,13 @@ process_all_files <- function(registry = file_registry,
 #' @param df Combined data from Stage 1
 #' @return Cleaned tibble
 clean_combined_data <- function(df) {
-  
   message("\n=== STAGE 2: Clean and Transform ===\n")
-  
+
   result <- df |>
     dplyr::mutate(
       # Standardize names
       name_std = standardize_name(name_original),
-      
+
       # Parse currency fields
       annual_salary = parse_currency(annual_salary),
       leave_payout = parse_currency(leave_payout),
@@ -308,23 +348,26 @@ clean_combined_data <- function(df) {
       total_earnings = parse_currency(total_earnings),
       benefits = parse_currency(benefits),
       total_compensation = parse_currency(total_compensation),
-      
+
       # Parse dates
       hire_date = parse_flex_date(hire_date),
       separation_date = parse_flex_date(separation_date),
-      
+
       # Clean department for key creation
       dept_std = department |>
         stringr::str_to_lower() |>
         stringr::str_squish(),
-      
+
       # Make fiscal_year a factor with correct order
       fiscal_year = factor(fiscal_year, levels = sort(unique(fiscal_year)))
     )
-  
+
   message("  Cleaned ", nrow(result), " rows")
-  message("  Unique names (pre-correction): ", dplyr::n_distinct(result$name_std))
-  
+  message(
+    "  Unique names (pre-correction): ",
+    dplyr::n_distinct(result$name_std)
+  )
+
   result
 }
 
@@ -334,23 +377,25 @@ clean_combined_data <- function(df) {
 #' @param corrections Name corrections from config
 #' @return Tibble with corrections and keys
 apply_corrections_and_keys <- function(df, corrections = name_corrections) {
-  
   message("\n=== STAGE 3: Apply Corrections and Create Keys ===\n")
-  
+
   result <- df |>
     dplyr::mutate(
       # Apply manual corrections
       name_std = apply_corrections(name_std, corrections),
-      
+
       # Create composite employee key
       employee_key = paste(name_std, dept_std, sep = "|") |>
         tolower() |>
         stringr::str_squish()
     )
-  
-  message("  Unique names (post-correction): ", dplyr::n_distinct(result$name_std))
+
+  message(
+    "  Unique names (post-correction): ",
+    dplyr::n_distinct(result$name_std)
+  )
   message("  Unique employee keys: ", dplyr::n_distinct(result$employee_key))
-  
+
   result
 }
 
@@ -363,9 +408,8 @@ apply_corrections_and_keys <- function(df, corrections = name_corrections) {
 #' @param df Wide format data
 #' @return Long format with earnings_type and amount columns
 pivot_to_long <- function(df) {
-  
   message("\n=== STAGE 4: Pivot to Long Format ===\n")
-  
+
   # Only pivot the three core earnings columns for compatibility
   result <- df |>
     tidyr::pivot_longer(
@@ -378,9 +422,9 @@ pivot_to_long <- function(df) {
         stringr::str_remove("_earnings$") |>
         stringr::str_to_title()
     )
-  
+
   message("  Pivoted to ", nrow(result), " rows")
-  
+
   result
 }
 
@@ -393,35 +437,40 @@ pivot_to_long <- function(df) {
 #' @param registry File registry (default: file_registry from config)
 #' @param corrections Name corrections (default: name_corrections from config)
 #' @param data_path Path to raw data
-#' @param output_format "wide" (default) or "long" 
+#' @param output_format "wide" (default) or "long"
 #' @return List with combined, cleaned, and final data frames
-run_pipeline <- function(registry = file_registry,
-                          corrections = name_corrections,
-                          data_path = paths$data_raw,
-                          output_format = "wide") {
-  
+run_pipeline <- function(
+  registry = file_registry,
+  corrections = name_corrections,
+  data_path = paths$data_raw,
+  output_format = "wide"
+) {
   message("\n", paste(rep("=", 60), collapse = ""))
   message("SCHERTZ COMPENSATION DATA PIPELINE")
   message(paste(rep("=", 60), collapse = ""))
-  message("Processing ", nrow(registry), " fiscal years: ", 
-          paste(registry$fiscal_year, collapse = ", "))
-  
+  message(
+    "Processing ",
+    nrow(registry),
+    " fiscal years: ",
+    paste(registry$fiscal_year, collapse = ", ")
+  )
+
   # Stage 1: Import
   combined <- process_all_files(registry, data_path)
-  
+
   # Stage 2: Clean
   cleaned <- clean_combined_data(combined)
-  
+
   # Stage 3: Corrections and Keys
   with_keys <- apply_corrections_and_keys(cleaned, corrections)
-  
+
   # Stage 4: Pivot (optional)
   if (output_format == "long") {
     final <- pivot_to_long(with_keys)
   } else {
     final <- with_keys
   }
-  
+
   message("\n", paste(rep("=", 60), collapse = ""))
   message("PIPELINE COMPLETE")
   message(paste(rep("=", 60), collapse = ""))
@@ -429,7 +478,7 @@ run_pipeline <- function(registry = file_registry,
   message("  Unique employees: ", dplyr::n_distinct(final$employee_key))
   message("  Fiscal years: ", paste(levels(final$fiscal_year), collapse = ", "))
   message(paste(rep("=", 60), collapse = ""))
-  
+
   # Return all stages for inspection
   list(
     combined = combined,
@@ -449,14 +498,13 @@ run_pipeline <- function(registry = file_registry,
 #' @param run_full_pipeline If TRUE, runs entire pipeline after adding
 #' @return Pipeline results if run_full_pipeline=TRUE, else updated registry
 add_and_process <- function(filename, run_full_pipeline = TRUE) {
-  
   # Add to registry (auto-detects FY and structure)
   add_fiscal_year(filename)
-  
+
   if (run_full_pipeline) {
     # Run full pipeline
     return(run_pipeline())
   }
-  
+
   invisible(file_registry)
 }

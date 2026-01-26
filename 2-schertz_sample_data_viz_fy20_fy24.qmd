@@ -1,7 +1,7 @@
 ---
-title: "Schertz Sample Data Visualizations"
-subtitle: ""
-description: ""
+title: "Schertz Compensation Study"
+subtitle: "Sample Data Visualizations"
+description: "FY20 - FY24"
 authors: 
   - name: "Dan Swart, CPA (ret)"
   - name: "Claude Sonnet 4.5"
