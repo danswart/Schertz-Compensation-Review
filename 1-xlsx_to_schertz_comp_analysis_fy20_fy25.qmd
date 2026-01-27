@@ -436,20 +436,22 @@ column_maps <- base::list(
   
   # ----- FY20 -----
   FY20 = base::list(
+    # Status column
+    status = "status",
     # Identity columns
     name = "name",                    # Single name column (or NA if split)
     last_name = NA,                   # NA if using single name column
     first_name = NA,                  # NA if using single name column
     department = "department",
-    job_title = "job_title",
+    title = "job_title",
     hire_date = "hire_date",
     termination_date = "termination_date",
     
     # Earnings columns (set to NA if not present)
     leave_payout = NA,
-    regular_earnings = "regular_earnings",
-    overtime_earnings = "overtime_earnings",
-    additional_earnings = "additional_earnings1",
+    reg_earnings = "regular_earnings",
+    ot_earnings = "overtime_earnings",
+    add_earnings = "additional_earnings1",
     deployment_earnings = NA,
     arbitration_settlements = NA,
     
