@@ -307,12 +307,12 @@ Run this section first to see exact column names after `clean_names()`.
 # =============================================================================
 
 files <- base::list(
-  FY20 = "FY20 Earnings.xlsx",
-  FY21 = "FY21 Earnings.xlsx",
-  FY22 = "FY22 Earnings.xlsx",
-  FY23 = "FY23Employee_Comp_FY23.xlsx",
-  FY24 = "FY24Employee_Comp_FY24_All.xlsx",
-  FY25 = "FY25Employee_Comp_FY25.xlsx"
+  FY20 = "FY20_Earnings_CLEANED.xlsx",
+  FY21 = "FY21_Earnings_CLEANED.xlsx",
+  FY22 = "FY22_Earnings_CLEANED.xlsx",
+  FY23 = "FY23Employee_Comp_FY23_CLEANED.xlsx",
+  FY24 = "FY24Employee_Comp_FY24_All_CLEANED.xlsx",
+  FY25 = "FY25Employee_Comp_FY25_CLEANED.xlsx"
 )
 
 data_folder <- here::here("data_raw")
@@ -411,7 +411,7 @@ for (fy in base::names(files)) {
 
 # ⛔ STOP HERE FIRST TIME
 
-Run Phase 1 above. Then use the column names shown to fill in the exact mappings in Phase 2 below.
+Run Phase 1 above. Then map the actual column names shown to fill in the exact mappings in Phase 2 below.  Actual column names on right; standardized column names on left.
 
 ------------------------------------------------------------------------
 
