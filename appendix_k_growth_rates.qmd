@@ -1,0 +1,368 @@
+
+## Appendix K: Growth Rates Comparison - Compensation vs Inflation
+
+```{r}
+#| label: growth-rates-comparison-data
+
+# =============================================================================
+# APPENDIX K: GROWTH RATES COMPARISON - ALL METRICS VS INFLATION
+# =============================================================================
+
+# Build comprehensive growth rates dataset
+growth_rates_all <- all_data |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::summarise(
+    employees = dplyr::n(),
+    total_comp = sum(calc_total_compensation, na.rm = TRUE),
+    regular_earnings = sum(regular_earnings, na.rm = TRUE),
+    additional_benefits = sum(additional_benefits, na.rm = TRUE),
+    inflation_rate = dplyr::first(inflation_rate),
+    benefits_imputed = dplyr::first(benefits_imputed),
+    .groups = "drop"
+  ) |>
+  dplyr::arrange(fiscal_year) |>
+  dplyr::mutate(
+    # Calculate year-over-year growth rates
+    prior_employees = dplyr::lag(employees),
+    prior_total_comp = dplyr::lag(total_comp),
+    prior_regular = dplyr::lag(regular_earnings),
+    prior_benefits = dplyr::lag(additional_benefits),
+    
+    # Growth rates as percentages
+    employee_growth = (employees - prior_employees) / prior_employees * 100,
+    total_comp_growth = (total_comp - prior_total_comp) / prior_total_comp * 100,
+    regular_growth = (regular_earnings - prior_regular) / prior_regular * 100,
+    benefits_growth = (additional_benefits - prior_benefits) / prior_benefits * 100
+  )
+
+# Display the raw growth rates data
+growth_rates_all |>
+  dplyr::filter(!base::is.na(total_comp_growth)) |>
+  dplyr::select(
+    fiscal_year, benefits_imputed,
+    inflation_rate, total_comp_growth, regular_growth, 
+    benefits_growth, employee_growth
+  ) |>
+  dplyr::mutate(
+    benefits_imputed = dplyr::if_else(benefits_imputed, "Yes*", "No"),
+    inflation_rate = base::sprintf("%.2f%%", inflation_rate),
+    total_comp_growth = base::sprintf("%.2f%%", total_comp_growth),
+    regular_growth = base::sprintf("%.2f%%", regular_growth),
+    benefits_growth = base::sprintf("%.2f%%", benefits_growth),
+    employee_growth = base::sprintf("%.2f%%", employee_growth)
+  ) |>
+  dplyr::rename(
+    FY = fiscal_year,
+    `Imputed?` = benefits_imputed,
+    `Inflation` = inflation_rate,
+    `Total Comp` = total_comp_growth,
+    `Regular Earnings` = regular_growth,
+    `Add'l Benefits` = benefits_growth,
+    `Employees` = employee_growth
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Year-over-Year Growth Rates by Category") |>
+  flextable::add_footer_lines("* Benefits imputed for FY20-FY22 based on FY23-FY25 ratios") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::italic(part = "footer") |>
+  flextable::fontsize(size = 11, part = "footer") |>
+  flextable::autofit()
+```
+
+
+```{r}
+#| label: fig-growth-rates-comparison
+#| fig-cap: "Growth Rates Comparison: Compensation Metrics vs Published Inflation"
+#| fig-width: 13
+#| fig-height: 8
+
+# =============================================================================
+# LINE CHART: ALL GROWTH RATES COMPARED
+# =============================================================================
+
+# Reshape data for plotting
+growth_rates_long <- growth_rates_all |>
+  dplyr::filter(!base::is.na(total_comp_growth)) |>
+  dplyr::select(
+    fiscal_year,
+    `Inflation (FRED)` = inflation_rate,
+    `Total Compensation` = total_comp_growth,
+    `Regular Earnings` = regular_growth,
+    `Additional Benefits` = benefits_growth,
+    `Employee Count` = employee_growth
+  ) |>
+  tidyr::pivot_longer(
+    cols = -fiscal_year,
+    names_to = "metric",
+    values_to = "growth_rate"
+  ) |>
+  dplyr::mutate(
+    metric = base::factor(
+      metric,
+      levels = c("Inflation (FRED)", "Total Compensation", "Regular Earnings", 
+                 "Additional Benefits", "Employee Count")
+    )
+  )
+
+# Define colors for each metric
+metric_colors <- c(
+  "Inflation (FRED)" = "firebrick",
+  "Total Compensation" = "steelblue",
+  "Regular Earnings" = "darkgreen",
+  "Additional Benefits" = "purple",
+  "Employee Count" = "darkorange"
+)
+
+# Find each metric's FIRST fiscal year for LEFT-side endpoint labels
+endpoint_labels <- growth_rates_long |>
+  dplyr::group_by(metric) |>
+  dplyr::slice_min(order_by = fiscal_year, n = 1) |>
+  dplyr::ungroup()
+
+# Create the plot
+ggplot2::ggplot(
+  growth_rates_long,
+  ggplot2::aes(x = fiscal_year, y = growth_rate, group = metric, color = metric)
+) +
+  ggplot2::geom_hline(yintercept = 0, linetype = "solid", color = "gray50") +
+  ggplot2::geom_line(linewidth = 1.5) +
+  ggplot2::geom_point(size = 4) +
+  ggplot2::geom_text(
+    ggplot2::aes(label = base::sprintf("%.1f%%", growth_rate)),
+    vjust = -1.2,
+    size = 3.5,
+    show.legend = FALSE
+  ) +
+  ggrepel::geom_text_repel(
+    data = endpoint_labels,
+    ggplot2::aes(label = metric),
+    direction = "y",
+    hjust = 1,
+    nudge_x = -0.3,
+    segment.color = "gray70",
+    size = 4,
+    fontface = "bold",
+    color = "black"
+  ) +
+  ggplot2::scale_color_manual(values = metric_colors) +
+  ggplot2::scale_y_continuous(
+    labels = function(x) base::paste0(x, "%"),
+    breaks = base::seq(-10, 30, by = 5)
+  ) +
+  ggplot2::scale_x_discrete(expand = ggplot2::expansion(add = c(2.0, 0.3))) +
+  ggplot2::labs(
+    title = "Year-over-Year Growth Rates: Compensation Metrics vs Inflation",
+    subtitle = "City of Schertz | FY20-FY22 benefits are imputed estimates",
+    x = "Fiscal Year",
+    y = "Growth Rate (%)",
+    caption = "Inflation data: FRED Series FPCPITOTLZGUSA | FY20 is base year (no growth rate)"
+  ) +
+  ggplot2::theme(
+    legend.position = "none",
+    panel.grid.minor = ggplot2::element_blank()
+  )
+```
+
+
+
+```{r}
+#| label: rule-of-70-table
+
+# =============================================================================
+# RULE OF 70: DOUBLING TIME BASED ON MOST RECENT GROWTH RATES
+# =============================================================================
+
+# Get the most recent year's growth rates AND amounts (FY25)
+latest_data <- growth_rates_all |>
+  dplyr::filter(fiscal_year == "FY25") |>
+  dplyr::select(
+    inflation_rate, total_comp_growth, regular_growth, 
+    benefits_growth, employee_growth,
+    total_comp, regular_earnings, additional_benefits, employees
+  )
+
+# Calculate Rule of 70 doubling times
+rule_of_70 <- dplyr::tibble(
+  Metric = c(
+    "Inflation (CPI)",
+    "Total Compensation",
+    "Regular Earnings",
+    "Additional Benefits",
+    "Employee Count"
+  ),
+  growth_rate_num = c(
+    latest_data$inflation_rate,
+    latest_data$total_comp_growth,
+    latest_data$regular_growth,
+    latest_data$benefits_growth,
+    latest_data$employee_growth
+  ),
+  current_amount = c(
+    NA_real_,
+    latest_data$total_comp,
+    latest_data$regular_earnings,
+    latest_data$additional_benefits,
+    latest_data$employees
+  )
+) |>
+  dplyr::mutate(
+    doubling_time_num = dplyr::case_when(
+      growth_rate_num <= 0 ~ NA_real_,
+      TRUE ~ 70 / growth_rate_num
+    ),
+    doubled_amount = current_amount * 2
+  ) |>
+  # Sort by doubling time ascending (fastest on top)
+  dplyr::arrange(doubling_time_num) |>
+  dplyr::mutate(
+    `FY25 Growth Rate` = base::sprintf("%.2f%%", growth_rate_num),
+    `Doubling Time (Years)` = dplyr::if_else(
+      base::is.na(doubling_time_num),
+      "N/A (no growth)",
+      base::sprintf("%.1f years", doubling_time_num)
+    ),
+    `FY25 Doubled` = dplyr::case_when(
+      Metric == "Inflation (CPI)" ~ "N/A",
+      Metric == "Employee Count" ~ base::format(base::as.integer(doubled_amount), big.mark = ","),
+      TRUE ~ scales::dollar(doubled_amount, accuracy = 1)
+    )
+  ) |>
+  dplyr::select(Metric, `FY25 Growth Rate`, `Doubling Time (Years)`, `FY25 Doubled`)
+
+rule_of_70 |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Rule of 70: Doubling Time at Current Growth Rates (FY25)") |>
+  flextable::add_footer_lines("Rule of 70: Years to double = 70 ÷ Growth Rate (%) | Sorted by fastest doubling time") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::italic(part = "footer") |>
+  flextable::fontsize(size = 11, part = "footer") |>
+  flextable::autofit()
+```
+
+
+
+```{r}
+#| label: rule-of-70-average-table
+
+# =============================================================================
+# RULE OF 70: USING AVERAGE GROWTH RATES (FY21-FY25)
+# =============================================================================
+
+# Get FY25 amounts for doubling calculation
+latest_amounts <- growth_rates_all |>
+  dplyr::filter(fiscal_year == "FY25") |>
+  dplyr::select(total_comp, regular_earnings, additional_benefits, employees)
+
+# Calculate average growth rates across all years
+avg_rates <- growth_rates_all |>
+  dplyr::filter(!base::is.na(total_comp_growth)) |>
+  dplyr::summarise(
+    inflation_rate = base::mean(inflation_rate, na.rm = TRUE),
+    total_comp_growth = base::mean(total_comp_growth, na.rm = TRUE),
+    regular_growth = base::mean(regular_growth, na.rm = TRUE),
+    benefits_growth = base::mean(benefits_growth, na.rm = TRUE),
+    employee_growth = base::mean(employee_growth, na.rm = TRUE)
+  )
+
+# Build Rule of 70 table with averages
+rule_of_70_avg <- dplyr::tibble(
+  Metric = c(
+    "Inflation (CPI)",
+    "Total Compensation",
+    "Regular Earnings",
+    "Additional Benefits",
+    "Employee Count"
+  ),
+  growth_rate_num = c(
+    avg_rates$inflation_rate,
+    avg_rates$total_comp_growth,
+    avg_rates$regular_growth,
+    avg_rates$benefits_growth,
+    avg_rates$employee_growth
+  ),
+  current_amount = c(
+    NA_real_,
+    latest_amounts$total_comp,
+    latest_amounts$regular_earnings,
+    latest_amounts$additional_benefits,
+    latest_amounts$employees
+  )
+) |>
+  dplyr::mutate(
+    doubling_time_num = dplyr::case_when(
+      growth_rate_num <= 0 ~ NA_real_,
+      TRUE ~ 70 / growth_rate_num
+    ),
+    doubled_amount = current_amount * 2
+  ) |>
+  # Sort by doubling time ascending (fastest on top)
+  dplyr::arrange(doubling_time_num) |>
+  dplyr::mutate(
+    `Avg Growth Rate (FY21-FY25)` = base::sprintf("%.2f%%", growth_rate_num),
+    `Doubling Time (Years)` = dplyr::if_else(
+      base::is.na(doubling_time_num),
+      "N/A (no growth)",
+      base::sprintf("%.1f years", doubling_time_num)
+    ),
+    `FY25 Doubled` = dplyr::case_when(
+      Metric == "Inflation (CPI)" ~ "N/A",
+      Metric == "Employee Count" ~ base::format(base::as.integer(doubled_amount), big.mark = ","),
+      TRUE ~ scales::dollar(doubled_amount, accuracy = 1)
+    )
+  ) |>
+  dplyr::select(Metric, `Avg Growth Rate (FY21-FY25)`, `Doubling Time (Years)`, `FY25 Doubled`)
+
+rule_of_70_avg |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Rule of 70: Doubling Time at Average Growth Rates (FY21-FY25)") |>
+  flextable::add_footer_lines("Rule of 70: Years to double = 70 ÷ Growth Rate (%) | Sorted by fastest doubling time") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::italic(part = "footer") |>
+  flextable::fontsize(size = 11, part = "footer") |>
+  flextable::autofit()
+```
+
+```{r}
+#| label: growth-rates-interpretation
+
+# =============================================================================
+# INTERPRETATION SUMMARY
+# =============================================================================
+
+base::cat("=== GROWTH RATES ANALYSIS SUMMARY ===\n\n")
+
+# Latest year comparison
+base::cat("FY25 Growth Rates:\n")
+base::cat("  - Inflation (CPI):", sprintf("%.2f%%", latest_rates$inflation_rate), "\n")
+base::cat("  - Total Compensation:", sprintf("%.2f%%", latest_rates$total_comp_growth), "\n")
+base::cat("  - Regular Earnings:", sprintf("%.2f%%", latest_rates$regular_growth), "\n")
+base::cat("  - Additional Benefits:", sprintf("%.2f%%", latest_rates$benefits_growth), "\n")
+base::cat("  - Employee Count:", sprintf("%.2f%%", latest_rates$employee_growth), "\n\n")
+
+# Key insight
+comp_vs_inflation <- latest_rates$total_comp_growth - latest_rates$inflation_rate
+if (comp_vs_inflation > 0) {
+  base::cat("KEY FINDING: Total compensation growth EXCEEDS inflation by", 
+            sprintf("%.2f", comp_vs_inflation), "percentage points in FY25.\n")
+} else {
+  base::cat("KEY FINDING: Total compensation growth is BELOW inflation by", 
+            sprintf("%.2f", base::abs(comp_vs_inflation)), "percentage points in FY25.\n")
+}
+```
+
+------------------------------------------------------------------------

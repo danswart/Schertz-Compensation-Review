@@ -381,7 +381,7 @@ file_info |>
 
 ## Step 3: Exact Column Names by File
 
-**Copy these exact column names into Phase 2 below.**
+**Run Step 3 code and copy the exact column names by year shown in the Console into Step 4 below.**
 
 ```{r}
 #| label: show-exact-columns
@@ -440,18 +440,18 @@ column_maps <- base::list(
     status = "status",
     # Identity columns
     name = "name",                    # Single name column (or NA if split)
-    last_name = NA,                   # NA if using single name column
+    last_name =NA,                   # NA if using single name column
     first_name = NA,                  # NA if using single name column
     department = "department",
-    title = "job_title",
+    job_title = "job_title",
     hire_date = "hire_date",
     termination_date = "termination_date",
     
     # Earnings columns (set to NA if not present)
     leave_payout = NA,
-    reg_earnings = "regular_earnings",
-    ot_earnings = "overtime_earnings",
-    add_earnings = "additional_earnings1",
+    regular_earnings = "regular_earnings",
+    overtime_earnings = "overtime_earnings",
+    additional_earnings = "additional_earnings",
     deployment_earnings = NA,
     arbitration_settlements = NA,
     
@@ -468,7 +468,7 @@ column_maps <- base::list(
   FY21 = base::list(
     status = "status",
     name = "name",
-    last_name = NA,
+    last_name =NA,
     first_name = NA,
     department = "home_department",
     job_title = "job_title",
@@ -477,7 +477,7 @@ column_maps <- base::list(
     leave_payout = NA,
     regular_earnings = "regular_earnings",
     overtime_earnings = "overtime_earnings",
-    additional_earnings = "additional_earnings1",
+    additional_earnings = "additional_earnings",
     deployment_earnings = NA,
     arbitration_settlements = NA,
     additional_benefits = NA,
@@ -490,7 +490,7 @@ column_maps <- base::list(
   FY22 = base::list(
     status = "status",
     name = "name",
-    last_name = NA,
+    last_name =NA,
     first_name = NA,
     department = "department",
     job_title = "job_title",
@@ -499,7 +499,7 @@ column_maps <- base::list(
     leave_payout = NA,
     regular_earnings = "regular_earnings",
     overtime_earnings = "overtime_earnings",
-    additional_earnings = "additional_earnings1",
+    additional_earnings = "additional_earnings",
     deployment_earnings = NA,
     arbitration_settlements = NA,
     additional_benefits = NA,
@@ -511,56 +511,58 @@ column_maps <- base::list(
   # ----- FY23 -----
   FY23 = base::list(
     name = NA,                                    # NA - using split names
-    last_name = "last_name",
+    last_name ="last_name",
     first_name = "first_name",
     department = "department",
     job_title = "job_title",
     employee_category = "employee_category",
     hire_date = "hire_date",
     separation_date = "separation_date",
-    fy23_annual_salary1 = "fy23_annual_salary1",
-    leave_payout = "fy23_leave_payout2",
-    regular_earnings = "fy23_regular_earnings3",
-    overtime_earnings = "fy23_overtime_earnings4",
-    additional_earnings = "fy23_additional_earnings5",
-    deployment_earnings = "fy23_deployment_earnings6",
+    annual_salary = NA,
+    leave_payout = "fy23_leave_payout",
+    regular_earnings = "fy23_regular_earnings",
+    overtime_earnings = "fy23_overtime_earnings",
+    additional_earnings = "fy23_additional_earnings",
+    deployment_earnings = "fy23_deployment_earnings",
     arbitration_settlements = "arbitration_settlements",
-    additional_benefits = "fy23_additional_benefits8",
-    total_earnings = "fy23_total_earnings7",
-    total_compensation = "fy23_total_compensation9",
+    additional_benefits = "fy23_additional_benefits",
+    total_earnings = "fy23_total_earnings",
+    total_compensation = "fy23_total_compensation",
     misc_earnings = NA
   ),
   
   # ----- FY24 -----
   FY24 = base::list(
     name = NA,
-    last_name = "last_name",
+    last_name ="last_name",
     first_name = "first_name",
     department = "home_department",
     job_title = "job_title",
     employee_category = "employee_category",
     hire_date = "hire_date",
     separation_date = "separation_date",
-    fy24_annual_salary1 = "fy24_annual_salary1",
-    leave_payout = "fy24_leave_payout2",
-    regular_earnings = "fy24_regular_earnings3",
-    overtime_earnings = "fy24_overtime_earnings4",
+    annual_salary = NA,
+    leave_payout = "fy24_leave_payout",
+    regular_earnings = "fy24_regular_earnings",
+    overtime_earnings = "fy24_overtime_earnings",
     additional_earnings = "fy24_additional",
     deployment_earnings = "fy24_deployment",
     arbitration_settlements = "arbitration_settlements",
-    additional_benefits = "fy24_additional_1",
-    total_earnings = "fy24_total_earnings7",
-    total_compensation = "fy24_total_compensation9",
+    additional_benefits = "fy24_additional_2",
+    total_earnings = "fy24_total_earnings",
+    total_compensation = "fy24_total_compensation",
     misc_earnings = NA
   ),
 
 # ----- FY25 -----
 FY25 = base::list(
   name = NA,
-  last_name = "last_name",
+  last_name ="last_name",
   first_name = "first_name",
+  position_id = "position_id",
   department = "department",
   job_title = "job_title",
+  employee_category = "employee_category",
   hire_date = "hire_date",
   separation_date = "separation_date",
   leave_payout = "fy25_leave_payout",
@@ -661,7 +663,7 @@ process_file <- function(fy, filename, col_map) {
     fiscal_year = fy,
     name = name_values,
     name_std = standardize_name(name_values),
-    last_name = last_name,
+    last_name =last_name,
     first_name = first_name,
     department = fix_spaces(df[[col_map$department]]),
     job_title = fix_spaces(df[[col_map$job_title]]),
@@ -805,6 +807,139 @@ if (!validation_passed) {
   base::cat("Validation: PASSED\n")
   base::cat("All calculated totals match source file totals within $1.00\n")
 }
+```
+### IMPUTE ADDITIONAL BENEFITS FOR FY20-FY22 from FY23-FY25
+
+```{r}
+#| label: impute-benefits-fy20-fy22
+
+# =============================================================================
+# IMPUTE ADDITIONAL BENEFITS FOR FY20-FY22
+# =============================================================================
+# FY20-FY22 files don't have additional_benefits data
+# We estimate it based on the benefits-to-regular-earnings ratio from FY23-FY25
+
+# Step 1: Calculate benefits as % of regular earnings for FY23-FY25
+benefits_ratios <- all_data |>
+  dplyr::filter(fiscal_year %in% c("FY23", "FY24", "FY25")) |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::summarise(
+    total_regular = sum(regular_earnings, na.rm = TRUE),
+    total_benefits = sum(additional_benefits, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  dplyr::mutate(
+    benefits_pct = total_benefits / total_regular * 100,
+    benefits_ratio = total_benefits / total_regular
+  )
+
+# Display the ratios
+benefits_ratios |>
+  dplyr::mutate(
+    total_regular = scales::dollar(total_regular, accuracy = 1),
+    total_benefits = scales::dollar(total_benefits, accuracy = 1),
+    benefits_pct = base::sprintf("%.2f%%", benefits_pct)
+  ) |>
+  dplyr::select(fiscal_year, total_regular, total_benefits, benefits_pct) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Benefits as % of Regular Earnings (FY23-FY25)") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+
+# Step 2: Calculate average ratio to use for imputation
+# (or you could use a trend/interpolation if the ratios vary significantly)
+avg_benefits_ratio <- base::mean(benefits_ratios$benefits_ratio)
+base::cat("\nAverage benefits ratio (FY23-FY25):", 
+          base::sprintf("%.4f (%.2f%%)", avg_benefits_ratio, avg_benefits_ratio * 100), "\n")
+
+# Step 3: Impute benefits for FY20-FY22
+all_data <- all_data |>
+  dplyr::mutate(
+    # Flag imputed rows
+    benefits_imputed = fiscal_year %in% c("FY20", "FY21", "FY22"),
+    
+    # Impute additional_benefits for early years
+    additional_benefits = dplyr::if_else(
+      benefits_imputed & additional_benefits == 0,
+      regular_earnings * avg_benefits_ratio,
+      additional_benefits
+    ),
+    
+    # Recalculate total compensation with imputed benefits
+    calc_total_compensation = calc_total_earnings + additional_benefits
+  )
+
+# Step 4: Verify the imputation
+imputation_summary <- all_data |>
+  dplyr::group_by(fiscal_year, benefits_imputed) |>
+  dplyr::summarise(
+    employees = dplyr::n(),
+    total_regular = sum(regular_earnings, na.rm = TRUE),
+    total_benefits = sum(additional_benefits, na.rm = TRUE),
+    total_comp = sum(calc_total_compensation, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  dplyr::mutate(
+    benefits_pct = total_benefits / total_regular * 100
+  )
+
+base::cat("\n--- Imputation Summary ---\n")
+imputation_summary |>
+  dplyr::mutate(
+    total_regular = scales::dollar(total_regular, accuracy = 1),
+    total_benefits = scales::dollar(total_benefits, accuracy = 1),
+    total_comp = scales::dollar(total_comp, accuracy = 1),
+    benefits_pct = base::sprintf("%.2f%%", benefits_pct),
+    benefits_imputed = dplyr::if_else(benefits_imputed, "Yes (Imputed)", "No (Actual)")
+  ) |>
+  dplyr::rename(
+    FY = fiscal_year,
+    `Imputed?` = benefits_imputed,
+    `Employees` = employees,
+    `Regular Earnings` = total_regular,
+    `Add'l Benefits` = total_benefits,
+    `Total Comp` = total_comp,
+    `Benefits as % of Reg Earnings` = benefits_pct
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Compensation Summary with Imputed Benefits") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::bg(i = ~ grepl("Imputed", `Imputed?`), bg = "#ffffcc") |>
+  flextable::autofit()
+```
+
+
+### Add inflation rates for all years covered in analysis
+
+```{r}
+#| label: add-inflation-rates
+
+# =============================================================================
+# ADD PUBLISHED INFLATION RATES (FRED Series: FPCPITOTLZGUSA)
+# =============================================================================
+
+# Official annual inflation rates from FRED
+# FY20 is base year, so we only need FY21-FY25 rates
+inflation_rates <- dplyr::tibble(
+  fiscal_year = c("FY20", "FY21", "FY22", "FY23", "FY24", "FY25"),
+  inflation_rate = c(NA_real_, 4.70, 8.00, 4.12, 2.95, 2.52)  # FY20 = base, no rate
+)
+
+# Join to all_data
+all_data <- all_data |>
+  dplyr::left_join(inflation_rates, by = "fiscal_year")
+
+base::cat("Added inflation rates to all_data\n")
 ```
 
 ------------------------------------------------------------------------
@@ -958,7 +1093,8 @@ yearly_summary <- final_df |>
     total_compensation = base::sum(amount, na.rm = TRUE),
     total_employees = dplyr::n_distinct(employee_key),
     avg_compensation = total_compensation / total_employees,
-    .groups = "drop"
+    .groups = "drop",
+    inflation_rates
   ) |>
   dplyr::arrange(fiscal_year)
   
@@ -1031,6 +1167,9 @@ yearly_summary |>
 
 This shows exactly what columns exist in each year's file, helping identify when the spreadsheet structure changes.
 
+
+------------------------------------------------------------------------
+
 ```{r}
 #| label: column-structure-comparison
 
@@ -1038,6 +1177,11 @@ This shows exactly what columns exist in each year's file, helping identify when
 # APPENDIX A: COLUMN STRUCTURE COMPARISON
 # =============================================================================
 
+
+# Reset data_folder to raw data location
+data_folder <- here::here("data_raw")
+
+# Rest of your code...
 # Build a comparison of actual column names across years
 col_comparison <- purrr::map_dfr(
   base::names(files),
@@ -1056,7 +1200,14 @@ col_comparison <- purrr::map_dfr(
       NULL
     }
   }
-) |>
+)
+
+# Check what we got
+base::cat("Rows:", nrow(col_comparison), "\n")
+base::cat("Columns:", paste(names(col_comparison), collapse = ", "), "\n")
+
+# Now pivot
+col_comparison <- col_comparison |>
   dplyr::mutate(present = TRUE) |>
   tidyr::pivot_wider(
     names_from = fiscal_year,
@@ -1069,7 +1220,33 @@ col_comparison |>
     dplyr::across(dplyr::where(is.logical), ~ dplyr::if_else(.x, "✓", ""))
   ) |>
   flextable::flextable() |>
-  flextable::add_header_lines("Column Presence by Fiscal Year") |>
+  flextable::add_header_lines("Source File Columns by Fiscal Year") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+
+```
+
+```{r}
+#| label: processed-data-structure
+
+# =============================================================================
+# APPENDIX A-2: PROCESSED DATA STRUCTURE
+# =============================================================================
+
+# Show columns in the processed all_data dataframe
+processed_cols <- dplyr::tibble(
+  column_name = base::names(all_data),
+  data_type = purrr::map_chr(all_data, ~ base::class(.x)[1])
+)
+
+processed_cols |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Processed Data Structure (all_data) Columns") |>
   flextable::color(i = 1, color = "darkblue", part = "header") |>
   flextable::italic(i = 1, part = "header") |>
   flextable::align(i = 1, align = "left", part = "header") |>
@@ -1078,8 +1255,6 @@ col_comparison |>
   flextable::bg(i = 2, bg = "palegreen", part = "header") |>
   flextable::autofit()
 ```
-
-------------------------------------------------------------------------
 
 
 
@@ -1186,7 +1361,7 @@ yoy_summary |>
 
 
 
-### Bump Chart - Top 3 in Total Compensation
+## Appendix D: Bump Chart - Top 3 in Total Compensation
 
 ```{r}
 top_3_earners <- all_data |>
@@ -1343,7 +1518,7 @@ overtime_summary |>
 
 
 
-# OVERTIME BY DEPARTMENT - TOP 3 
+# Appendix F2: Overtime by Department - Top 3 
 
 ```{r}
 #| label: fig-overtime-by-dept
@@ -1421,6 +1596,7 @@ ggplot2::ggplot(
 
 
 ## Appendix G: Department Total Compenstation Ranking Over Time (Bump Chart)
+
 ```{r}
 #| label: dept-rank-bump-chart
 #| fig-width: 13
@@ -1458,18 +1634,16 @@ okabe_ito <- c(
   "#E69F00", # orange
   "#56B4E9", # sky blue
   "#009E73", # bluish green
-  "#F0E442", # yellow
+  "red", 
   "#0072B2", # blue
   "#D55E00", # vermilion
-  "#CC79A7",  # reddish purple
+  "#CC79A7", # reddish purple
   "firebrick",
   "navy",
   "darkgreen",
   "brown",
   "purple"
-  
 )
-
 
 # Create bump chart
 ggplot2::ggplot(dept_ranks_top_10, ggplot2::aes(x = fiscal_year, y = rank, 
@@ -1477,20 +1651,15 @@ ggplot2::ggplot(dept_ranks_top_10, ggplot2::aes(x = fiscal_year, y = rank,
   ggplot2::geom_line(linewidth = 1.5) +
   ggplot2::geom_point(size = 4) +
   ggplot2::geom_text(
-    data = dplyr::filter(dept_ranks_top_10, fiscal_year == "FY24"),
-    ggplot2::aes(label = department),
-    hjust = -0.1,
-    size = 3
-  ) +
-  ggplot2::geom_text(
     data = dplyr::filter(dept_ranks_top_10, fiscal_year == "FY20"),
     ggplot2::aes(label = department),
     hjust = 1.1,
-    size = 3
+    size = 3,
+    color = "black"
   ) +
   ggplot2::scale_color_manual(values = okabe_ito) +
   ggplot2::scale_y_reverse(breaks = 1:15) +
-  ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = c(0.25, 0.35))) +
+  ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = c(0.25, 0.05))) +
   ggplot2::labs(
     title = "Department Total Compensation Rankings Over Time",
     subtitle = "Rank 1 = highest total compensation. Lines show how departments moved in rankings relative to each other.",
@@ -1498,11 +1667,10 @@ ggplot2::ggplot(dept_ranks_top_10, ggplot2::aes(x = fiscal_year, y = rank,
     y = "Rank (1 = Highest)"
   ) +
   ggplot2::theme(legend.position = "none")
-
 ```
 
 
-# Calculate compensation rankings by year for all departments (in table form)
+# Appendix G2:  Department Comp Rankings in Table Format
 
 ```{r}
 #| label: dept-rank-table
@@ -1729,14 +1897,351 @@ growth_data |>
 
 
 
-------------------------------------------------------------------------
+## Appendix K: Growth Rates Comparison - Compensation vs Inflation
+
+## Appendix K: Growth Rates Comparison - Compensation vs Inflation
+
+```{r}
+#| label: growth-rates-comparison-data
+
+# =============================================================================
+# APPENDIX K: GROWTH RATES COMPARISON - ALL METRICS VS INFLATION
+# =============================================================================
+
+# Build comprehensive growth rates dataset
+growth_rates_all <- all_data |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::summarise(
+    employees = dplyr::n(),
+    total_comp = sum(calc_total_compensation, na.rm = TRUE),
+    regular_earnings = sum(regular_earnings, na.rm = TRUE),
+    additional_benefits = sum(additional_benefits, na.rm = TRUE),
+    inflation_rate = dplyr::first(inflation_rate),
+    benefits_imputed = dplyr::first(benefits_imputed),
+    .groups = "drop"
+  ) |>
+  dplyr::arrange(fiscal_year) |>
+  dplyr::mutate(
+    # Calculate year-over-year growth rates
+    prior_employees = dplyr::lag(employees),
+    prior_total_comp = dplyr::lag(total_comp),
+    prior_regular = dplyr::lag(regular_earnings),
+    prior_benefits = dplyr::lag(additional_benefits),
+    
+    # Growth rates as percentages
+    employee_growth = (employees - prior_employees) / prior_employees * 100,
+    total_comp_growth = (total_comp - prior_total_comp) / prior_total_comp * 100,
+    regular_growth = (regular_earnings - prior_regular) / prior_regular * 100,
+    benefits_growth = (additional_benefits - prior_benefits) / prior_benefits * 100
+  )
+
+# Display the raw growth rates data
+growth_rates_all |>
+  dplyr::filter(!base::is.na(total_comp_growth)) |>
+  dplyr::select(
+    fiscal_year, benefits_imputed,
+    inflation_rate, total_comp_growth, regular_growth, 
+    benefits_growth, employee_growth
+  ) |>
+  dplyr::mutate(
+    benefits_imputed = dplyr::if_else(benefits_imputed, "Yes*", "No"),
+    inflation_rate = base::sprintf("%.2f%%", inflation_rate),
+    total_comp_growth = base::sprintf("%.2f%%", total_comp_growth),
+    regular_growth = base::sprintf("%.2f%%", regular_growth),
+    benefits_growth = base::sprintf("%.2f%%", benefits_growth),
+    employee_growth = base::sprintf("%.2f%%", employee_growth)
+  ) |>
+  dplyr::rename(
+    FY = fiscal_year,
+    `Imputed?` = benefits_imputed,
+    `Inflation` = inflation_rate,
+    `Total Comp` = total_comp_growth,
+    `Regular Earnings` = regular_growth,
+    `Add'l Benefits` = benefits_growth,
+    `Employees` = employee_growth
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Year-over-Year Growth Rates by Category") |>
+  flextable::add_footer_lines("* Benefits imputed for FY20-FY22 based on FY23-FY25 ratios") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::italic(part = "footer") |>
+  flextable::fontsize(size = 11, part = "footer") |>
+  flextable::autofit()
+```
+
+
+```{r}
+#| label: fig-growth-rates-comparison
+#| fig-cap: "Growth Rates Comparison: Compensation Metrics vs Published Inflation"
+#| fig-width: 13
+#| fig-height: 8
+
+# =============================================================================
+# LINE CHART: ALL GROWTH RATES COMPARED
+# =============================================================================
+
+# Reshape data for plotting
+growth_rates_long <- growth_rates_all |>
+  dplyr::filter(!base::is.na(total_comp_growth)) |>
+  dplyr::select(
+    fiscal_year,
+    `Inflation (FRED)` = inflation_rate,
+    `Total Compensation` = total_comp_growth,
+    `Regular Earnings` = regular_growth,
+    `Additional Benefits` = benefits_growth,
+    `Employee Count` = employee_growth
+  ) |>
+  tidyr::pivot_longer(
+    cols = -fiscal_year,
+    names_to = "metric",
+    values_to = "growth_rate"
+  ) |>
+  dplyr::mutate(
+    metric = base::factor(
+      metric,
+      levels = c("Inflation (FRED)", "Total Compensation", "Regular Earnings", 
+                 "Additional Benefits", "Employee Count")
+    )
+  )
+
+# Define colors for each metric
+metric_colors <- c(
+  "Inflation (FRED)" = "firebrick",
+  "Total Compensation" = "steelblue",
+  "Regular Earnings" = "darkgreen",
+  "Additional Benefits" = "purple",
+  "Employee Count" = "darkorange"
+)
+
+# Find each metric's FIRST fiscal year for LEFT-side endpoint labels
+endpoint_labels <- growth_rates_long |>
+  dplyr::group_by(metric) |>
+  dplyr::slice_min(order_by = fiscal_year, n = 1) |>
+  dplyr::ungroup()
+
+# Create the plot
+ggplot2::ggplot(
+  growth_rates_long,
+  ggplot2::aes(x = fiscal_year, y = growth_rate, group = metric, color = metric)
+) +
+  ggplot2::geom_hline(yintercept = 0, linetype = "solid", color = "gray50") +
+  ggplot2::geom_line(linewidth = 1.5) +
+  ggplot2::geom_point(size = 4) +
+  ggplot2::geom_text(
+    ggplot2::aes(label = base::sprintf("%.1f%%", growth_rate)),
+    vjust = -1.2,
+    size = 3.5,
+    show.legend = FALSE
+  ) +
+  ggrepel::geom_text_repel(
+    data = endpoint_labels,
+    ggplot2::aes(label = metric),
+    direction = "y",
+    hjust = 1,
+    nudge_x = -0.3,
+    segment.color = "gray70",
+    size = 4,
+    fontface = "bold",
+    color = "black"
+  ) +
+  ggplot2::scale_color_manual(values = metric_colors) +
+  ggplot2::scale_y_continuous(
+    labels = function(x) base::paste0(x, "%"),
+    breaks = base::seq(-10, 30, by = 5)
+  ) +
+  ggplot2::scale_x_discrete(expand = ggplot2::expansion(add = c(2.0, 0.3))) +
+  ggplot2::labs(
+    title = "Year-over-Year Growth Rates: Compensation Metrics vs Inflation",
+    subtitle = "City of Schertz | FY20-FY22 benefits are imputed estimates",
+    x = "Fiscal Year",
+    y = "Growth Rate (%)",
+    caption = "Inflation data: FRED Series FPCPITOTLZGUSA | FY20 is base year (no growth rate)"
+  ) +
+  ggplot2::theme(
+    legend.position = "none",
+    panel.grid.minor = ggplot2::element_blank()
+  )
+```
+
+
+```{r}
+#| label: rule-of-70-table
+
+# =============================================================================
+# RULE OF 70: DOUBLING TIME BASED ON MOST RECENT GROWTH RATES
+# =============================================================================
+
+# Get the most recent year's growth rates AND amounts (FY25)
+latest_data <- growth_rates_all |>
+  dplyr::filter(fiscal_year == "FY25") |>
+  dplyr::select(
+    inflation_rate, total_comp_growth, regular_growth, 
+    benefits_growth, employee_growth,
+    total_comp, regular_earnings, additional_benefits, employees
+  )
+
+# Calculate Rule of 70 doubling times
+rule_of_70 <- dplyr::tibble(
+  Metric = c(
+    "Inflation (CPI)",
+    "Total Compensation",
+    "Regular Earnings",
+    "Additional Benefits",
+    "Employee Count"
+  ),
+  growth_rate_num = c(
+    latest_data$inflation_rate,
+    latest_data$total_comp_growth,
+    latest_data$regular_growth,
+    latest_data$benefits_growth,
+    latest_data$employee_growth
+  ),
+  current_amount = c(
+    NA_real_,
+    latest_data$total_comp,
+    latest_data$regular_earnings,
+    latest_data$additional_benefits,
+    latest_data$employees
+  )
+) |>
+  dplyr::mutate(
+    doubling_time_num = dplyr::case_when(
+      growth_rate_num <= 0 ~ NA_real_,
+      TRUE ~ 70 / growth_rate_num
+    ),
+    doubled_amount = current_amount * 2
+  ) |>
+  # Sort by doubling time ascending (fastest on top)
+  dplyr::arrange(doubling_time_num) |>
+  dplyr::mutate(
+    `FY25 Growth Rate` = base::sprintf("%.2f%%", growth_rate_num),
+    `Doubling Time (Years)` = dplyr::if_else(
+      base::is.na(doubling_time_num),
+      "N/A (no growth)",
+      base::sprintf("%.1f years", doubling_time_num)
+    ),
+    `FY25 Doubled` = dplyr::case_when(
+      Metric == "Inflation (CPI)" ~ "N/A",
+      Metric == "Employee Count" ~ base::format(base::as.integer(doubled_amount), big.mark = ","),
+      TRUE ~ scales::dollar(doubled_amount, accuracy = 1)
+    )
+  ) |>
+  dplyr::select(Metric, `FY25 Growth Rate`, `Doubling Time (Years)`, `FY25 Doubled`)
+
+rule_of_70 |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Rule of 70: Doubling Time at Current Growth Rates (FY25)") |>
+  flextable::add_footer_lines("Rule of 70: Years to double = 70 ÷ Growth Rate (%) | Sorted by fastest doubling time") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::italic(part = "footer") |>
+  flextable::fontsize(size = 11, part = "footer") |>
+  flextable::autofit()
+```
+
+```{r}
+#| label: rule-of-70-average-table
+
+# =============================================================================
+# RULE OF 70: USING AVERAGE GROWTH RATES (FY21-FY25)
+# =============================================================================
+
+# Get FY25 amounts for doubling calculation
+latest_amounts <- growth_rates_all |>
+  dplyr::filter(fiscal_year == "FY25") |>
+  dplyr::select(total_comp, regular_earnings, additional_benefits, employees)
+
+# Calculate average growth rates across all years
+avg_rates <- growth_rates_all |>
+  dplyr::filter(!base::is.na(total_comp_growth)) |>
+  dplyr::summarise(
+    inflation_rate = base::mean(inflation_rate, na.rm = TRUE),
+    total_comp_growth = base::mean(total_comp_growth, na.rm = TRUE),
+    regular_growth = base::mean(regular_growth, na.rm = TRUE),
+    benefits_growth = base::mean(benefits_growth, na.rm = TRUE),
+    employee_growth = base::mean(employee_growth, na.rm = TRUE)
+  )
+
+# Build Rule of 70 table with averages
+rule_of_70_avg <- dplyr::tibble(
+  Metric = c(
+    "Inflation (CPI)",
+    "Total Compensation",
+    "Regular Earnings",
+    "Additional Benefits",
+    "Employee Count"
+  ),
+  growth_rate_num = c(
+    avg_rates$inflation_rate,
+    avg_rates$total_comp_growth,
+    avg_rates$regular_growth,
+    avg_rates$benefits_growth,
+    avg_rates$employee_growth
+  ),
+  current_amount = c(
+    NA_real_,
+    latest_amounts$total_comp,
+    latest_amounts$regular_earnings,
+    latest_amounts$additional_benefits,
+    latest_amounts$employees
+  )
+) |>
+  dplyr::mutate(
+    doubling_time_num = dplyr::case_when(
+      growth_rate_num <= 0 ~ NA_real_,
+      TRUE ~ 70 / growth_rate_num
+    ),
+    doubled_amount = current_amount * 2
+  ) |>
+  # Sort by doubling time ascending (fastest on top)
+  dplyr::arrange(doubling_time_num) |>
+  dplyr::mutate(
+    `Avg Growth Rate (FY21-FY25)` = base::sprintf("%.2f%%", growth_rate_num),
+    `Doubling Time (Years)` = dplyr::if_else(
+      base::is.na(doubling_time_num),
+      "N/A (no growth)",
+      base::sprintf("%.1f years", doubling_time_num)
+    ),
+    `FY25 Doubled` = dplyr::case_when(
+      Metric == "Inflation (CPI)" ~ "N/A",
+      Metric == "Employee Count" ~ base::format(base::as.integer(doubled_amount), big.mark = ","),
+      TRUE ~ scales::dollar(doubled_amount, accuracy = 1)
+    )
+  ) |>
+  dplyr::select(Metric, `Avg Growth Rate (FY21-FY25)`, `Doubling Time (Years)`, `FY25 Doubled`)
+
+rule_of_70_avg |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Rule of 70: Doubling Time at Average Growth Rates (FY21-FY25)") |>
+  flextable::add_footer_lines("Rule of 70: Years to double = 70 ÷ Growth Rate (%) | Sorted by fastest doubling time") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::italic(part = "footer") |>
+  flextable::fontsize(size = 11, part = "footer") |>
+  flextable::autofit()
+```
+
+
 
 
 ## How to Add a New Fiscal Year
 
 When you receive a new fiscal year's file:
 
-1.  **Add the filename** to the `files` list in Step 1
+1.  **Add the CLEANED filename** to the `files` list in Step 1
 
 2.  **Run Phase 1** to see the exact column names:
 
@@ -1745,7 +2250,7 @@ new_file <- readxl::read_excel(here::here("data_raw", "NEW_FILE.xlsx"))
 base::names(janitor::clean_names(new_file))
 ```
 
-3.  **Add a new entry to `column_maps`** in Step 4 with the exact column names
+3.  **Add a new entry to `column_maps`** in Step 4 with the exact column names from the console
 
 4.  **Run the pipeline** - Validation will tell you if any columns are missing
 
