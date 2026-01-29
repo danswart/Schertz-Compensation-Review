@@ -857,7 +857,7 @@ avg_benefits_ratio <- base::mean(benefits_ratios$benefits_ratio)
 base::cat("\nAverage benefits ratio (FY23-FY25):", 
           base::sprintf("%.4f (%.2f%%)", avg_benefits_ratio, avg_benefits_ratio * 100), "\n")
 
-# Step 3: Impute benefits for FY20-FY22
+# Step 3: Impute benefits for FY20-FY22 and add to the all_data object
 all_data <- all_data |>
   dplyr::mutate(
     # Flag imputed rows
@@ -899,13 +899,13 @@ imputation_summary |>
   ) |>
   dplyr::rename(
     FY = fiscal_year,
-    `Imputed?` = benefits_imputed,
-    `Employees` = employees,
-    `Regular Earnings` = total_regular,
-    `Add'l Benefits` = total_benefits,
-    `Total Comp` = total_comp,
-    `Benefits as % of Reg Earnings` = benefits_pct
-  ) |>
+    'Benefits Imputed?' = benefits_imputed,
+    `Employee Count` = employees,
+    `Total Regular Earnings` = total_regular,
+    `Added Benefits` = total_benefits,
+    `Total Comp with Benefits` = total_comp,
+    `Benefits as % of Total Reg Earnings` = benefits_pct
+  )|>
   flextable::flextable() |>
   flextable::add_header_lines("Compensation Summary with Imputed Benefits") |>
   flextable::color(i = 1, color = "darkblue", part = "header") |>
@@ -914,7 +914,7 @@ imputation_summary |>
   flextable::fontsize(i = 1, size = 14, part = "header") |>
   flextable::bg(i = 1, bg = "white", part = "header") |>
   flextable::bg(i = 2, bg = "palegreen", part = "header") |>
-  flextable::bg(i = ~ grepl("Imputed", `Imputed?`), bg = "#ffffcc") |>
+  flextable::bg(i = ~ grepl("Imputed", `Benefits Imputed?`), bg = "#ffffcc") |>
   flextable::autofit()
 ```
 
@@ -1093,11 +1093,10 @@ yearly_summary <- final_df |>
     total_compensation = base::sum(amount, na.rm = TRUE),
     total_employees = dplyr::n_distinct(employee_key),
     avg_compensation = total_compensation / total_employees,
-    .groups = "drop",
-    inflation_rates
+    .groups = "drop"
   ) |>
-  dplyr::arrange(fiscal_year)
-  
+  dplyr::left_join(inflation_rates, by = "fiscal_year") |>
+  dplyr::arrange(fiscal_year)  
 
 yearly_summary |>
   dplyr::mutate(
@@ -1781,43 +1780,37 @@ if (nrow(city_manager_data) > 0) {
 ------------------------------------------------------------------------
 
 
-## Appendix I: Total Compensation Growth by Year
+## Appendix I: Total Compensation by Year
 ```{r}
-#| label: plot-total-compensation-growth-by-year
+#| label: plot-total-compensation-by-year
 #| fig-width: 10
 #| fig-height: 6
 
 # =============================================================================
 # APPENDIX I: TOTAL COMPENSATION GROWTH BY FISCAL YEAR - ALL DEPTS
 # =============================================================================
-
-ggplot2::ggplot(yearly_summary, 
-                ggplot2::aes(x = fiscal_year, y = total_compensation, group = 1)) +
+ggplot2::ggplot(validation, 
+                ggplot2::aes(x = fiscal_year, y = source_total, group = 1)) +
   ggplot2::geom_line(linewidth = 1.5, color = "steelblue") +
   ggplot2::geom_point(size = 4, color = "steelblue") +
   ggplot2::geom_text(
-    ggplot2::aes(label = scales::dollar(total_compensation, scale = 1e-6, suffix = "M")),
+    ggplot2::aes(label = scales::dollar(source_total, scale = 1e-6, suffix = "M")),
     vjust = -2
   ) +
-  
   ggplot2::theme(
     axis.text.y  = ggplot2::element_blank(),
     axis.ticks.y = ggplot2::element_blank(),
     panel.grid.major.y = ggplot2::element_blank()
   ) +
-
   ggplot2::scale_y_continuous(
-    expand = ggplot2::expansion(mult = c(0.05, 0.15)
-                                )
-    ) +
-
+    expand = ggplot2::expansion(mult = c(0.05, 0.15))
+  ) +
   ggplot2::labs(
-    title = "Total Employee Compensation Growth by Fiscal Year - All Depts",
+    title = "Total Employee Compensation by Fiscal Year - All Depts",
     subtitle = "City of Schertz",
     x = "Fiscal Year",
     y = "Total Compensation"
   )
-
 ```
 
 
@@ -1897,16 +1890,18 @@ growth_data |>
 
 
 
-## Appendix K: Growth Rates Comparison - Compensation vs Inflation
 
 ## Appendix K: Growth Rates Comparison - Compensation vs Inflation
 
-```{r}
 #| label: growth-rates-comparison-data
 
 # =============================================================================
 # APPENDIX K: GROWTH RATES COMPARISON - ALL METRICS VS INFLATION
 # =============================================================================
+
+
+
+```{r}
 
 # Build comprehensive growth rates dataset
 growth_rates_all <- all_data |>
@@ -1916,9 +1911,12 @@ growth_rates_all <- all_data |>
     total_comp = sum(calc_total_compensation, na.rm = TRUE),
     regular_earnings = sum(regular_earnings, na.rm = TRUE),
     additional_benefits = sum(additional_benefits, na.rm = TRUE),
-    inflation_rate = dplyr::first(inflation_rate),
-    benefits_imputed = dplyr::first(benefits_imputed),
     .groups = "drop"
+  ) |>
+  dplyr::left_join(inflation_rates, by = "fiscal_year") |>
+  dplyr::left_join(
+    imputation_summary |> dplyr::select(fiscal_year, benefits_imputed),
+    by = "fiscal_year"
   ) |>
   dplyr::arrange(fiscal_year) |>
   dplyr::mutate(
@@ -1953,12 +1951,12 @@ growth_rates_all |>
   ) |>
   dplyr::rename(
     FY = fiscal_year,
-    `Imputed?` = benefits_imputed,
-    `Inflation` = inflation_rate,
-    `Total Comp` = total_comp_growth,
-    `Regular Earnings` = regular_growth,
-    `Add'l Benefits` = benefits_growth,
-    `Employees` = employee_growth
+    `Benefits Imputed?` = benefits_imputed,
+    `U.S. Inflation` = inflation_rate,
+    `Growth Rate of Total Comp` = total_comp_growth,
+    `Growth Rate of Regular Earnings` = regular_growth,
+    `Growth Rate of Add'l Benefits` = benefits_growth,
+    `Growth Rate of Employees` = employee_growth
   ) |>
   flextable::flextable() |>
   flextable::add_header_lines("Year-over-Year Growth Rates by Category") |>
@@ -1972,6 +1970,7 @@ growth_rates_all |>
   flextable::italic(part = "footer") |>
   flextable::fontsize(size = 11, part = "footer") |>
   flextable::autofit()
+
 ```
 
 
