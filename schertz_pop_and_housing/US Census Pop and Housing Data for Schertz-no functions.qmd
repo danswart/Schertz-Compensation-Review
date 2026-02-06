@@ -167,80 +167,6 @@ flextable::set_flextable_defaults(
 )
 
 
-#
-# # Sample Code:
-# flextable::flextable(violations) |>
- #  flextable::set_header_labels(
- #    Variable = "Variable",
- #    Measurement = "Measurement",
- #    Likely_Impact = "Likely Impact"
- #  ) |>
-#    flextable::add_header_lines(values = "Frequent Violations of Scientific Method in Current So-Called 'Equity' Research") |>
-#   flextable::color(i = 1, color = "blue", part = "header") |>
-#   flextable::italic(i = 1, part = "header") |>
-#   flextable::align(i = 1, align = "center", part = "header") |>
-#   flextable::fontsize(i = 1, size = 14, part = "header") |>
-#   flextable::bg(i = 1, bg = "white", part = "header") |>
-#   flextable::bg(i = 2, bg = "palegreen", part = "header") |>
-#   flextable::bold(i = 1:2, part = "header") |>
-#   flextable::bold(i = 1:7, j = 1, part = "body") |>
-#   ftExtra::colformat_md() |> 
-#   flextable::autofit()
-  
-
-# Flextable built-in themes:
-  # flextable::theme_alafoli()	|>  # BLAH
-  # flextable::theme_apa()  # THIS IS NICE
-  # flextable::theme_booktabs() |>  # NICE, MORE COMPACT
-  # flextable::theme_box() |>   # OK, INCLUDES CELL BORDERS
-  # flextable::theme_tron() |>  # 'DARK MODE' BLUE TEXT
-  # flextable::theme_tron_legacy() |>   # 'DARK MODE' YELLOW TEXT
-  # flextable::theme_vader() |>    # 'DARK MODE' WHITE TEXT
-  # flextable::theme_vanilla() |>   # NOT SPECIAL
-  # flextable::theme_zebra()	|>
-  #
-
-# Flextable titles:
-  # flextable::colformat_double(j = c("Mean", "SD", "N"), big.mark = ",", digits = 1) |>
-  # flextable::flextable(variance_comparison) |>
-  #  flextable::add_header_lines(values = "The Within-Group vs Between-Group Variance Problem") |>
-
-# Flextable Title theming at table-level:
-  #  flextable::color(i = 1, color = "blue", part = "header") |>
-  #  flextable::italic(i = 1, part = "header") |>
-  #  flextable::align(i = 1, align = "center", part = "header") |>
-  #  flextable::fontsize(i = 1, size = 14, part = "header") |>
-  #  flextable::bg(i = 1, bg = "white", part = "header") |>
-
-# Flextable standard table background colors:
-  #  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
-  
-
-# Flextable reading markdown:
-  #  ftExtra::colformat_md() |> 
-
-# Flextable auto-sizing cell widths:
-  #  flextable::autofit() 
- 
- # Flextable background based on SPECIFIC cell contents:
-  #
-  # flextable::bg(i = ~ Impact_on_Validity == "High", j = "Impact_on_Validity", bg = "#ffcccc") |>
- # flextable::bg(i = ~ Impact_on_Validity == "Medium", j = "Impact_on_Validity", bg = "#ffffcc") |>
-  #
-  # 
-  # Apply yellow background to any cell containing "Yes":
-
-  # for (col in base::names(hypotheses_data)) {
-  #   yes_rows <- base::which(hypotheses_data[[col]] == "Yes")
-  #   if (base::length(yes_rows) > 0) {
-  #     ft <- ft |>
-  #       flextable::bg(i = yes_rows, j = col, bg = "yellow", part = "body")
-  #   }
-  # } 
-  #
-  # Apply to last row of table:
-  #
-  #
 
 
 
@@ -380,7 +306,8 @@ schertz_pop_2010_2019 <- tidycensus::get_estimates(
   select(NAME, year, variable, value) |>
   arrange(year)
 
-flextable::flextable(schertz_pop_2010_2019)
+flextable::flextable(schertz_pop_2010_2019) |>
+  flextable::colformat_int(j = "year", big.mark = "")
 ```
 
 
@@ -412,7 +339,8 @@ schertz_pop_2020_2024 <- map_dfr(
   select(NAME, year, variable, value) |>
   arrange(year)
 
-flextable::flextable(schertz_pop_2020_2024)
+flextable::flextable(schertz_pop_2020_2024) |> 
+  flextable::colformat_int(j = "year", big.mark = "")
 
 ```
 
@@ -426,7 +354,8 @@ schertz_pop_2010_2024 <- bind_rows(
 ) |>
   arrange(year)
 
-flextable::flextable(schertz_pop_2010_2024)
+flextable::flextable(schertz_pop_2010_2024) |>
+  flextable::colformat_int(j = "year", big.mark = "")
 
 ```
 
@@ -444,7 +373,8 @@ schertz_pop_2010_2024_with_changes <- schertz_pop_2010_2024 |>
     pct_change = 100 * change / pop_lag
   )
 
-flextable::flextable(schertz_pop_2010_2024_with_changes)
+flextable::flextable(schertz_pop_2010_2024_with_changes) |>
+  flextable::colformat_int(j = "year", big.mark = "")
 
 dplyr::glimpse(schertz_pop_2010_2024_with_changes)
 
@@ -456,8 +386,8 @@ dplyr::glimpse(schertz_pop_2010_2024_with_changes)
 
 ```{r}
 # writexl::write_xlsx(
-#   schertz_pop_2010_2024_with_changes,
-#   "schertz_pop_2010_2024_with_changes.xlsx"
+#  schertz_pop_2010_2024_with_changes,
+#  "schertz_pop_and_housing/schertz_pop_2010_2024_with_changes.xlsx"
 # )
 ```
 
@@ -466,6 +396,38 @@ dplyr::glimpse(schertz_pop_2010_2024_with_changes)
 
 
 ## HOUSING GROWTH
+
+### B25001_001 is "Total Housing Units" - it counts ALL types of housing units regardless of structure type.
+
+This includes:
+
+-  Single-family detached homes
+-  Single-family attached (townhomes, row houses)
+-  Apartments/condos in multi-unit buildings
+-  Mobile homes/manufactured housing
+-  RVs, boats, vans used as housing
+-  Any other structure used as separate living quarters
+
+Key point: It counts housing units, not structures. A 100-unit apartment building = 100 housing units.
+
+
+It includes both:
+
+-  Occupied units (people living there)
+-  Vacant units (for sale, for rent, seasonal, abandoned, etc.)
+
+
+
+If you want to break it down by structure type, you'd need table B25024 (Units in Structure), which shows:
+
+-  B25024_002: 1, detached
+-  B25024_003: 1, attached
+-  B25024_004: 2 units
+-  B25024_005: 3 or 4 units
+-  B25024_006: 5 to 9 units
+-  etc.
+
+This analysis shows total housing stock growth in Schertz across all housing types.
 
 ### Get Housing Units and Changes from ACS5
 
@@ -493,7 +455,38 @@ schertz_housing_2009_2022_with_changes <- purrr::map(years, \(yr) {
     pct_change = change / dplyr::lag(estimate) * 100
   )
 
-flextable::flextable(schertz_housing_2009_2022_with_changes)
+flextable::flextable(schertz_housing_2009_2022_with_changes) |>
+  flextable::colformat_int(j = "year", big.mark = "")
+
+```
+
+
+```{r}
+
+#| label: get-housing-units-with-changes
+
+years <- 2009:2024
+
+schertz_housing_2009_2024_with_changes <- purrr::map(years, \(yr) {
+  tidycensus::get_acs(
+    geography = "place",
+    state = "TX",
+    variables = "B25001_001",
+    year = yr,
+    survey = "acs5"
+  ) |> 
+    dplyr::mutate(year = yr)
+}) |> 
+  purrr::list_rbind() |> 
+  dplyr::filter(stringr::str_detect(NAME, "Schertz")) |> 
+  dplyr::arrange(year) |> 
+  dplyr::mutate(
+    change = estimate - dplyr::lag(estimate),
+    pct_change = change / dplyr::lag(estimate) * 100
+  )
+
+flextable::flextable(schertz_housing_2009_2024_with_changes) |> 
+  flextable::colformat_int(j = "year", big.mark = "")
 
 ```
 
@@ -502,8 +495,8 @@ flextable::flextable(schertz_housing_2009_2022_with_changes)
 
 ```{r}
 # writexl::write_xlsx(
-#   schertz_housing_2009_2022_with_changes,
-#   "schertz_housing_2009_2022_with_changes.xlsx"
+#   schertz_housing_2009_2024_with_changes,
+#   "schertz_pop_and_housing/schertz_housing_2009_2024_with_changes.xlsx"
 # )
 ```
 
