@@ -256,7 +256,7 @@ base::set.seed(123)
 ```
 
 ```{r}
-#| label: requestor-info
+#| label: requester-info
 #| include: false
 
 # =============================================================================
@@ -325,28 +325,26 @@ INFORMATION REQUESTED:
 ALL TABLES AND CHARTS PRESENTED IN THE "STATISTICAL SECTION" (pp 111 - 150 of the pdf version of the document) OF THE ACFR FY23, INCLUDING THE FOLLOWING:
  
 01. Net Position by Component
-02. Change in Net Position - Expenses
-03. Change in Net Position - Revenues
-04. Fund Balances of Governmental Funds
-05. Changes in Fund Balances
-06. Tax Revenues by Source
-07. Water & Sewer Consumption/Rates
-08. Principal Water & Sewer Consumers
-09. Property Tax Rates
-10. Principal Property Tax Payers
-11. Tax Levies and Collections
-12. Taxable Assessed Value
-13. Outstanding Debt Ratios
-14. General Bonded Debt Ratios
-15. Direct & Overlapping Debt
-16. Debt Margin Information
-17. Pledged Revenue Coverage
-18. Demographic & Economic Stats
-19. Top 10 Employers
-20. FTE Employees by Function
-21. Operating Indicators - Part 1
-22. Operating Indicators - Part 2
-23. Capital Asset Statistics
+02. Change in Net Position
+03. Fund Balances of Governmental Funds
+04. Changes in Fund Balances of Governmental Funds
+05. Governmental Funds Tax Revenues by Source
+06. Total Water & Sewer Consumption/Rates
+07. Principal Water & Sewer Consumers
+08. Direct and Overlapping Property Tax Rates
+09. Principal Property of Tax Payers
+10. Property Tax Levies and Collections
+11. Taxable Assessed Value
+12. Ratios of Outstanding Debt by Type
+13. Ratios of General Bonded Debt Outstanding
+14. Direct & Overlapping Governmental Activities Debt
+15. Debt Margin Information
+16. Pledged Revenue Coverage
+17. Demographic & Economic Statistics
+18. Top 10 Principal Employers
+19. FTE City Governmental Employees by Function
+20. Operating Indicators by Function/Program
+21. Capital Asset Statistics by Function/Program
 
 The CITY OF SCHERTZ ACFR FY24 is not published on the website at this time.  If it is in final, but unpublished form please provide the above Excel files for FY24 as well.
 
@@ -368,7 +366,7 @@ I request that responsive records be provided in the following formats, where av
 
 - **Large document sets:**  Electronic delivery via email, file transfer, or portable media
 
-- **Numerical values should be formated as numbers (not text) just as used by staff for calculating values published on the City website.
+- **Numerical values should be formatted as numbers (not text) just as used by staff for calculating values published on the City website.
 
 If any requested records are available on the City's website, please provide the specific URLs rather than duplicating those records.  PDF file format is NOT an acceptable substitute for spreadsheet requests.
 
