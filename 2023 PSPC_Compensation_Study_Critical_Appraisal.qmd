@@ -1,0 +1,167 @@
+---
+title: "Critical Appraisal: PSPC FY 2024 Classification and Compensation Study"
+subtitle: "City of Schertz, Texas — December 2023"
+author: "Dan"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    theme: flatly
+    code-fold: true
+    self-contained: true
+  pdf:
+    toc: true
+    number-sections: true
+    geometry: margin=1in
+  typst:
+    toc: true
+    number-sections: true
+---
+
+## Executive Summary
+
+The PSPC study concludes that Schertz is significantly underpaying its workforce---77% of civilian positions benchmarking 5% or more below market, with an average variance of -13.25%. It recommends moving to "market average" at an estimated cost of \$2.3 million for the remainder of FY 2024 (\$942K civilian, \$1.364M public safety).
+
+**The study's core finding---that Schertz compensation lagged peers---is likely directionally correct.** However, the magnitude of the gap, the precision of the estimates, and the appropriateness of the recommended remedy are all significantly undermined by methodological problems that the study either fails to acknowledge or actively obscures. The report is a 7-page document making a \$2.3 million recommendation with no sensitivity analysis, no confidence intervals, no discussion of limitations, and no disclosure of how individual comparator data points were weighted or combined. For a document that effectively set the City's compensation trajectory for years to come, this is remarkably thin.
+
+The most serious issues are:
+
+1. **The comparator group is gerrymandered by city size**, mixing Schertz (pop. \~43,000) with Austin (pop. \~980,000) and San Antonio (pop. \~1.5 million), which systematically inflates the "market" Schertz is measured against.
+2. **The methodology section is opaque to the point of being unauditable.** We cannot determine which cities were matched to which positions, how averages were computed, or whether outliers were trimmed.
+3. **"Professional judgment" is used as a catch-all** to override data-driven placements without any documented criteria, effectively making portions of the recommendation unfalsifiable.
+4. **The benefits analysis is superficial and one-directional**, acknowledging that Schertz is competitive or ahead on benefits but never quantifying that advantage or offsetting it against the salary gap.
+5. **The study contains zero analysis of retention, turnover, vacancy rates, or exit interview data**---the very metrics that would validate whether the salary gap is actually causing operational problems.
+
+## Comparator City Selection --- The Biggest Lever in the Study
+
+### The Problem
+
+Schertz had a 2023 population of approximately 43,000 and a municipal budget appropriate to a mid-size Texas suburb. The "Core Comparators" selected by PSPC include:
+
+| City | Approx. Population (2023) | Ratio to Schertz |
+|------|--------------------------|-------------------|
+| Austin | \~980,000 | 23x |
+| San Antonio | \~1,527,000 | 36x |
+| Round Rock | \~130,000 | 3x |
+| Georgetown | \~96,000 | 2.2x |
+| San Marcos | \~72,000 | 1.7x |
+| Kyle | \~63,000 | 1.5x |
+| New Braunfels | \~56,000 | 1.3x |
+| Seguin | \~30,000 | 0.7x |
+| Cibolo | \~34,000 | 0.8x |
+| Buda | \~16,000 | 0.4x |
+| Live Oak | \~16,000 | 0.4x |
+| Universal City | \~21,000 | 0.5x |
+
+The "Additional Sources" add Bexar County, Travis County/Austin EMS, Williamson County, and several other county-level and utility employers---entities with fundamentally different tax bases, operational scopes, and compensation structures.
+
+### Why This Matters
+
+Austin and San Antonio are not "comparable" to Schertz in any meaningful operational sense. A Director of Finance in San Antonio manages a \$3+ billion budget with hundreds of staff; in Schertz, the scope is orders of magnitude smaller. A Police Chief in San Antonio oversees 2,000+ sworn officers; in Schertz, a fraction of that. Including these cities in the average---without explicit weighting disclosure---systematically pulls the "market midpoint" upward.
+
+The study never explains the selection criteria. Were these chosen by PSPC? By Schertz HR? By city management? By council direction? This matters because the entity that selects the comparators effectively pre-determines the outcome. If I want a study that says "you're underpaying," I include Austin and San Antonio. If I want one that says "you're roughly at market," I limit it to Cibolo, Universal City, Live Oak, Seguin, and New Braunfels---cities that actually compete with Schertz for the same labor pool at comparable operational scale.
+
+### The Missing Sensitivity Analysis
+
+A competent study would show: "Here is the 50th percentile using all comparators. Here it is using only cities within 50% of Schertz's population. Here it is using only cities within the immediate labor market." The absence of this analysis means the City Council adopted a \$2.3M commitment without knowing how much of the gap was driven by two cities (Austin and San Antonio) that are fundamentally unlike Schertz.
+
+## Methodological Opacity
+
+### What the Study Claims
+
+The study uses midpoint-to-midpoint comparisons, which it describes as "the most objective, occupation-specific and consistent component of salary structures." It also incorporates private sector data from ERI's Salary Assessor.
+
+### What the Study Doesn't Tell Us
+
+- **How were the midpoints averaged?** Simple arithmetic mean? Weighted by comparator city size? Weighted equally? Median of comparators? This is never disclosed. If Austin and San Antonio receive equal weight to Cibolo and Live Oak, the average is dominated by large-city compensation levels.
+- **Which comparators matched to which positions?** Not every city has every position. If "Building Inspector" (the largest variance at -23.84%) was only matched against Austin, San Antonio, and Round Rock, the gap would be enormous---and misleading. If it was matched against Cibolo and Universal City, the gap might be much smaller. We have no way to know.
+- **Were outliers trimmed?** Standard practice in compensation surveys is to remove the highest and lowest data points before averaging. No such methodology is described.
+- **What is the ERI data doing?** Private sector data is described as included "wherever job matches exist," but we cannot tell which positions incorporated private sector benchmarks or how they were blended with public sector data. ERI data for the Austin-San Antonio corridor would reflect private sector competition that smaller municipal employers do not face for most positions.
+- **What was the match quality?** "Building Inspector" in Georgetown might be a very different role from "Building Inspector" in San Antonio. The study acknowledges this risk obliquely by noting "there is no automatic logical job content relationship among survey data collected from various employers"---and then waves it away with "professional judgment."
+
+## "Professional Judgment" as a Black Box
+
+The study states: "We utilized our professional judgment to prevent illogical relationships that could result from survey data directly linked into salary grades" and "Non-benchmark job classes were linked to benchmark job classes by professional judgment."
+
+This is a significant disclosure buried in bland language. It means:
+
+1. Some positions were not directly benchmarked at all---they were slotted by PSPC's subjective assessment of where they "should" fall relative to benchmarked positions.
+2. Even for benchmarked positions, PSPC reserved the right to override the data if they judged the result "illogical."
+
+There is nothing inherently wrong with professional judgment in compensation work---you need it. But the study provides zero documentation of where judgment was applied, what the data said before adjustment, and what criteria guided the overrides. This makes portions of the recommendation unverifiable.
+
+## The Benefits Offset That Isn't
+
+The study's own data shows Schertz is competitive or ahead on benefits:
+
+| Benefit | Schertz | Market Average | Assessment |
+|---------|---------|----------------|------------|
+| Employee health insurance (employer pays) | 100% | 98% | At market |
+| Family health insurance (employer pays) | 77% | 68% | Significantly ahead |
+| Retirement match | 2:1 TMRS | 2:1 TMRS | At market |
+| PTO at Year 1 | 12 days | 12 days | At market |
+| PTO at Year 10 | 20 days | 18 days | Above market |
+| Certification pay (Police/Fire) | \$33--\$65/mo | \$50--\$150/mo | Behind market |
+
+The family health insurance gap alone is substantial. If the average family plan costs \$20,000--\$25,000 annually (typical for Texas municipal plans), the difference between 77% and 68% employer contribution is \$1,800--\$2,250 per employee per year in additional compensation value that Schertz provides. Across, say, 200 employees with family coverage, that's \$360,000--\$450,000 in unrecognized compensation advantage.
+
+The study labels this "Slightly Ahead" and moves on. A total compensation comparison would reduce the salary gap for every position. PSPC chose to compare salaries in isolation from benefits, which maximizes the apparent gap.
+
+The one area where Schertz trails---certification pay for police and fire (\$33--\$65/month vs. \$50--\$150/month)---is noted but not costed. This is a targeted problem that could be addressed for far less than a system-wide salary restructure.
+
+## Zero Operational Validation
+
+The most glaring omission in the entire study is any analysis of whether the salary gap is actually causing problems. A compensation study that recommends \$2.3 million in adjustments should at minimum address:
+
+- **Turnover rates by department and position level** --- Is attrition concentrated in the positions with the largest market gaps?
+- **Vacancy rates and time-to-fill** --- Are positions going unfilled? Which ones?
+- **Exit interview data** --- Do departing employees cite compensation as a primary reason?
+- **Offer acceptance rates** --- Is Schertz losing candidates to specific competitors?
+- **Tenure distribution** --- Is turnover happening at the 1--2 year mark (suggesting hiring/culture problems) or at the 5+ year mark (suggesting compensation compression)?
+
+Without this data, the study is essentially saying: "The number on your spreadsheet is smaller than the number on their spreadsheet, so you should make your number bigger." That may be true and appropriate, but it's a \$2.3M leap of faith.
+
+## Implementation Framework Creates Ongoing Fiscal Exposure
+
+The "time in job" placement methodology (Section 4A) is reasonable as a one-time implementation tool. But the ongoing maintenance recommendations create an escalation mechanism:
+
+- "Periodic adjustment to pay tables (1.5%--3% increments) as market inflates"
+- "Individual pay grade placement adjustments per market survey (every 2--4 years)"
+
+If the same comparator group is used in future surveys---and especially if Austin and San Antonio continue to grow and face tighter labor markets---Schertz will be permanently chasing compensation levels set by cities with 23x to 36x its population. The 50th percentile of an upward-biased comparator group is a moving target that always moves up.
+
+The study does not model the 5-year or 10-year fiscal impact of maintaining this policy. It does not ask whether Schertz's revenue trajectory can sustain it. It does not discuss what happens if Schertz cannot fund the periodic adjustments---do you fall behind again and need another \$2.3M correction in 4 years?
+
+## What's Conspicuously Absent
+
+Beyond the operational data noted above, the study lacks:
+
+- **Any discussion of total compensation** (salary + benefits + retirement + PTO, monetized)
+- **Any cost-of-living adjustment between comparator cities** --- Austin's cost of living is materially higher than Schertz's; a dollar of salary in Schertz buys more
+- **Any acknowledgment that Schertz's lower cost of living is itself a recruitment advantage**
+- **Any analysis of internal equity concerns** created by the proposed adjustments (existing employees who are suddenly below the "time in job" target vs. new hires brought in at higher rates)
+- **Any discussion of compression effects** --- does moving entry-level and mid-career positions to market create compression against senior positions?
+- **Any alternatives analysis** --- what would targeting the 40th percentile cost? The 45th? What if you targeted 50th percentile but only for positions with documented recruitment/retention difficulties?
+
+## What the Study Gets Right
+
+In fairness:
+
+1. **The midpoint methodology is standard practice** in municipal compensation consulting. Comparing midpoints rather than actuals reduces noise from individual salary histories.
+2. **The directional finding is probably correct.** Schertz had likely not adjusted its pay plan aggressively during the post-COVID labor market tightening, and some correction was warranted.
+3. **The pay grade structure is well-designed.** The \~5% step progression between grades and the open-grade framework with time-in-job guidelines is a sound administrative structure.
+4. **The public safety findings are consistent with regional trends.** Police and fire compensation in the San Antonio corridor was under significant pressure in 2023, and the gaps identified align with what other studies found.
+
+## Bottom Line Assessment
+
+This is a competent but shallow study that does what compensation consultants are hired to do: provide data-backed justification for pay increases. It is not designed to answer the harder question of whether those increases are the right use of \$2.3 million in public funds relative to other priorities, or whether the comparison framework is calibrated to Schertz's actual competitive position.
+
+The City Council should have demanded---and PSPC should have provided---a sensitivity analysis showing how the results change with different comparator groups, a total compensation comparison, and operational data connecting the salary gap to actual recruitment and retention outcomes. Without these, the study is persuasive rather than diagnostic.
+
+For ongoing fiscal oversight, the key questions to pursue are: (a) what has actual turnover looked like since implementation, (b) has the comparator group been revisited, and (c) what is the projected annual cost of maintaining the 50th percentile target with this comparator group over the next 5 years.
+
+---
+
+*This appraisal is based solely on the 8-page PSPC report provided. A fuller assessment would require access to the underlying survey data, the appendix of pay grade placements, and the City's actual turnover and vacancy data.*
