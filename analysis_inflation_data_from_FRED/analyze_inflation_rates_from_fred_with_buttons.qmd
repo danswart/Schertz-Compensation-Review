@@ -1,0 +1,1065 @@
+---
+title: "U.S. Inflation Rate Analysis-Data from FRED (Federal Reserve Economic Data)"
+subtitle: "1960 - 2024"
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
+format:
+  html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: true     # Set to 'false' for drafts. Override if you're NOT sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
+execute:
+  echo: true
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+
+params:
+  data_updated: !expr format(Sys.Date(), "%B %Y")
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+
+# install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
+
+# census_api_key("95496766c51541ee6f402c1e1a8658581285b759", install = TRUE, overwrite = TRUE)
+
+
+# # load libraries - NOT NEEDED
+
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+
+
+# Flextable built-in themes:
+  # flextable::theme_alafoli()	|>  # BLAH
+  # flextable::theme_apa()  # THIS IS NICE
+  # flextable::theme_booktabs() |>  # NICE, MORE COMPACT
+  # flextable::theme_box() |>   # OK, INCLUDES CELL BORDERS
+  # flextable::theme_tron() |>  # 'DARK MODE' BLUE TEXT
+  # flextable::theme_tron_legacy() |>   # 'DARK MODE' YELLOW TEXT
+  # flextable::theme_vader() |>    # 'DARK MODE' WHITE TEXT
+  # flextable::theme_vanilla() |>   # NOT SPECIAL
+  # flextable::theme_zebra()	|>
+  #
+
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 28,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 22,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 18,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18),
+        # ggplot2::element_blank(),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+        # ggplot2::element_blank(),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 18,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+
+
+  
+# Set seed for reproducibility
+base::set.seed(123)
+
+```
+
+\
+
+#### **Filename:** 
+analyze_inflation_rates_from_fred_with_buttons.qmd
+
+\
+
+
+## Introduction
+
+This document demonstrates how to:
+
+1. Get a free FRED API key
+2. Fetch official inflation rate data from the Federal Reserve
+3. Save the data locally for future use
+4. Filter to selected years
+5. Create visualizations of inflation over time
+
+**Why FRED?**
+
+- Run by the Federal Reserve Bank of St. Louis
+- Trusted by economists, academics, and policymakers worldwide
+- Provides pre-calculated inflation rates (no manual calculation needed)
+- Free API access
+- Over 800,000 economic data series
+
+---
+
+## Step 1: Get Your Free FRED API Key
+
+Before running this code, you need a free API key from FRED:
+asdf
+1. Go to: https://fred.stlouisfed.org/docs/api/api_key.html
+2. Click "Request API Key"
+3. Create a free account (or log in)
+4. Your API key will be displayed
+
+**Store your API key** by running this once in your R console:
+
+```r
+# Run this ONCE in your console (not in the document)
+# Replace "your_api_key_here" with your actual key
+fredr::fredr_set_key("your_api_key_here")
+```
+
+Or set it in your `.Renviron` file for permanent storage:
+
+```r
+# Run this ONCE to open your .Renviron file
+usethis::edit_r_environ()
+
+# Add this line to the file:
+# FRED_API_KEY=your_api_key_here
+```
+
+---
+
+## Step 2: Setup and Load Packages
+
+```{r}
+#| label: helper-functions
+
+# Check if fredr is installed
+if (!base::requireNamespace("fredr", quietly = TRUE)) {
+  base::stop("Please install the fredr package: install.packages('fredr')")
+}
+
+# Set your FRED API key (uncomment and add your key, or use .Renviron)
+# fredr::fredr_set_key("your_api_key_here")
+
+# -----------------------------------------------------------------------------
+# Download button helper (HTML only)
+# -----------------------------------------------------------------------------
+ds_download_data_btn <- function(df, filename_base, label = "Download Data (CSV)",
+                                  clean_df = NULL) {
+  write_df <- if (!base::is.null(clean_df)) clean_df else df
+  tmp <- base::tempfile(fileext = ".csv")
+  readr::write_excel_csv(write_df, tmp)
+  downloadthis::download_file(
+    path         = tmp,
+    output_name  = filename_base,
+    button_label = label,
+    button_type  = "primary",
+    has_icon     = TRUE,
+    icon         = "fa fa-download"
+  )
+}
+
+ds_download_plot_btn <- function(plot_obj, filename_base, 
+                                  label = "Download Plot (PNG)",
+                                  width = 13, height = 8, dpi = 300) {
+  tmp <- base::tempfile(fileext = ".png")
+  ggplot2::ggsave(tmp, plot = plot_obj, width = width, height = height, 
+                  dpi = dpi, bg = "white")
+  downloadthis::download_file(
+    path         = tmp,
+    output_name  = filename_base,
+    button_label = label,
+    button_type  = "warning",
+    has_icon     = TRUE,
+    icon         = "fa fa-image"
+  )
+}
+
+base::cat("Setup complete.\n")
+base::cat("If you haven't set your FRED API key, do so now before proceeding.\n")
+```
+
+---
+
+## Step 3: Define Data Storage Location
+
+```{r}
+#| label: define-paths
+
+# Define where to save the data
+inflation_rates_folder <- here::here("inflation_rates")
+
+# Create the folder if it doesn't exist
+if (!base::dir.exists(inflation_rates_folder)) {
+  base::dir.create(inflation_rates_folder, recursive = TRUE)
+  base::cat("Created folder:", inflation_rates_folder, "\n")
+} else {
+  base::cat("Data folder exists:", inflation_rates_folder, "\n")
+}
+
+# Define file paths
+inflation_file_path <- base::file.path(inflation_rates_folder, "fred_inflation_data.rds")
+
+base::cat("Data will be saved to:", inflation_file_path, "\n")
+```
+
+---
+
+## Step 4: Understand the FRED Series We'll Use
+
+FRED has several inflation-related series. Here are the most useful:
+
+| Series ID | Description | Frequency |
+|-----------|-------------|-----------|
+| `FPCPITOTLZGUSA` | Inflation rate (CPI-based), annual | Annual |
+| `CPIAUCSL` | CPI index (all urban consumers) | Monthly |
+| `CPILFESL` | Core CPI (excludes food & energy) | Monthly |
+| `T10YIE` | 10-year breakeven inflation rate | Daily |
+
+We'll use **`FPCPITOTLZGUSA`** — the official annual inflation rate for the United States, published by the World Bank and distributed through FRED.
+
+```{r}
+#| label: series-info
+
+# The series we'll fetch
+series_id <- "FPCPITOTLZGUSA"
+
+base::cat("We will fetch series:", series_id, "\n")
+base::cat("Description: Inflation, consumer prices for the United States\n")
+base::cat("Source: World Bank via FRED\n")
+base::cat("Frequency: Annual\n")
+```
+
+---
+
+## Step 5: Fetch Inflation Data from FRED
+
+```{r}
+#| label: fetch-data-helper-function
+
+fetch_fred_inflation <- function(series_id = "FPCPITOTLZGUSA", 
+                                  start_date = "1960-01-01",
+                                  end_date = "2026-01-01") {
+  
+  # Default end date to today
+  if (base::is.null(end_date)) {
+    end_date <- base::Sys.Date()
+  }
+  
+  base::cat("Fetching", series_id, "from FRED...\n")
+  
+  # Fetch data from FRED
+  inflation_raw <- fredr::fredr(
+    series_id = series_id,
+    observation_start = base::as.Date(start_date),
+    observation_end = base::as.Date(end_date)
+  )
+  
+  # Clean up the data
+  inflation_data <- inflation_raw |>
+    dplyr::transmute(
+      year = base::as.integer(base::format(date, "%Y")),
+      date = date,
+      inflation_rate = value,
+      series_id = series_id
+    ) |>
+    dplyr::filter(!base::is.na(inflation_rate)) |>
+    dplyr::arrange(year)
+  
+  base::cat("Retrieved", base::nrow(inflation_data), "observations\n")
+  base::cat("Year range:", base::min(inflation_data$year), "-", 
+            base::max(inflation_data$year), "\n")
+  
+  return(inflation_data)
+}
+```
+
+---
+
+## Step 6: Load Existing Data or Fetch Fresh Data
+
+```{r}
+#| label: load-or-fetch
+
+# Check if we have saved data
+if (base::file.exists(inflation_file_path)) {
+  
+  # Load existing data
+  inflation_data <- base::readRDS(inflation_file_path)
+  base::cat("Loaded existing inflation data from:", inflation_file_path, "\n")
+  base::cat("Data covers years:", base::min(inflation_data$year), "-", 
+            base::max(inflation_data$year), "\n")
+  
+  # Check if data is current
+  current_year <- base::as.integer(base::format(base::Sys.Date(), "%Y"))
+  
+  if (base::max(inflation_data$year) < (current_year - 1)) {
+    base::cat("Data may be outdated. Fetching fresh data...\n")
+    inflation_data <- fetch_fred_inflation(start_date = "1960-01-01")
+  }
+  
+} else {
+  
+  # No saved data - fetch from FRED
+  base::cat("No saved data found. Fetching from FRED...\n")
+  inflation_data <- fetch_fred_inflation(start_date = "1960-01-01")
+  
+}
+
+# Summary
+base::cat("\n--- Data Summary ---\n")
+base::cat("Total years:", base::nrow(inflation_data), "\n")
+base::cat("Year range:", base::min(inflation_data$year), "-", 
+          base::max(inflation_data$year), "\n")
+base::cat("Inflation range:", 
+          base::round(base::min(inflation_data$inflation_rate), 2), "% to",
+          base::round(base::max(inflation_data$inflation_rate), 2), "%\n")
+```
+
+---
+
+## Step 7: Save the Data Locally
+
+```{r}
+#| label: save-data
+
+# Save as RDS
+base::saveRDS(inflation_data, file = inflation_file_path)
+base::cat("Inflation data saved to:", inflation_file_path, "\n")
+
+# Also save as CSV
+csv_path <- base::file.path(inflation_rates_folder, "fred_inflation_data.csv")
+readr::write_csv(inflation_data, csv_path)
+base::cat("CSV copy saved to:", csv_path, "\n")
+```
+
+---
+
+## Step 8: Display the Full Inflation Data
+
+```{r}
+#| label: display-full-data
+
+inflation_data |>
+  dplyr::select(year, inflation_rate) |>
+  dplyr::mutate(
+    inflation_rate = base::paste0(base::round(inflation_rate, 2), "%")
+  ) |>
+  dplyr::rename(
+    Year = year,
+    `Inflation Rate` = inflation_rate
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Annual U.S. Inflation Rate (FRED Series: FPCPITOTLZGUSA)") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: inflation-data-download
+#| echo: false
+#| eval: !expr knitr::is_html_output()
+ds_download_data_btn(
+  inflation_data,
+  filename_base = "fred_inflation_data_full",
+  label = "Download Full Inflation Data (CSV)"
+)
+```
+:::
+
+---
+
+## Step 9: Select Years to Plot
+
+**Edit this section to customize which years appear in your charts.**
+
+```{r}
+#| label: select-years
+
+# =============================================================================
+# EDIT THESE VALUES TO SELECT YOUR YEARS
+# =============================================================================
+
+# Option 1: Specify a range
+selected_start_year <- 1960
+selected_end_year <- 2025
+
+# Option 2: Specific years (uncomment to use instead)
+# specific_years <- c(1960, 1965, 1970, 1975, 1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015, 2020, 2025)
+
+# =============================================================================
+
+# Filter the data using Option 1 (range)
+inflation_filtered <- inflation_data |>
+  dplyr::filter(year >= selected_start_year & year <= selected_end_year)
+
+# To use Option 2 (specific years), uncomment these lines:
+# inflation_filtered <- inflation_data |>
+#   dplyr::filter(year %in% specific_years)
+
+base::cat("Selected", base::nrow(inflation_filtered), "years\n")
+base::cat("Range:", base::min(inflation_filtered$year), "-", 
+          base::max(inflation_filtered$year), "\n")
+```
+
+---
+
+## Step 10: Display Filtered Data
+
+```{r}
+#| label: display-filtered
+
+inflation_filtered |>
+  dplyr::select(year, inflation_rate) |>
+  dplyr::mutate(
+    inflation_rate = base::paste0(base::round(inflation_rate, 2), "%")
+  ) |>
+  dplyr::rename(
+    Year = year,
+    `Inflation Rate` = inflation_rate
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines(
+    base::paste0("U.S. Inflation Rate: ", selected_start_year, " - ", selected_end_year)
+  ) |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: inflation-filtered-download
+#| echo: false
+#| eval: !expr knitr::is_html_output()
+ds_download_data_btn(
+  inflation_filtered,
+  filename_base = "fred_inflation_data_filtered",
+  label = "Download Filtered Inflation Data (CSV)"
+)
+```
+:::
+
+---
+
+## Step 11: Plot Inflation Rate Over Time
+
+```{r}
+#| label: plot-inflation
+#| fig-width: 13
+#| fig-height: 8
+
+plot_inflation <- ggplot2::ggplot(
+  inflation_filtered,
+  ggplot2::aes(x = year, y = inflation_rate)
+) +
+  ggplot2::geom_hline(yintercept = 0, linetype = "solid", color = "gray30") +
+  ggplot2::geom_hline(yintercept = 2, linetype = "dashed", color = "darkgreen", 
+                      linewidth = 1) +
+  ggplot2::geom_line(linewidth = 1.2, color = "black") +
+  ggplot2::geom_point(size = 2.5, color = "black") +
+  ggplot2::annotate(
+    "text", 
+    x = base::min(inflation_filtered$year) + 3, 
+    y = 2.5, 
+    label = "Fed Target: 2%",
+    color = "darkgreen", 
+    fontface = "bold",
+    size = 4
+  ) +
+  ggplot2::scale_x_continuous(
+    breaks = base::seq(
+      base::floor(base::min(inflation_filtered$year) / 5) * 5,
+      base::max(inflation_filtered$year),
+      by = 5
+    )
+  ) +
+  ggplot2::scale_y_continuous(
+    labels = function(x) base::paste0(x, "%"),
+    breaks = base::seq(-2, 16, by = 2)
+  ) +
+  ggplot2::labs(
+    title = "U.S. Annual Inflation Rate",
+    subtitle = base::paste0(
+      base::min(inflation_filtered$year), " - ", 
+      base::max(inflation_filtered$year),
+      " | Source: FRED (Federal Reserve Economic Data)"
+    ),
+    x = "Year",
+    y = "Inflation Rate (%)",
+    caption = "Series: FPCPITOTLZGUSA | Green dashed line = Fed's 2% target"
+  ) +
+  ggplot2::theme_minimal(base_size = 20) +
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(face = "bold", size = 20),
+    plot.subtitle = ggplot2::element_text(color = "gray40", size = 16),
+    plot.caption = ggplot2::element_text(color = "gray50", size = 16),
+    axis.text.x = ggplot2::element_text(angle = 45, hjust = 1),
+    panel.grid.minor = ggplot2::element_blank()
+  )
+
+plot_inflation
+```
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: plot-inflation-download
+#| echo: false
+#| eval: !expr knitr::is_html_output()
+ds_download_plot_btn(
+  plot_inflation,
+  filename_base = "fred_inflation_rate_over_time",
+  label = "Download Plot (PNG)"
+)
+```
+:::
+
+---
+
+## Step 12: Inflation with Notable Periods Highlighted
+
+```{r}
+#| label: plot-inflation-annotated
+#| fig-width: 13
+#| fig-height: 8
+
+plot_inflation_annotated <- ggplot2::ggplot(
+  inflation_filtered,
+  ggplot2::aes(x = year, y = inflation_rate)
+) +
+  # Shaded regions for high-inflation periods
+  ggplot2::annotate(
+    "rect", xmin = 1973, xmax = 1975, ymin = -Inf, ymax = Inf,
+    alpha = 0.15, fill = "black"
+  ) +
+  ggplot2::annotate(
+    "rect", xmin = 1978, xmax = 1982, ymin = -Inf, ymax = Inf,
+    alpha = 0.15, fill = "black"
+  ) +
+  ggplot2::annotate(
+    "rect", xmin = 2021, xmax = 2023, ymin = -Inf, ymax = Inf,
+    alpha = 0.15, fill = "black"
+  ) +
+  # Reference lines
+  ggplot2::geom_hline(yintercept = 0, linetype = "solid", color = "gray30") +
+  ggplot2::geom_hline(yintercept = 2, linetype = "dashed", color = "darkgreen", 
+                      linewidth = 1) +
+  # Data
+  ggplot2::geom_area(alpha = 0.3, fill = "gray") +
+  ggplot2::geom_line(linewidth = 1.2, color = "gray") +
+  ggplot2::geom_point(size = 2, color = "black") +
+  # Annotations for periods
+  ggplot2::annotate(
+    "text", x = 1975, y = 12.5, 
+    label = "Oil\nCrisis",
+    size = 3.5, fontface = "bold.italic", color = "gray30"
+  ) +
+  ggplot2::annotate(
+    "text", x = 1980, y = 14.5, 
+    label = "Volcker\nEra",
+    size = 3.5, fontface = "bold.italic", color = "gray30"
+  ) +
+  ggplot2::annotate(
+    "text", x = 2022, y = 9.5, 
+    label = "Post-\nCOVID",
+    size = 3.5, fontface = "bold.italic", color = "gray30"
+  ) +
+  ggplot2::annotate(
+    "text", 
+    x = 1975, 
+    y = 2.7, 
+    label = "Fed Target: 2%",
+    color = "darkgreen", 
+    fontface = "bold",
+    size = 4
+  ) +
+  # Scales
+  ggplot2::scale_x_continuous(
+    breaks = base::seq(
+      base::floor(base::min(inflation_filtered$year) / 5) * 5,
+      base::max(inflation_filtered$year),
+      by = 5
+    )
+  ) +
+  ggplot2::scale_y_continuous(
+    labels = function(x) base::paste0(x, "%"),
+    breaks = base::seq(-2, 16, by = 2)
+  ) +
+  ggplot2::labs(
+    title = "U.S. Annual Inflation Rate with Notable Periods",
+    subtitle = "Orange shading indicates high-inflation periods",
+    x = "Year",
+    y = "Inflation Rate (%)",
+    caption = "Source: FRED (Series: FPCPITOTLZGUSA) | Federal Reserve Bank of St. Louis"
+  ) +
+  ggplot2::theme_minimal(base_size = 20) +
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(face = "bold", size = 18),
+    plot.subtitle = ggplot2::element_text(color = "gray40", size = 12),
+    plot.caption = ggplot2::element_text(color = "gray50", size = 10),
+    axis.text.x = ggplot2::element_text(angle = 45, hjust = 1),
+    panel.grid.minor = ggplot2::element_blank()
+  )
+
+plot_inflation_annotated
+```
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: plot-inflation-annotated-download
+#| echo: false
+#| eval: !expr knitr::is_html_output()
+ds_download_plot_btn(
+  plot_inflation_annotated,
+  filename_base = "fred_inflation_rate_annotated",
+  label = "Download Plot (PNG)"
+)
+```
+:::
+
+---
+
+## Step 13: Summary Statistics
+
+```{r}
+#| label: summary-stats
+
+# Calculate summary statistics
+stats_summary <- inflation_filtered |>
+  dplyr::summarise(
+    `Average Inflation` = base::paste0(base::round(base::mean(inflation_rate), 2), "%"),
+    `Median Inflation` = base::paste0(base::round(stats::median(inflation_rate), 2), "%"),
+    `Std Deviation` = base::paste0(base::round(stats::sd(inflation_rate), 2), "%"),
+    `Maximum` = base::paste0(
+      base::round(base::max(inflation_rate), 2), "% (", 
+      year[inflation_rate == base::max(inflation_rate)], ")"
+    ),
+    `Minimum` = base::paste0(
+      base::round(base::min(inflation_rate), 2), "% (",
+      year[inflation_rate == base::min(inflation_rate)], ")"
+    ),
+    `Years Above 5%` = base::as.character(base::sum(inflation_rate > 5)),
+    `Years Below 2%` = base::as.character(base::sum(inflation_rate < 2 & inflation_rate > 0)),
+    `Years of Deflation` = base::as.character(base::sum(inflation_rate < 0))
+  ) |>
+  tidyr::pivot_longer(
+    cols = dplyr::everything(),
+    names_to = "Statistic",
+    values_to = "Value"
+  )
+
+stats_summary |>
+  flextable::flextable() |>
+  flextable::add_header_lines(
+    base::paste0("Inflation Summary: ", selected_start_year, " - ", selected_end_year)
+  ) |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: stats-summary-download
+#| echo: false
+#| eval: !expr knitr::is_html_output()
+ds_download_data_btn(
+  stats_summary,
+  filename_base = "fred_inflation_summary_stats",
+  label = "Download Summary Statistics (CSV)"
+)
+```
+:::
+
+---
+
+## Step 14: Decade-by-Decade Comparison
+
+```{r}
+#| label: decade-comparison
+
+decade_summary <- inflation_filtered |>
+  dplyr::mutate(
+    decade = base::paste0(base::floor(year / 10) * 10, "s")
+  ) |>
+  dplyr::group_by(decade) |>
+  dplyr::summarise(
+    years = dplyr::n(),
+    avg_inflation = base::mean(inflation_rate),
+    max_inflation = base::max(inflation_rate),
+    min_inflation = base::min(inflation_rate),
+    .groups = "drop"
+  ) |>
+  dplyr::arrange(decade)
+
+decade_summary |>
+  dplyr::mutate(
+    avg_inflation = base::paste0(base::round(avg_inflation, 2), "%"),
+    max_inflation = base::paste0(base::round(max_inflation, 2), "%"),
+    min_inflation = base::paste0(base::round(min_inflation, 2), "%")
+  ) |>
+  dplyr::rename(
+    Decade = decade,
+    Years = years,
+    `Avg Inflation` = avg_inflation,
+    `Max Inflation` = max_inflation,
+    `Min Inflation` = min_inflation
+  ) |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Inflation by Decade") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: decade-summary-download
+#| echo: false
+#| eval: !expr knitr::is_html_output()
+ds_download_data_btn(
+  decade_summary,
+  filename_base = "fred_inflation_by_decade",
+  label = "Download Decade Summary (CSV)"
+)
+```
+:::
+
+---
+
+## Step 15: Bar Chart by Decade
+
+```{r}
+#| label: plot-decade-bars
+#| fig-width: 13
+#| fig-height: 8
+
+decade_plot_data <- inflation_filtered |>
+  dplyr::mutate(
+    decade = base::paste0(base::floor(year / 10) * 10, "s")
+  ) |>
+  dplyr::group_by(decade) |>
+  dplyr::summarise(
+    avg_inflation = base::mean(inflation_rate),
+    .groups = "drop"
+  )
+
+plot_decade_bars <- ggplot2::ggplot(
+  decade_plot_data,
+  ggplot2::aes(x = decade, y = avg_inflation, fill = avg_inflation)
+) +
+  ggplot2::geom_col(width = 0.7) +
+  ggplot2::geom_hline(yintercept = 2, linetype = "dashed", color = "darkgreen", 
+                      linewidth = 1) +
+  ggplot2::geom_text(
+    ggplot2::aes(label = base::paste0(base::round(avg_inflation, 1), "%")),
+    vjust = -0.5,
+    fontface = "bold",
+    size = 4
+  ) +
+  ggplot2::scale_fill_gradient2(
+    low = "steelblue", mid = "gray80", high = "firebrick",
+    midpoint = 3
+  ) +
+  ggplot2::scale_y_continuous(
+    labels = function(x) base::paste0(x, "%"),
+    expand = ggplot2::expansion(mult = c(0, 0.15))
+  ) +
+  ggplot2::labs(
+    title = "Average Inflation Rate by Decade",
+    subtitle = "Green dashed line = Fed's 2% target",
+    x = "Decade",
+    y = "Average Annual Inflation (%)",
+    caption = "Source: FRED"
+  ) +
+  ggplot2::theme_minimal(base_size = 20) +
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(face = "bold", size = 16),
+    legend.position = "none"
+  )
+
+plot_decade_bars
+```
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: plot-decade-bars-download
+#| echo: false
+#| eval: !expr knitr::is_html_output()
+ds_download_plot_btn(
+  plot_decade_bars,
+  filename_base = "fred_inflation_by_decade_bars",
+  label = "Download Plot (PNG)"
+)
+```
+:::
+
+---
+
+## How to Customize
+
+### Change the Year Range
+
+Edit **Step 9**:
+
+```markdown
+
+selected_start_year <- 1960
+selected_end_year <- 2025
+
+```
+
+### Use Specific Years Only
+
+Uncomment in **Step 9**:
+
+```markdown
+
+specific_years <- c(1960, 1970, 1980, 1990, 2000, 2010, 2020)
+
+```
+
+### Refresh Data from FRED
+
+Delete the saved file and re-run:
+
+```r
+file.remove(here::here("data_clean", "fred_inflation_data.rds"))
+```
+
+### Fetch a Different Series
+
+Change `series_id` in **Step 4**. Other useful series:
+
+- `CPIAUCSL` — CPI index (not inflation rate)
+- `CPILFESL` — Core CPI (excludes food & energy)
+- `PCEPI` — PCE Price Index (Fed's preferred measure)
+- `T10YIE` — Market-implied inflation expectations
+
+---
+
+## References
+
+- **FRED Website**: https://fred.stlouisfed.org/
+- **FRED API Documentation**: https://fred.stlouisfed.org/docs/api/fred/
+- **fredr R Package**: https://cran.r-project.org/package=fredr
+- **Series Used**: https://fred.stlouisfed.org/series/FPCPITOTLZGUSA

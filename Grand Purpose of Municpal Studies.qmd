@@ -1,0 +1,24 @@
+---
+title: "purpose statement"
+format: html
+---
+
+It is statistical mentorship for someone who is trying to help a decision-maker understand an issue better and they're going to use their statistical savvy-ness to further the understanding of somebody who's in the position to say, or some group that's in the position to make a decision about some policy topic.  So it's that policy aide that I have in mind so this is very practical, this is addressing things like, what are the things that you've got to get right and if you don't get these things right all the details will be wrong.
+
+These matters of first importance that you want to do well so that the person you're serving, or group, or audience you're serving.  You don't bring confusion, you bring clarity to the conversation.
+
+To provide statistical thinking that is helpful you have to be thinking about what argument is this statistic feeding into.  What is its role?  Think hard about what's been calculated.
+
+You have to be thinking "Is this a large number?  Is this a small number?  How should my audience understand this?"  This usually requires digging deeper so the audience knows HOW to take your number.  You have to do more work to understand any given number.
+
+Show that you know how to communicate statistics well.  Present only what's needed and no more!  That principal applies even to the number of digits shown.  
+
+
+
+
+
+
+
+
+
+

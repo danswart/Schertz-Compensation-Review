@@ -1,79 +1,319 @@
 ---
-title: "Top Employee Compensation Changes"
-subtitle: "City of Schertz | Year-over-Year $ and % Changes | FY20 - FY25"
-description: "Directors, Managers, and Public Safety Leaders"
+title: "City of Schertz Year-over-Year Dollar and Pct Change for Directors, Managers, and Public Safety Leaders"
+subtitle: "FY20 - FY25"
+description: ""
 authors: 
   - name: "Dan Swart, CPA (ret)"
-  - name: "Claude Sonnet 4.5"
 date: today
 date-format: long
+# bibliography: manual-refs.bib
 format:
   html:
-    code-fold: true
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
     code-summary: "Show the code"
     code-overflow: wrap
-    embed-resources: true
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: true     # Set to 'false' for drafts. Override if you're NOT sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
     toc: true
     toc-float: true
-    fontsize: 16pt
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
     
   typst:
-    toc: true
-    fontsize: 14pt
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
     margin:
-      x: 0.75in
-      y: 0.75in
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
 
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
 execute:
-  echo: true
+  echo: false
   message: false
   warning: false
   eval: true
-  cache: true
+  fig-width: 13
+  fig-height: 8
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: false
+    error: false
+    warning: false
+    message: false
+    cache: false
+
 
 params:
   data_updated: !expr format(Sys.Date(), "%B %Y")
 ---
 
+
 ```{r}
 #| label: setup
 #| include: false
-#| cache: false
 
-# =============================================================================
-# SETUP: LOAD PACKAGES AND SET OPTIONS
-# =============================================================================
-# Purpose: Initialize environment with required packages and global settings
-# Note: cache: false ensures setup always runs fresh
 
-# Force dplyr's select/filter to take precedence over other packages
+# install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
+
+# census_api_key("95496766c51541ee6f402c1e1a8658581285b759", install = TRUE, overwrite = TRUE)
+
+
+# # load libraries - NOT NEEDED
+
+
+# Force dplyr's select to take precedence
 select <- dplyr::select
 filter <- dplyr::filter
 
-# Suppress scientific notation for cleaner number display
-base::options(scipen = 999)
+# Options
+options(scipen = 999)
+options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
 
-# Flextable defaults matching Dan's preferred styling
+
+# Flextable defaults:
 flextable::set_flextable_defaults(
-  font.size = 12, 
+  font.size = 14, 
   font.family = "Cabin",
   font.color = "black",
   table.layout = "fixed",
   border.color = "darkgray",
-  padding.top = 3, 
-  padding.bottom = 3,
-  padding.left = 4, 
-  padding.right = 4,
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
   line_spacing = 1.3,
   digits = 2,
   decimal.mark = ".",
-  big.mark = ",",
-  na_str = "<na>"
+  big.mark = " ",
+  na_str = "<na>",
+  post_process_html = identity,
+  post_process_docx = identity
 )
 
+
+
+# Flextable built-in themes:
+  # flextable::theme_alafoli()	|>  # BLAH
+  # flextable::theme_apa()  # THIS IS NICE
+  # flextable::theme_booktabs() |>  # NICE, MORE COMPACT
+  # flextable::theme_box() |>   # OK, INCLUDES CELL BORDERS
+  # flextable::theme_tron() |>  # 'DARK MODE' BLUE TEXT
+  # flextable::theme_tron_legacy() |>   # 'DARK MODE' YELLOW TEXT
+  # flextable::theme_vader() |>    # 'DARK MODE' WHITE TEXT
+  # flextable::theme_vanilla() |>   # NOT SPECIAL
+  # flextable::theme_zebra()	|>
+  #
+
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 28,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 22,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 18,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18),
+        # ggplot2::element_blank(),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+        # ggplot2::element_blank(),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 18,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+  
 # Set seed for reproducibility
 base::set.seed(123)
+
 ```
+
+```{r}
+#| label: helper-functions
+#| include: false
+#| cache: false
+
+# ── TABLE DOWNLOAD BUTTON ────────────────────────────────────────────────────
+# Renders a blue HTML <a> button that downloads the data frame as CSV.
+# Returns invisible(NULL) silently in typst/pdf output.
+create_table_download_button <- function(
+    df,
+    filename = "data.csv",
+    label    = "Download CSV"
+) {
+  if (!knitr::is_html_output()) return(base::invisible(NULL))
+  csv_text <- utils::capture.output(utils::write.csv(df, stdout(), row.names = FALSE))
+  csv_raw  <- base::paste(csv_text, collapse = "\n")
+  b64      <- jsonlite::base64_enc(base::charToRaw(csv_raw))
+  href     <- base::paste0("data:text/csv;base64,", b64)
+  htmltools::browsable(htmltools::tagList(
+    htmltools::tags$a(
+      href = href, download = filename,
+      htmltools::tags$button(
+        style = paste0("background-color:#2196F3;color:white;border:none;",
+                       "padding:6px 14px;border-radius:4px;cursor:pointer;",
+                       "font-size:13px;margin:4px 0 8px 0;"),
+        label
+      )
+    )
+  ))
+}
+```
+
+
+\
+
+#### **Filename:** 
+city_of_schertz_year_over_year_dollar_and_percent_changes_
+for_directors_managers_and_public_safety_leaders_fy20_fy25_
+searchable_dt_tables.qmd
+
+\
+
+
 
 ## Introduction
 This document presents **year-over-year compensation changes** (both dollar amounts and percentages) for the City of Schertz's top-paid employees. This analysis reveals the trajectory of pay increases for leadership positions from FY20 through FY25.
@@ -294,7 +534,7 @@ base::cat("Percent changes table:", base::nrow(pct_changes_wide), "employees\n")
 
 ---
 
-## Table 2A: Year-over-Year Dollar Changes
+## Table 2A: Year-over-Year Dollar Changes by Management Employee
 
 ::: {.content-visible when-format="html"}
 ```{r}
@@ -366,12 +606,18 @@ dollar_changes_wide |>
   flextable::fontsize(size = 10, part = "footer") |>
   ftExtra::colformat_md() |>
   flextable::autofit()
+
+create_table_download_button(
+  dollar_changes_wide,
+  filename = "schertz_yoy_dollar_changes.csv",
+  label    = "Download Table CSV"
+)
 ```
 :::
 
 ---
 
-## Table 2B: Year-over-Year Percent Changes
+## Table 2B: Year-over-Year Percent Change by Management Employee
 
 ::: {.content-visible when-format="html"}
 ```{r}
@@ -429,7 +675,7 @@ pct_changes_wide |>
     )
   ) |>
   flextable::flextable() |>
-  flextable::add_header_lines("Year-over-Year Percent Change in Total Compensation") |>
+  flextable::add_header_lines("Year-over-Year Percent Change in Total Compensation by Employee") |>
   flextable::color(i = 1, color = "darkblue", part = "header") |>
   flextable::italic(i = 1, part = "header") |>
   flextable::align(i = 1, align = "left", part = "header") |>
@@ -443,6 +689,12 @@ pct_changes_wide |>
   flextable::fontsize(size = 10, part = "footer") |>
   ftExtra::colformat_md() |>
   flextable::autofit()
+
+create_table_download_button(
+  pct_changes_wide,
+  filename = "schertz_yoy_pct_changes.csv",
+  label    = "Download Table CSV"
+)
 ```
 :::
 
@@ -498,6 +750,12 @@ change_summary |>
   flextable::bg(i = 2, bg = "palegreen", part = "header") |>
   ftExtra::colformat_md() |>
   flextable::autofit()
+
+create_table_download_button(
+  change_summary,
+  filename = "schertz_yoy_change_summary.csv",
+  label    = "Download Table CSV"
+)
 ```
 
 ---

@@ -1,0 +1,671 @@
+---
+title: "Top Employee Total Compensation"
+subtitle: "City of Schertz | FY20 - FY25"
+description: "Directors, Managers, and Public Safety Leaders"
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
+format:
+  html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: false     # Fast for drafts. Override for sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    # fig-width: 13
+    E fig-height: 8
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
+execute:
+  echo: true
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+
+params:
+  data_updated: !expr format(Sys.Date(), "%B %Y")
+---
+
+
+
+```{r}
+#| label: setup
+#| include: false
+
+
+# install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
+
+# census_api_key("95496766c51541ee6f402c1e1a8658581285b759", install = TRUE, overwrite = TRUE)
+
+
+# # load libraries - NOT NEEDED
+
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+# -----------------------------------------------------------------------------
+# Download button helper (HTML only)
+# -----------------------------------------------------------------------------
+ds_download_data_btn <- function(df, filename_base, label = "Download Data (CSV)",
+                                  clean_df = NULL) {
+  write_df <- if (!base::is.null(clean_df)) clean_df else df
+  tmp <- base::tempfile(fileext = ".csv")
+  readr::write_excel_csv(write_df, tmp)
+  downloadthis::download_file(
+    path         = tmp,
+    output_name  = filename_base,
+    button_label = label,
+    button_type  = "primary",
+    has_icon     = TRUE,
+    icon         = "fa fa-download"
+  )
+}
+
+
+
+# Flextable built-in themes:
+  # flextable::theme_alafoli()	|>  # BLAH
+  # flextable::theme_apa()  # THIS IS NICE
+  # flextable::theme_booktabs() |>  # NICE, MORE COMPACT
+  # flextable::theme_box() |>   # OK, INCLUDES CELL BORDERS
+  # flextable::theme_tron() |>  # 'DARK MODE' BLUE TEXT
+  # flextable::theme_tron_legacy() |>   # 'DARK MODE' YELLOW TEXT
+  # flextable::theme_vader() |>    # 'DARK MODE' WHITE TEXT
+  # flextable::theme_vanilla() |>   # NOT SPECIAL
+  # flextable::theme_zebra()	|>
+  #
+
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 16,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 14,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 14,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 14),
+        # ggplot2::element_blank(),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+        # ggplot2::element_blank(),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 12,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+
+
+  
+# Set seed for reproducibility
+base::set.seed(123)
+
+```
+
+## Introduction
+This document presents **total compensation** for the City of Schertz's top-paid employees across fiscal years FY20 through FY25. Top employees include department directors, managers, and public safety leadership (Police, Fire, EMS).
+
+::: {.callout-note}
+## Interactive Tables
+**Data last updated:** `r params$data_updated`
+The tables below are fully interactive:
+
+- **Sort**: Click any column header to sort
+- **Search**: Use the search box to find specific employees
+- **Filter**: Use column filters to narrow results
+- **Export**: Use the Copy, CSV, or Excel buttons to export data
+- **Print**: Use your browser's print function (Ctrl+P / Cmd+P)
+:::
+
+---
+
+## Step 1: Load Cached Data
+```{r}
+#| label: load-cached-data
+#| cache: true
+
+# =============================================================================
+# LOAD CACHED DATA FROM OMNIBUS ANALYSIS
+# =============================================================================
+# Purpose: Load the pre-processed all_data object from the main analysis
+# Cache: TRUE - data loads once, subsequent renders use cached version
+# 
+# Expected columns in all_data:
+#   - fiscal_year: FY20, FY21, FY22, FY23, FY24, FY25
+#   - name: Employee name (Last, First format)
+#   - name_std: Standardized name for matching
+#   - department: Department name
+#   - job_title: Job title
+#   - regular_earnings: Base salary/regular pay
+#   - additional_benefits: Healthcare, pension, etc.
+#   - calc_total_compensation: Total compensation (earnings + benefits)
+#   - leave_payout, overtime_earnings, additional_earnings, etc.
+
+# Path to cleaned data (adjust if your path differs)
+data_path <- here::here("data_clean", "compensation_wide_fy20_fy25.rds")
+
+# Check if file exists; if not, provide instructions
+if (base::file.exists(data_path)) {
+  all_data <- base::readRDS(data_path)
+  base::cat("Loaded data:", base::nrow(all_data), "rows\n")
+  base::cat("Fiscal years:", base::paste(base::unique(all_data$fiscal_year), collapse = ", "), "\n")
+} else {
+  base::stop(
+    "Data file not found at: ", data_path, "\n",
+    "Please run the omnibus analysis first to generate the cleaned data,\n",
+    "or update the data_path variable to point to your RDS file."
+  )
+}
+```
+
+---
+
+## Step 2: Define Top Employee Filter Criteria
+```{r}
+#| label: define-top-employee-criteria
+#| cache: true
+
+# =============================================================================
+# DEFINE CRITERIA FOR TOP EMPLOYEES
+# =============================================================================
+# Purpose: Create patterns to identify directors, managers, and public safety leaders
+# 
+# Categories captured:
+#   1. Department Directors (e.g., "Director", "Assistant Director")
+#   2. Department Managers (e.g., "Manager", "Superintendent")
+#   3. City Leadership (City Manager, Assistant City Manager, etc.)
+#   4. Public Safety Chiefs/Leaders (Police Chief, Fire Chief, EMS Director)
+#
+# Note: Uses case-insensitive regex matching on job_title
+
+# Pattern for leadership job titles (case-insensitive)
+leadership_pattern <- base::paste(
+  # City executive leadership
+  "city manager",
+  "assistant city manager",
+  "deputy city manager",
+  
+
+  # Department directors
+  "director",
+  "assistant director",
+  "deputy director",
+  
+  # Department managers and supervisors
+  "manager",
+  "superintendent",
+  
+  # Public safety leadership
+  "chief",              # Police Chief, Fire Chief, Assistant Chief
+  "commander",          # Police Commander
+  "captain",            # Fire Captain, Police Captain
+  "battalion chief",    # Fire Battalion Chief
+  "marshal",            # Fire Marshal
+  
+  sep = "|"
+)
+
+# Verify the pattern
+base::cat("Leadership title pattern:\n")
+base::cat(leadership_pattern, "\n")
+```
+
+---
+
+## Step 3: Filter Top Employees
+```{r}
+#| label: filter-top-employees
+#| cache: true
+
+# =============================================================================
+# FILTER DATA TO TOP EMPLOYEES ONLY
+# =============================================================================
+# Purpose: Apply leadership pattern to identify top-paid positions
+# Method: Case-insensitive regex match on job_title column
+#
+# Output: top_employees tibble containing only leadership positions
+
+top_employees <- all_data |>
+  # Filter to leadership positions using case-insensitive regex
+  dplyr::filter(
+    stringr::str_detect(
+      job_title, 
+      stringr::regex(leadership_pattern, ignore_case = TRUE)
+    )
+  ) |>
+  # Select relevant columns for analysis
+  dplyr::select(
+    fiscal_year,
+    name,
+    name_std,
+    department,
+    job_title,
+    regular_earnings,
+    additional_benefits,
+    calc_total_compensation
+  ) |>
+  # Sort by fiscal year and total compensation (highest first)
+  dplyr::arrange(fiscal_year, dplyr::desc(calc_total_compensation))
+
+# Report filtering results
+base::cat("\n=== TOP EMPLOYEES FILTER RESULTS ===\n")
+base::cat("Total employees in dataset:", base::nrow(all_data), "\n")
+base::cat("Top employees identified:", base::nrow(top_employees), "\n")
+base::cat("Unique individuals:", dplyr::n_distinct(top_employees$name_std), "\n")
+```
+
+---
+
+## Step 4: Verify Captured Job Titles
+```{r}
+#| label: verify-job-titles
+#| cache: true
+
+# =============================================================================
+# VERIFY WHICH JOB TITLES WERE CAPTURED
+# =============================================================================
+# Purpose: Display all unique job titles captured to verify filtering accuracy
+# This helps identify any missing titles or false positives
+
+captured_titles <- top_employees |>
+  dplyr::distinct(job_title) |>
+  dplyr::arrange(job_title)
+
+# Display captured titles
+captured_titles |>
+  flextable::flextable() |>
+  flextable::add_header_lines("Job Titles Captured as Top Employees") |>
+  flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
+```
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: captured-titles-download
+#| echo: false
+ds_download_data_btn(
+  captured_titles,
+  filename_base = "schertz_captured_leadership_titles",
+  label = "Download Job Titles (CSV)"
+)
+```
+:::
+
+---
+
+## Step 5: Create Wide Table - Total Compensation by FY
+```{r}
+#| label: total-comp-wide-table
+#| cache: true
+
+# =============================================================================
+# CREATE WIDE FORMAT TABLE: TOTAL COMPENSATION BY FISCAL YEAR
+# =============================================================================
+# Purpose: Pivot data so each fiscal year is a column
+# Shows total compensation for each top employee across all years
+#
+# Output columns:
+#   - name: Employee name
+#   - department: Most recent department
+#   - job_title: Most recent job title
+#   - FY20 through FY25: Total compensation for each year
+
+# First, get the most recent job info for each employee
+most_recent_info <- top_employees |>
+  dplyr::group_by(name_std) |>
+  dplyr::slice_max(order_by = fiscal_year, n = 1) |>
+  dplyr::ungroup() |>
+  dplyr::select(name_std, name, department, job_title)
+
+# Create wide format with FY columns
+total_comp_wide <- top_employees |>
+  # Select key columns for pivot
+  dplyr::select(name_std, fiscal_year, calc_total_compensation) |>
+  # Pivot fiscal years to columns
+  tidyr::pivot_wider(
+    names_from = fiscal_year,
+    values_from = calc_total_compensation,
+    values_fill = NA_real_
+  ) |>
+  # Join back the most recent employee info
+  dplyr::left_join(most_recent_info, by = "name_std") |>
+  # Reorder columns: name info first, then FY columns
+  dplyr::select(
+    name, 
+    department, 
+    job_title,
+    dplyr::any_of(c("FY20", "FY21", "FY22", "FY23", "FY24", "FY25"))
+  ) |>
+  # Sort by FY25 total compensation (or most recent available year)
+  dplyr::arrange(
+    dplyr::desc(
+      dplyr::coalesce(FY25, FY24, FY23, FY22, FY21, FY20)
+    )
+  )
+
+# Report table dimensions
+base::cat("\n=== WIDE TABLE DIMENSIONS ===\n")
+base::cat("Rows (unique employees):", base::nrow(total_comp_wide), "\n")
+base::cat("Columns:", base::ncol(total_comp_wide), "\n")
+```
+
+---
+
+## Table 1: Top Employee Total Compensation by Fiscal Year
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: display-total-comp-dt
+#| cache: false
+
+# =============================================================================
+# HTML OUTPUT: INTERACTIVE DT::DATATABLE
+# =============================================================================
+# Purpose: Display interactive table for HTML format
+# Features: Sorting, searching, pagination, formatted currency
+# Export buttons: Copy, CSV, Excel, Print
+
+total_comp_wide |>
+  # Format currency columns for display
+  dplyr::mutate(
+    dplyr::across(
+      dplyr::starts_with("FY"),
+      ~ scales::dollar(.x, accuracy = 1)
+    )
+  ) |>
+  DT::datatable(
+    caption = "Top Employee Total Compensation by Fiscal Year (FY20-FY25)",
+    extensions = "Buttons",
+    options = base::list(
+      pageLength = 25,
+      scrollX = TRUE,
+      dom = "Bfrtip",
+      buttons = base::list(
+        "copy", 
+        "csv", 
+        "excel",
+        base::list(
+          extend = "print",
+          title = "Top Employee Total Compensation - City of Schertz"
+        )
+      )
+    ),
+    rownames = FALSE,
+    filter = "top"
+  )
+```
+:::
+
+::: {.content-visible when-format="typst"}
+```{r}
+#| label: display-total-comp-flextable
+#| cache: false
+
+# =============================================================================
+# PDF/TYPST OUTPUT: FLEXTABLE
+# =============================================================================
+# Purpose: Display formatted table for PDF/typst rendering
+# Styling: Dan's preferred flextable formatting
+
+total_comp_wide |>
+  # Format currency columns
+  dplyr::mutate(
+    dplyr::across(
+      dplyr::starts_with("FY"),
+      ~ scales::dollar(.x, accuracy = 1)
+    )
+  ) |>
+  flextable::flextable() |>
+  # Add title row
+
+  flextable::add_header_lines("Top Employee Total Compensation by Fiscal Year") |>
+  # Row 1 styling: blue text, white background, italic
+ flextable::color(i = 1, color = "darkblue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  # Row 2 styling: palegreen background (column headers)
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  # Footer note
+  flextable::add_footer_lines(
+    "Source: City of Schertz Employee Compensation Data | Blank cells indicate employee not in position that year"
+  ) |>
+  flextable::italic(part = "footer") |>
+  flextable::fontsize(size = 10, part = "footer") |>
+  # Column formatting
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: total-comp-raw-download
+#| echo: false
+ds_download_data_btn(
+  total_comp_wide,
+  filename_base = "schertz_top_employees_total_comp_fy20_fy25_numeric",
+  label = "Download Raw Numeric Data (CSV)"
+)
+```
+:::
+
+---
+
+## Object Reference
+
+| Object Name | Description | Rows | Columns |
+|-------------|-------------|------|---------|
+| `all_data` | Full compensation dataset (cached from omnibus) | `r base::nrow(all_data)` | `r base::ncol(all_data)` |
+| `top_employees` | Filtered to leadership positions | `r base::nrow(top_employees)` | `r base::ncol(top_employees)` |
+| `total_comp_wide` | Wide format: FY columns for total comp | `r base::nrow(total_comp_wide)` | `r base::ncol(total_comp_wide)` |
+| `captured_titles` | Unique job titles matched | `r base::nrow(captured_titles)` | 1 |
+
+---
+
+## Data Notes
+
+- **Total Compensation** = Regular Earnings + Overtime + Additional Earnings + Leave Payout + Deployment + Arbitration + Additional Benefits
+- **FY20-FY22**: Benefits were imputed based on FY23-FY25 ratios (benefits data not available in source files)
+- **Blank cells**: Employee not in this position during that fiscal year
+
+---
+
+*Report generated: `r base::format(base::Sys.time(), "%B %d, %Y at %I:%M %p")`*
+*Data source: City of Schertz Employee Compensation Records*

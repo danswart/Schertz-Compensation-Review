@@ -1,5 +1,327 @@
+---
+title: "Compensation Elements Growth Rates Comparison and Compensation vs Inflation"
+subtitle: "FY21 - FY25"
+description: ""
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
+format:
+  html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: true     # Set to 'false' for drafts. Override if you're NOT sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+    
+  typst:
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
 
-## Appendix K: Growth Rates Comparison - Compensation vs Inflation
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd files
+execute:
+  echo: true
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+prefer-html: true
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+
+params:
+  data_updated: !expr format(Sys.Date(), "%B %Y")
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+
+# install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
+
+# census_api_key("95496766c51541ee6f402c1e1a8658581285b759", install = TRUE, overwrite = TRUE)
+
+
+# # load libraries - NOT NEEDED
+
+source(here::here("R", "download_button_helpers.R"))
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+
+
+# Flextable built-in themes:
+  # flextable::theme_alafoli()	|>  # BLAH
+  # flextable::theme_apa()  # THIS IS NICE
+  # flextable::theme_booktabs() |>  # NICE, MORE COMPACT
+  # flextable::theme_box() |>   # OK, INCLUDES CELL BORDERS
+  # flextable::theme_tron() |>  # 'DARK MODE' BLUE TEXT
+  # flextable::theme_tron_legacy() |>   # 'DARK MODE' YELLOW TEXT
+  # flextable::theme_vader() |>    # 'DARK MODE' WHITE TEXT
+  # flextable::theme_vanilla() |>   # NOT SPECIAL
+  # flextable::theme_zebra()	|>
+  #
+
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 28,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 22,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 18,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18),
+        # ggplot2::element_blank(),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+        # ggplot2::element_blank(),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 18,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+
+claude <- ellmer::chat_anthropic(model = "claude-opus-4-6-20260205")
+
+# -----------------------------------------------------------------------------
+# Download button helper (HTML only)
+# # -----------------------------------------------------------------------------
+# ds_download_data_btn <- function(df, filename_base, label = "Download Data (CSV)",
+#                                   clean_df = NULL) {
+#   write_df <- if (!base::is.null(clean_df)) clean_df else df
+#   tmp <- base::tempfile(fileext = ".csv")
+#   readr::write_excel_csv(write_df, tmp)
+#   downloadthis::download_file(
+#     path         = tmp,
+#     output_name  = filename_base,
+#     button_label = label,
+#     button_type  = "primary",
+#     has_icon     = TRUE,
+#     icon         = "fa fa-download"
+#   )
+# }
+# # -----------------------------------------------------------------------------
+# # Plot download button helper (HTML only)
+# # -----------------------------------------------------------------------------
+# ds_download_plot_btn <- function(plot_obj, filename_base, label = "Download Plot (PNG)",
+#                                   width = 13, height = 8, dpi = 300) {
+#   tmp <- base::tempfile(fileext = ".png")
+#   ggplot2::ggsave(tmp, plot = plot_obj, width = width, height = height,
+#                   dpi = dpi, bg = "white")
+#   downloadthis::download_file(
+#     path         = tmp,
+#     output_name  = filename_base,
+#     button_label = label,
+#     button_type  = "warning",
+#     has_icon     = TRUE,
+#     icon         = "fa fa-image"
+#   )
+# }
+
+
+# Set seed for reproducibility
+base::set.seed(123)
+
+```
+
+\
+
+#### **Filename:** 
+comp_elements_growth_rate_comparisons_with_pct_
+and_doubling_time.qmd
+
+\
+
+
+## Compensaation Elements Growth Rates Comparison and Compensation vs Inflation
 
 ```{r}
 #| label: growth-rates-comparison-data
@@ -7,6 +329,11 @@
 # =============================================================================
 # APPENDIX K: GROWTH RATES COMPARISON - ALL METRICS VS INFLATION
 # =============================================================================
+
+
+all_data <- base::readRDS(here::here("data_clean", "all_data.rds"))
+
+
 
 # Build comprehensive growth rates dataset
 growth_rates_all <- all_data |>
@@ -72,7 +399,28 @@ growth_rates_all |>
   flextable::italic(part = "footer") |>
   flextable::fontsize(size = 11, part = "footer") |>
   flextable::autofit()
+
+# Prepare clean version for download (numeric, not formatted)
+growth_rates_download <- growth_rates_all |>
+  dplyr::filter(!base::is.na(total_comp_growth)) |>
+  dplyr::select(
+    fiscal_year, benefits_imputed,
+    inflation_rate, total_comp_growth, regular_growth,
+    benefits_growth, employee_growth
+  )
 ```
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: growth-rates-data-download
+#| echo: false
+ds_download_data_btn(
+  growth_rates_download,
+  filename_base = "growth_rates_yoy_by_category",
+  label = "Download Growth Rates Data (CSV)"
+)
+```
+:::
 
 
 ```{r}
@@ -125,7 +473,7 @@ endpoint_labels <- growth_rates_long |>
   dplyr::ungroup()
 
 # Create the plot
-ggplot2::ggplot(
+plot_growth_rates <- ggplot2::ggplot(
   growth_rates_long,
   ggplot2::aes(x = fiscal_year, y = growth_rate, group = metric, color = metric)
 ) +
@@ -166,7 +514,22 @@ ggplot2::ggplot(
     legend.position = "none",
     panel.grid.minor = ggplot2::element_blank()
   )
+
+plot_growth_rates
 ```
+
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: fig-growth-rates-comparison-download
+#| echo: false
+ds_download_plot_btn(
+  plot_growth_rates,
+  filename_base = "growth_rates_comparison_plot",
+  label = "Download Plot (PNG)"
+)
+```
+:::
 
 
 
@@ -189,7 +552,7 @@ latest_data <- growth_rates_all |>
 # Calculate Rule of 70 doubling times
 rule_of_70 <- dplyr::tibble(
   Metric = c(
-    "Inflation (CPI)",
+    "Inflation (FRED)",
     "Total Compensation",
     "Regular Earnings",
     "Additional Benefits",
@@ -227,7 +590,7 @@ rule_of_70 <- dplyr::tibble(
       base::sprintf("%.1f years", doubling_time_num)
     ),
     `FY25 Doubled` = dplyr::case_when(
-      Metric == "Inflation (CPI)" ~ "N/A",
+      Metric == "Inflation (FRED)" ~ "N/A",
       Metric == "Employee Count" ~ base::format(base::as.integer(doubled_amount), big.mark = ","),
       TRUE ~ scales::dollar(doubled_amount, accuracy = 1)
     )
@@ -248,6 +611,18 @@ rule_of_70 |>
   flextable::fontsize(size = 11, part = "footer") |>
   flextable::autofit()
 ```
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: rule-of-70-download
+#| echo: false
+ds_download_data_btn(
+  rule_of_70,
+  filename_base = "rule_of_70_fy25_growth_rates",
+  label = "Download Rule of 70 Table (CSV)"
+)
+```
+:::
 
 
 
@@ -277,7 +652,7 @@ avg_rates <- growth_rates_all |>
 # Build Rule of 70 table with averages
 rule_of_70_avg <- dplyr::tibble(
   Metric = c(
-    "Inflation (CPI)",
+    "Inflation (FRED)",
     "Total Compensation",
     "Regular Earnings",
     "Additional Benefits",
@@ -315,7 +690,7 @@ rule_of_70_avg <- dplyr::tibble(
       base::sprintf("%.1f years", doubling_time_num)
     ),
     `FY25 Doubled` = dplyr::case_when(
-      Metric == "Inflation (CPI)" ~ "N/A",
+      Metric == "Inflation (FRED)" ~ "N/A",
       Metric == "Employee Count" ~ base::format(base::as.integer(doubled_amount), big.mark = ","),
       TRUE ~ scales::dollar(doubled_amount, accuracy = 1)
     )
@@ -337,6 +712,20 @@ rule_of_70_avg |>
   flextable::autofit()
 ```
 
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: rule-of-70-avg-download
+#| echo: false
+ds_download_data_btn(
+  rule_of_70_avg,
+  filename_base = "rule_of_70_avg_growth_rates",
+  label = "Download Avg Rule of 70 Table (CSV)"
+)
+```
+:::
+
+
 ```{r}
 #| label: growth-rates-interpretation
 
@@ -348,14 +737,14 @@ base::cat("=== GROWTH RATES ANALYSIS SUMMARY ===\n\n")
 
 # Latest year comparison
 base::cat("FY25 Growth Rates:\n")
-base::cat("  - Inflation (CPI):", sprintf("%.2f%%", latest_rates$inflation_rate), "\n")
-base::cat("  - Total Compensation:", sprintf("%.2f%%", latest_rates$total_comp_growth), "\n")
-base::cat("  - Regular Earnings:", sprintf("%.2f%%", latest_rates$regular_growth), "\n")
-base::cat("  - Additional Benefits:", sprintf("%.2f%%", latest_rates$benefits_growth), "\n")
-base::cat("  - Employee Count:", sprintf("%.2f%%", latest_rates$employee_growth), "\n\n")
+base::cat("  - Inflation (FRED):", sprintf("%.2f%%", latest_data$inflation_rate), "\n")
+base::cat("  - Total Compensation:", sprintf("%.2f%%", latest_data$total_comp_growth), "\n")
+base::cat("  - Regular Earnings:", sprintf("%.2f%%", latest_data$regular_growth), "\n")
+base::cat("  - Additional Benefits:", sprintf("%.2f%%", latest_data$benefits_growth), "\n")
+base::cat("  - Employee Count:", sprintf("%.2f%%", latest_data$employee_growth), "\n\n")
 
 # Key insight
-comp_vs_inflation <- latest_rates$total_comp_growth - latest_rates$inflation_rate
+comp_vs_inflation <- latest_data$total_comp_growth - latest_data$inflation_rate
 if (comp_vs_inflation > 0) {
   base::cat("KEY FINDING: Total compensation growth EXCEEDS inflation by", 
             sprintf("%.2f", comp_vs_inflation), "percentage points in FY25.\n")

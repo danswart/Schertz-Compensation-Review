@@ -1,10 +1,9 @@
 ---
-title: "Schertz Population and Housing Growth"
-subtitle: "2010 - 2024"
-description: "US Census Data"
+title: "Schertz Population and Housing Growth per U.S. Census"
+subtitle: "2010-2024"
+description: ""
 authors: 
   - name: "Dan Swart, CPA (ret)"
-  - name: "Claude Sonnet 4.5"
 date: today
 date-format: long
 # bibliography: manual-refs.bib
@@ -54,8 +53,8 @@ format:
     
     
   typst:
-    # fig-width: 13
-    E fig-height: 8
+    fig-width: 13
+    fig-height: 8
     fig-dpi: 300
     margin:
       x: 1in
@@ -142,7 +141,7 @@ options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ON
 options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
 options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
 options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
-options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(DT.options = base::list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
 options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
 options(tigris_use_cache = TRUE)
 options(device = "RStudioGD") 
@@ -169,7 +168,6 @@ flextable::set_flextable_defaults(
 
 
 
-
 # Set global theme for consistent plots
 ggplot2::theme_set(
   ggplot2::theme_minimal(base_size = 20) +
@@ -179,7 +177,7 @@ ggplot2::theme_set(
         family = "Cabin",
         face = "bold",
         color = "darkgreen",
-        size = 16,
+        size = 28,
         fill = "yellow",
         lineheight = 0.9,
         padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
@@ -189,7 +187,7 @@ ggplot2::theme_set(
         family = "Cabin",
         color = "darkgreen",
         face = "bold",
-        size = 14,
+        size = 22,
         fill = "yellow",
         lineheight = 0.9,
         padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
@@ -197,7 +195,7 @@ ggplot2::theme_set(
       ),
       plot.caption = ggtext::element_markdown(
         family = "Cabin",
-        size = 14,
+        size = 18,
         hjust = 1,
         color = "darkblue",
         face = "italic",
@@ -254,12 +252,124 @@ ggplot2::theme_set(
 )
 
 
-
   
 # Set seed for reproducibility
 base::set.seed(123)
 
 ```
+
+
+```{r}
+#| label: helper-functions
+#| include: false
+
+# ── TABLE DOWNLOAD BUTTON ────────────────────────────────────────────────────
+# Creates an HTML download button that delivers a data frame as a CSV file.
+# Only renders in HTML output; silently returns NULL in other formats.
+#
+# Arguments:
+#   df        : data frame to download
+#   filename  : suggested filename (default "data.csv")
+#   label     : button label text (default "Download CSV")
+#
+create_table_download_button <- function(
+    df,
+    filename = "data.csv",
+    label    = "Download CSV"
+) {
+  if (!knitr::is_html_output()) return(base::invisible(NULL))
+
+  # Serialise the data frame to CSV in memory, then base64-encode
+  csv_text <- utils::capture.output(
+    utils::write.csv(df, stdout(), row.names = FALSE)
+  )
+  csv_raw  <- base::paste(csv_text, collapse = "\n")
+  b64      <- jsonlite::base64_enc(base::charToRaw(csv_raw))
+
+  href <- base::paste0("data:text/csv;base64,", b64)
+
+  htmltools::browsable(
+    htmltools::tagList(
+      htmltools::tags$a(
+        href     = href,
+        download = filename,
+        htmltools::tags$button(
+          style = base::paste0(
+            "background-color:#2196F3;color:white;border:none;",
+            "padding:6px 14px;border-radius:4px;cursor:pointer;",
+            "font-size:13px;margin:4px 0 8px 0;"
+          ),
+          label
+        )
+      )
+    )
+  )
+}
+
+
+# ── PLOT DOWNLOAD BUTTON ─────────────────────────────────────────────────────
+# Creates an HTML download button that delivers a ggplot object as a PNG file.
+# Only renders in HTML output; silently returns NULL in other formats.
+#
+# Arguments:
+#   plot_obj  : a ggplot object
+#   filename  : suggested filename (default "plot.png")
+#   label     : button label text (default "Download PNG")
+#   width     : image width in inches (default 13)
+#   height    : image height in inches (default 8)
+#   dpi       : resolution (default 300)
+#
+create_plot_download_button <- function(
+    plot_obj,
+    filename = "plot.png",
+    label    = "Download PNG",
+    width    = 13,
+    height   = 8,
+    dpi      = 300
+) {
+  if (!knitr::is_html_output()) return(base::invisible(NULL))
+
+  tmp <- base::tempfile(fileext = ".png")
+  ggplot2::ggsave(
+    filename = tmp,
+    plot     = plot_obj,
+    width    = width,
+    height   = height,
+    dpi      = dpi,
+    bg       = "white"
+  )
+
+  b64  <- jsonlite::base64_enc(base::readBin(tmp, "raw", base::file.info(tmp)$size))
+  href <- base::paste0("data:image/png;base64,", b64)
+  base::unlink(tmp)
+
+  htmltools::browsable(
+    htmltools::tagList(
+      htmltools::tags$a(
+        href     = href,
+        download = filename,
+        htmltools::tags$button(
+          style = base::paste0(
+            "background-color:#4CAF50;color:white;border:none;",
+            "padding:6px 14px;border-radius:4px;cursor:pointer;",
+            "font-size:13px;margin:4px 0 8px 0;"
+          ),
+          label
+        )
+      )
+    )
+  )
+}
+
+```
+
+\
+
+#### **Filename:** 
+schertz_2010_2024_population_and_housing_growth_per_us_
+census_with_buttons.qmd
+
+\
 
 
 You can get a clean Schertz series for 2010–2024 with tidycensus, but you have to use two different mechanisms:
@@ -278,12 +388,11 @@ You can get a clean Schertz series for 2010–2024 with tidycensus, but you have
 
 2010–2019 using 'tidycensus::get_estimates() with argument 'time_series = TRUE'
 
-This uses one call to get the full time series, then filters Schertz and maps the DATE code to calendar years using the Census mapping (DATE 3 = July 1, 2010; …; DATE 12 = July 1, 2019 → year = DATE + 2007). 
+Use this one call to get the full time series, then filter Schertz and map the DATE code to calendar years using the Census mapping (DATE 3 = July 1, 2010; …; DATE 12 = July 1, 2019 → year = DATE + 2007). 
 
 
 ```{r}
-library(tidycensus)
-library(dplyr)
+#| label: get-pop-2010-2019
 
 # 2010–2019 from Population Estimates API (2010-based series, vintage 2019)
 schertz_pop_2010_2019 <- tidycensus::get_estimates(
@@ -294,20 +403,35 @@ schertz_pop_2010_2019 <- tidycensus::get_estimates(
   time_series = TRUE
 ) |>
   # keep Schertz only & total population
-  filter(
+  dplyr::filter(
     NAME == "Schertz city, Texas",
     variable == "POP"
   ) |>
-  # Keep annual Oct 1 estimates. Census PEP estimates are as of July 1, not October 1—so there's no exact fiscal year match available. only (DATE 3–12)
-  filter(DATE >= 3, DATE <= 12) |>
-  mutate(
+  # Keep annual July 1 estimates only (DATE 3–12)
+  # Census PEP estimates are as of July 1, not October 1—so there's no exact fiscal year match available.
+  dplyr::filter(DATE >= 3, DATE <= 12) |>
+  dplyr::mutate(
     year = DATE + 2007       # DATE 3 -> 2010, 4 -> 2011, ..., 12 -> 2019
   ) |>
-  select(NAME, year, variable, value) |>
-  arrange(year)
+  dplyr::select(NAME, year, variable, value) |>
+  dplyr::arrange(year)
 
 flextable::flextable(schertz_pop_2010_2019) |>
-  flextable::colformat_int(j = "year", big.mark = "")
+  flextable::add_header_lines(values = "Schertz Population 2010–2019 (Population Estimates API)") |>
+  flextable::color(i = 1, color = "white", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 13, part = "header") |>
+  flextable::bg(i = 1, bg = "#2196F3", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::colformat_int(j = "year", big.mark = "") |>
+  flextable::autofit()
+
+create_table_download_button(
+  schertz_pop_2010_2019,
+  filename = "schertz_pop_2010_2019.csv",
+  label    = "Download Table CSV"
+)
 ```
 
 
@@ -316,13 +440,13 @@ flextable::flextable(schertz_pop_2010_2019) |>
 ### Get 2020–2024 population data via flat file (post-2020)
 
 ```{r}
-library(purrr)
+#| label: get-pop-2020-2024
 
 years_2020_2024 <- 2020:2024
 
-schertz_pop_2020_2024 <- map_dfr(
+schertz_pop_2020_2024 <- purrr::map_dfr(
   years_2020_2024,
-  \(yr) get_estimates(
+  \(yr) tidycensus::get_estimates(
     geography = "place",
     state     = "TX",
     place     = "Schertz",
@@ -330,54 +454,94 @@ schertz_pop_2020_2024 <- map_dfr(
     vintage   = 2024,
     year      = yr
   ) |>
-    filter(NAME == "Schertz city, Texas") |>
-    mutate(
+    dplyr::filter(NAME == "Schertz city, Texas") |>
+    dplyr::mutate(
       year     = yr,
       variable = "POP"          # make name match pre-2020 chunk
     )
 ) |>
-  select(NAME, year, variable, value) |>
-  arrange(year)
+  dplyr::select(NAME, year, variable, value) |>
+  dplyr::arrange(year)
 
-flextable::flextable(schertz_pop_2020_2024) |> 
-  flextable::colformat_int(j = "year", big.mark = "")
+flextable::flextable(schertz_pop_2020_2024) |>
+  flextable::add_header_lines(values = "Schertz Population 2020–2024 (Post-2020 Flat File)") |>
+  flextable::color(i = 1, color = "white", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 13, part = "header") |>
+  flextable::bg(i = 1, bg = "#2196F3", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::colformat_int(j = "year", big.mark = "") |>
+  flextable::autofit()
 
+create_table_download_button(
+  schertz_pop_2020_2024,
+  filename = "schertz_pop_2020_2024.csv",
+  label    = "Download Table CSV"
+)
 ```
 
 
 ### Combine both into a single 2010–2024 series
 
 ```{r}
-schertz_pop_2010_2024 <- bind_rows(
+#| label: combine-pop-series
+
+schertz_pop_2010_2024 <- dplyr::bind_rows(
   schertz_pop_2010_2019,
   schertz_pop_2020_2024
 ) |>
-  arrange(year)
+  dplyr::arrange(year)
 
 flextable::flextable(schertz_pop_2010_2024) |>
-  flextable::colformat_int(j = "year", big.mark = "")
+  flextable::add_header_lines(values = "Schertz Population 2010–2024 (Combined Series)") |>
+  flextable::color(i = 1, color = "white", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 13, part = "header") |>
+  flextable::bg(i = 1, bg = "#2196F3", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::colformat_int(j = "year", big.mark = "") |>
+  flextable::autofit()
 
+create_table_download_button(
+  schertz_pop_2010_2024,
+  filename = "schertz_pop_2010_2024.csv",
+  label    = "Download Table CSV"
+)
 ```
 
 
 ### Add change and percent change to tibble
 
 ```{r}
+#| label: pop-with-changes
+
 schertz_pop_2010_2024_with_changes <- schertz_pop_2010_2024 |>
-  dplyr::mutate(year = as.character(year)) |> 
-  arrange(year) |>
-  mutate(
+  dplyr::mutate(year = base::as.character(year)) |>
+  dplyr::arrange(year) |>
+  dplyr::mutate(
     pop        = value,
-    pop_lag    = lag(pop),
+    pop_lag    = dplyr::lag(pop),
     change     = pop - pop_lag,
     pct_change = 100 * change / pop_lag
   )
 
 flextable::flextable(schertz_pop_2010_2024_with_changes) |>
-  flextable::colformat_int(j = "year", big.mark = "")
+  flextable::add_header_lines(values = "Schertz Population 2010–2024 with Annual Changes") |>
+  flextable::color(i = 1, color = "white", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 13, part = "header") |>
+  flextable::bg(i = 1, bg = "#2196F3", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
 
-dplyr::glimpse(schertz_pop_2010_2024_with_changes)
-
+create_table_download_button(
+  schertz_pop_2010_2024_with_changes,
+  filename = "schertz_pop_2010_2024_with_changes.csv",
+  label    = "Download Table CSV"
+)
 ```
 
 
@@ -385,12 +549,13 @@ dplyr::glimpse(schertz_pop_2010_2024_with_changes)
 ### UNCOMMENT AND SAVE RESULTS AS EXCEL
 
 ```{r}
+#| label: save-pop-excel
+
 # writexl::write_xlsx(
 #  schertz_pop_2010_2024_with_changes,
 #  "schertz_pop_and_housing/schertz_pop_2010_2024_with_changes.xlsx"
 # )
 ```
-
 
 
 
@@ -432,68 +597,93 @@ This analysis shows total housing stock growth in Schertz across all housing typ
 ### Get Housing Units and Changes from ACS5
 
 ```{r}
-#| label: get-housing-units_with_changes
+#| label: get-housing-units-2009-2022
 
-years <- 2009:2022
+years_2009_2022 <- 2009:2022
 
-schertz_housing_2009_2022_with_changes <- purrr::map(years, \(yr) {
+schertz_housing_2009_2022_with_changes <- purrr::map(years_2009_2022, \(yr) {
   tidycensus::get_acs(
     geography = "place",
-    state = "TX",
+    state     = "TX",
     variables = "B25001_001",
-    year = yr,
-    survey = "acs5"
-  ) |> 
+    year      = yr,
+    survey    = "acs5"
+  ) |>
     dplyr::mutate(year = yr)
-}) |> 
-  purrr::list_rbind() |> 
-  dplyr::filter(stringr::str_detect(NAME, "Schertz")) |> 
-  dplyr::mutate(year = as.character(year)) |> 
-  dplyr::arrange(year) |> 
+}) |>
+  purrr::list_rbind() |>
+  dplyr::filter(stringr::str_detect(NAME, "Schertz")) |>
+  dplyr::mutate(year = base::as.character(year)) |>
+  dplyr::arrange(year) |>
   dplyr::mutate(
-    change = estimate - dplyr::lag(estimate),
+    change     = estimate - dplyr::lag(estimate),
     pct_change = change / dplyr::lag(estimate) * 100
   )
 
 flextable::flextable(schertz_housing_2009_2022_with_changes) |>
-  flextable::colformat_int(j = "year", big.mark = "")
+  flextable::add_header_lines(values = "Schertz Housing Units 2009–2022 (ACS5)") |>
+  flextable::color(i = 1, color = "white", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 13, part = "header") |>
+  flextable::bg(i = 1, bg = "#2196F3", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
 
+create_table_download_button(
+  schertz_housing_2009_2022_with_changes,
+  filename = "schertz_housing_2009_2022_with_changes.csv",
+  label    = "Download Table CSV"
+)
 ```
 
 
 ```{r}
+#| label: get-housing-units-2009-2024
 
-#| label: get-housing-units-with-changes
+years_2009_2024 <- 2009:2024
 
-years <- 2009:2024
-
-schertz_housing_2009_2024_with_changes <- purrr::map(years, \(yr) {
+schertz_housing_2009_2024_with_changes <- purrr::map(years_2009_2024, \(yr) {
   tidycensus::get_acs(
     geography = "place",
-    state = "TX",
+    state     = "TX",
     variables = "B25001_001",
-    year = yr,
-    survey = "acs5"
-  ) |> 
+    year      = yr,
+    survey    = "acs5"
+  ) |>
     dplyr::mutate(year = yr)
-}) |> 
-  purrr::list_rbind() |> 
-  dplyr::filter(stringr::str_detect(NAME, "Schertz")) |> 
-  dplyr::arrange(year) |> 
+}) |>
+  purrr::list_rbind() |>
+  dplyr::filter(stringr::str_detect(NAME, "Schertz")) |>
+  dplyr::arrange(year) |>
   dplyr::mutate(
-    change = estimate - dplyr::lag(estimate),
+    change     = estimate - dplyr::lag(estimate),
     pct_change = change / dplyr::lag(estimate) * 100
   )
 
-flextable::flextable(schertz_housing_2009_2024_with_changes) |> 
-  flextable::colformat_int(j = "year", big.mark = "")
+flextable::flextable(schertz_housing_2009_2024_with_changes) |>
+  flextable::add_header_lines(values = "Schertz Housing Units 2009–2024 (ACS5)") |>
+  flextable::color(i = 1, color = "white", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "left", part = "header") |>
+  flextable::fontsize(i = 1, size = 13, part = "header") |>
+  flextable::bg(i = 1, bg = "#2196F3", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::autofit()
 
+create_table_download_button(
+  schertz_housing_2009_2024_with_changes,
+  filename = "schertz_housing_2009_2024_with_changes.csv",
+  label    = "Download Table CSV"
+)
 ```
 
 
 ### UNCOMMENT AND SAVE RESULTS AS EXCEL
 
 ```{r}
+#| label: save-housing-excel
+
 # writexl::write_xlsx(
 #   schertz_housing_2009_2024_with_changes,
 #   "schertz_pop_and_housing/schertz_housing_2009_2024_with_changes.xlsx"
@@ -503,49 +693,65 @@ flextable::flextable(schertz_housing_2009_2024_with_changes) |>
 
 
 
-
 ## PLOT RESULTS
 
 ### Annual Change in Number of Housing Units
 
 ```{r}
-
+#| label: plot-housing-unit-change
 
 # Plot 1: Annual change in number of housing units
-ggplot2::ggplot(
+p_housing_change <- ggplot2::ggplot(
   schertz_housing_2009_2022_with_changes,
   ggplot2::aes(x = year, y = change)
 ) +
   ggplot2::geom_col(fill = "steelblue") +
   ggplot2::labs(
-    title = "Annual Change in Housing Units",
+    title    = "Annual Change in Housing Units",
     subtitle = "Schertz, TX (ACS 5-Year Estimates)",
-    x = NULL,
-    y = "Units Added"
+    x        = NULL,
+    y        = "Units Added"
   ) +
-  ggplot2::scale_x_discrete(breaks = years)
-  # ggplot2::theme_minimal()
+  ggplot2::scale_x_discrete(breaks = years_2009_2022)
 
+p_housing_change
+
+create_plot_download_button(
+  p_housing_change,
+  filename = "schertz_housing_annual_change.png",
+  label    = "Download Plot PNG"
+)
 ```
 
 ### Annual Percentage Change in Housing Units
 
 ```{r}
-ggplot2::ggplot(
+#| label: plot-housing-pct-change
+
+p_housing_pct <- ggplot2::ggplot(
   schertz_housing_2009_2022_with_changes,
-  ggplot2::aes(x = factor(year, 
-                          levels = as.character(2009:2022)), 
-               y = pct_change / 100)) +
+  ggplot2::aes(
+    x = base::factor(year, levels = base::as.character(2009:2022)),
+    y = pct_change / 100
+  )
+) +
   ggplot2::geom_col(fill = "darkgreen") +
-  ggplot2::scale_y_continuous(labels = scales::percent_format(accuracy = 0.1)) +
+  ggplot2::scale_y_continuous(
+    labels = scales::percent_format(accuracy = 0.1)
+  ) +
   ggplot2::scale_x_discrete(drop = FALSE) +
   ggplot2::labs(
-    title = "Annual Percent Change in Housing Units",
+    title    = "Annual Percent Change in Housing Units",
     subtitle = "Schertz, TX (ACS 5-Year Estimates)",
-    x = NULL,
-    y = "Pct Change"
+    x        = NULL,
+    y        = "Pct Change"
   )
-  
+
+p_housing_pct
+
+create_plot_download_button(
+  p_housing_pct,
+  filename = "schertz_housing_pct_change.png",
+  label    = "Download Plot PNG"
+)
 ```
-
-
