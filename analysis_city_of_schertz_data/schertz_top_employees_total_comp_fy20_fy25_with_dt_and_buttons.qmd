@@ -1,7 +1,7 @@
 ---
-title: "Top Employee Total Compensation"
-subtitle: "City of Schertz | FY20 - FY25"
-description: "Directors, Managers, and Public Safety Leaders"
+title: "Schertz Total Compensation - Directors, Managers, and Public Safety Leaders"
+subtitle: "FY20 - FY25"
+description: ""
 authors: 
   - name: "Dan Swart, CPA (ret)"
 date: today
@@ -22,7 +22,7 @@ format:
     code-overflow: wrap
     code-block-bg: "#FAEBD7"
     code-block-border-left: "#31BAE9"
-    embed-resources: false     # Fast for drafts. Override for sharing output
+    embed-resources: true     # Set to 'false' for drafts. Override if you're NOT sharing output
     include-in-header:
       - text: 
           <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
@@ -53,8 +53,8 @@ format:
     
     
   typst:
-    # fig-width: 13
-    E fig-height: 8
+    fig-width: 13
+    fig-height: 8
     fig-dpi: 300
     margin:
       x: 1in
@@ -97,7 +97,7 @@ quarto:
 
 # for .qmd filesd
 execute:
-  echo: true
+  echo: false
   message: false
   warning: false
   eval: true
@@ -108,7 +108,7 @@ execute:
 # for .rmd files
 knitr:
   opts_chunk:
-    echo: true
+    echo: false
     error: false
     warning: false
     message: false
@@ -118,7 +118,6 @@ knitr:
 params:
   data_updated: !expr format(Sys.Date(), "%B %Y")
 ---
-
 
 
 ```{r}
@@ -133,6 +132,9 @@ params:
 
 # # load libraries - NOT NEEDED
 
+# Download button helpers live here; knitr::is_html_output() guard is inside
+# the helpers so they silently no-op when rendering to typst
+source(here::here("R", "download_button_helpers.R"))
 
 # Force dplyr's select to take precedence
 select <- dplyr::select
@@ -192,7 +194,7 @@ ggplot2::theme_set(
         family = "Cabin",
         face = "bold",
         color = "darkgreen",
-        size = 16,
+        size = 28,
         fill = "yellow",
         lineheight = 0.9,
         padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
@@ -202,7 +204,7 @@ ggplot2::theme_set(
         family = "Cabin",
         color = "darkgreen",
         face = "bold",
-        size = 14,
+        size = 22,
         fill = "yellow",
         lineheight = 0.9,
         padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
@@ -210,7 +212,7 @@ ggplot2::theme_set(
       ),
       plot.caption = ggtext::element_markdown(
         family = "Cabin",
-        size = 14,
+        size = 18,
         hjust = 1,
         color = "darkblue",
         face = "italic",
@@ -221,7 +223,7 @@ ggplot2::theme_set(
         family = "Cabin",
         face = "bold",
         color = "blue",
-        size = 12,
+        size = 18,
         angle = 45,
         hjust = 1
       ),
@@ -230,13 +232,13 @@ ggplot2::theme_set(
         family = "Cabin",
         face = "bold",
         color = "blue",
-        size = 14),
+        size = 18),
         # ggplot2::element_blank(),
       axis.text.y = ggtext::element_markdown(
         family = "Cabin",
         face = "bold",
         color = "blue",
-        size = 12,
+        size = 18,
         angle = 45,
         hjust = 1
       ),
@@ -250,7 +252,7 @@ ggplot2::theme_set(
       strip.text = ggtext::element_markdown(
         family = "Cabin",
         color = "black",
-        size = 12,
+        size = 18,
         face = "italic",
         margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
       ),
@@ -267,12 +269,21 @@ ggplot2::theme_set(
 )
 
 
-
+claude <- ellmer::chat_anthropic(model = "claude-opus-4-6-20260205")
   
 # Set seed for reproducibility
 base::set.seed(123)
 
 ```
+
+\
+
+#### **Filename:** 
+schertz_top_employees_total_comp_fy20_fy25_with_
+dt_and_buttons.qmd
+
+\
+
 
 ## Introduction
 This document presents **total compensation** for the City of Schertz's top-paid employees across fiscal years FY20 through FY25. Top employees include department directors, managers, and public safety leadership (Police, Fire, EMS).
@@ -292,6 +303,7 @@ The tables below are fully interactive:
 ---
 
 ## Step 1: Load Cached Data
+
 ```{r}
 #| label: load-cached-data
 #| cache: true
@@ -456,6 +468,18 @@ captured_titles |>
   flextable::autofit()
 ```
 
+::: {.content-visible when-format="html"}
+```{r}
+#| label: captured-titles-download
+#| echo: false
+ds_download_data_btn(
+  captured_titles,
+  filename_base = "schertz_top_employee_job_titles",
+  label = "Download Captured Job Titles (CSV)"
+)
+```
+:::
+
 ---
 
 ## Step 5: Create Wide Table - Total Compensation by FY
@@ -601,6 +625,18 @@ total_comp_wide |>
   # Column formatting
   ftExtra::colformat_md() |>
   flextable::autofit()
+```
+:::
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: total-comp-wide-download
+#| echo: false
+ds_download_data_btn(
+  total_comp_wide,
+  filename_base = "schertz_top_employees_total_comp_fy20_fy25",
+  label = "Download Raw Numeric Data (CSV)"
+)
 ```
 :::
 

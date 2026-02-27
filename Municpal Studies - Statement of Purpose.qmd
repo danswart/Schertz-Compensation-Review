@@ -1,0 +1,155 @@
+---
+title: "Statement of Purpose and Elevator Speech"
+subtitle: ""
+description: ""
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
+format:
+  html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: true     # Set to 'false' for drafts. Override if you're NOT sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
+execute:
+  echo: true
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+
+params:
+  data_updated: !expr format(Sys.Date(), "%B %Y")
+---
+
+
+
+
+**Our Purpose**
+
+We are concerned, engaged citizens who help public boards and city councils make better decisions — before and after they act.  We understand that decision-makers have many decisions to make and little time to study them in depth.
+
+So, we question the rhetoric and slogans, put real numbers behind what matters most, and ask the hard questions: How big is this problem, really? What does this number actually mean? Are there untested assumptions? What happens if we get this wrong?
+
+The key is to: "Quantify, then prioritize". 
+
+We translate complex findings into plain language that informs rather than overwhelms. We weigh evidence on all sides — what supports the popular story, and what challenges it. A healthy dose of skepticism, applied with rigor, often reveals what others miss. 
+
+We test the claims, incentives, and arguments driving policy so that decision-makers gain a clearer, fuller picture — not just the version someone else wants them to see.
+
+We present only what's needed. Nothing more, nothing less.
+
+We help leaders make the best possible decisions with what can be known right now.
+
+***"Clarity where there is confusion. Confidence where there is doubt."***
+
+
+
+\
+\
+
+**Elevator Speech**
+
+We understand that decision-makers have many decisions to make and little time to study them in depth.  So, we help public boards and city councils make better decisions by putting real numbers behind what matters most.  
+
+The key is to: "Quantify, then prioritize"
+
+We examine the available evidence, and present findings clearly — so leaders can act with confidence that nothing important has been missed.
+
