@@ -1,0 +1,881 @@
+---
+title: "Longitudinal Census Data Template"
+subtitle: "PEP Population + ACS Socioeconomics + Decennial Anchors + Inflation Adjustment"
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
+format:
+  html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: false     # Fast for drafts. Override for sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
+execute:
+  echo: false
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: false
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+
+---
+
+```{r}
+#| label: params
+#| include: false
+
+# =============================================================================
+# PARAMETERS - CHANGE THESE FOR A DIFFERENT CITY
+# =============================================================================
+
+params <- base::list(
+  city                = "Schertz",
+  state               = "TX",
+  years_pep           = 2010:2024,
+  years_acs           = 2011:2023,
+  base_year           = 2024,
+  cache_census_dir    = "cache/census",
+  cache_inflation_dir = "cache/inflation"
+)
+
+# =============================================================================
+```
+
+
+```{r}
+#| label: setup
+#| include: false
+
+# -----------------------------------------------------------------------------
+# Package verification
+# -----------------------------------------------------------------------------
+required_pkgs <- c(
+"tidycensus", "tigris", "dplyr", "purrr", "tibble", "stringr", "readr",
+"digest", "lubridate", "quantmod", "zoo", "rlang", "ggplot2",
+"flextable", "qicharts2", "downloadthis"
+)
+
+missing <- required_pkgs[
+!base::vapply(required_pkgs, requireNamespace, logical(1L), quietly = TRUE)
+]
+
+if (base::length(missing) > 0L) {
+base::stop(
+  "Install missing packages:\n",
+  base::paste(missing, collapse = ", ")
+)
+}
+
+# -----------------------------------------------------------------------------
+# Source helper functions
+# -----------------------------------------------------------------------------
+source("R/census_helpers.R")
+# source("R/skew_check.R")
+# source("R/quick_distrib.R")
+# source("R/distrib_ridge.R")
+# source("R/distrib_quantile_evolution.R")
+# source("R/distrib_acceleration.R")
+source("R/download_button_helpers.R")
+# source("R/plot_city_pop.R")
+# source("R/get_city_pep.R")
+# source("R/get_city_pumas.R")
+# source("R/get_pums_data.R")
+
+
+# Standard table styler: blue italic title row + palegreen column header row.
+# Defined here so all QMDs that source this setup get the same presentation
+# without depending on census_helpers.R for a purely cosmetic function.
+ds_style_flextable <- function(ft, title = NULL) {
+  if (!base::is.null(title)) {
+    ft <- flextable::add_header_lines(ft, values = title)
+    ft <- flextable::color(ft, i = 1, part = "header", color = "blue")
+    ft <- flextable::italic(ft, i = 1, part = "header")
+    ft <- flextable::align(ft, i = 1, part = "header", align = "left")
+    ft <- flextable::fontsize(ft, i = 1, part = "header", size = 12)
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "white")
+    ft <- flextable::bg(ft, i = 2, part = "header", bg = "palegreen")
+  } else {
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "palegreen")
+  }
+  ft <- flextable::autofit(ft)
+  ft
+}
+
+
+# -----------------------------------------------------------------------------
+# Options
+# -----------------------------------------------------------------------------
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 16,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 14,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 14,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 14),
+        # ggplot2::element_blank(),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+        # ggplot2::element_blank(),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 12,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+
+
+  
+# Set seed for reproducibility
+base::set.seed(123)
+
+```
+
+
+\
+
+#### **Filename:** 
+city_census_template_with_buttons.qmd
+
+\
+
+
+# Overview
+
+This template generates a unified longitudinal dataset for **`r params$city`, `r params$state`** combining:
+
+- **PEP**: Annual population estimates (2010–2024)
+- **ACS 5-Year**: Selected socioeconomic indicators
+- **Decennial**: Census anchors (2000, 2010, 2020)
+- **CPI-U**: Inflation adjustment factors for constant-dollar analysis
+
+All API calls are cached to minimize traffic. Output uses a normalized schema: `source`, `series`, `year`, `estimate`, `moe`.
+
+
+# PEP Annual Population
+
+Population Estimates Program data for `r params$city`.
+
+```{r}
+#| label: pep-pull
+
+pep <- ds_get_pep_population_place(
+city      = params$city,
+state     = params$state,
+years     = params$years_pep,
+cache_dir = params$cache_census_dir
+)
+```
+
+```{r}
+#| label: pep-table
+
+pep_display <- pep |>
+dplyr::arrange(series, year) |>
+dplyr::mutate(
+  Year = base::as.character(year),
+  Series = series,
+  Estimate = base::format(
+    base::round(estimate, 1),
+    big.mark = ",",
+    scientific = FALSE
+  )
+) |>
+dplyr::select(Year, Series, Estimate)
+
+ft_pep <- flextable::flextable(pep_display)
+ft_pep <- ds_style_flextable(
+ft_pep,
+title = base::paste0("PEP Population: ", params$city, ", ", params$state)
+)
+ft_pep
+```
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: pep-table-download
+#| echo: false
+ds_download_data_btn(
+  pep_display,
+  filename_base = base::paste0(base::tolower(params$city), "_pep_population"),
+  label         = "Download PEP Data (CSV)"
+)
+```
+:::
+
+
+# ACS 5-Year Indicators
+
+Selected American Community Survey variables. Modify `acs_vars` below to change which indicators are pulled.
+
+```{r}
+#| label: acs-vars
+
+# -------------------------------------------------------------------------
+# ACS VARIABLE CODES - MODIFY THIS SECTION FOR DIFFERENT INDICATORS
+# -------------------------------------------------------------------------
+# Format: friendly_name = "TABLE_VARIABLE"
+# Common examples:
+#   B19013_001 = Median household income
+#   B25001_001 = Total housing units
+#   B01003_001 = Total population (ACS estimate)
+#   B25077_001 = Median home value
+#   B23025_005 = Unemployed (civilian labor force)
+# -------------------------------------------------------------------------
+
+acs_vars <- c(
+median_hh_income = "B19013_001",
+housing_units    = "B25001_001",
+population_acs   = "B01003_001"
+)
+```
+
+```{r}
+#| label: acs-pull
+
+acs <- ds_get_acs_place(
+city      = params$city,
+state     = params$state,
+years     = params$years_acs,
+variables = base::unname(acs_vars),
+survey    = "acs5",
+cache_dir = params$cache_census_dir
+)
+
+# Map variable codes to friendly labels
+var_labels <- stats::setNames(base::names(acs_vars), acs_vars)
+acs$series_label <- var_labels[acs$series]
+acs$series_label <- base::ifelse(
+base::is.na(acs$series_label),
+acs$series,
+acs$series_label
+)
+```
+
+```{r}
+#| label: acs-table
+
+acs_display <- acs |>
+dplyr::arrange(series_label, year) |>
+dplyr::mutate(
+  Year = base::as.character(year),
+  Estimate = base::format(
+    base::round(estimate, 0),
+    big.mark = ",",
+    scientific = FALSE
+  ),
+  MOE = base::ifelse(
+    base::is.na(moe),
+    "—",
+    base::format(base::round(moe, 0), big.mark = ",")
+  )
+) |>
+dplyr::select(
+  Year,
+  Variable = series_label,
+  Estimate,
+  MOE
+)
+
+ft_acs <- flextable::flextable(acs_display)
+ft_acs <- ds_style_flextable(
+ft_acs,
+title = base::paste0("ACS 5-Year Estimates: ", params$city, ", ", params$state)
+)
+ft_acs
+```
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: acs-table-download
+#| echo: false
+ds_download_data_btn(
+  acs_display,
+  filename_base = base::paste0(base::tolower(params$city), "_acs_estimates"),
+  label         = "Download ACS Data (CSV)"
+)
+```
+:::
+
+
+# Decennial Census Anchors
+
+Official Census counts from 2000, 2010, and 2020.
+
+```{r}
+#| label: decennial-pull
+
+# Variable codes differ by census year
+# 2000/2010 SF1: P001001 (total population)
+# 2020 PL: P1_001N (total population)
+
+dec_2000 <- ds_get_decennial_place(
+params$city, params$state,
+year = 2000L, variable = "P001001", sumfile = "sf1",
+cache_dir = params$cache_census_dir
+)
+
+dec_2010 <- ds_get_decennial_place(
+params$city, params$state,
+year = 2010L, variable = "P001001", sumfile = "sf1",
+cache_dir = params$cache_census_dir
+)
+
+dec_2020 <- ds_get_decennial_place(
+params$city, params$state,
+year = 2020L, variable = "P1_001N", sumfile = "pl",
+cache_dir = params$cache_census_dir
+)
+
+decennial <- dplyr::bind_rows(dec_2000, dec_2010, dec_2020)
+decennial$series <- "population_decennial"
+```
+
+```{r}
+#| label: decennial-table
+
+dec_display <- decennial |>
+dplyr::arrange(year) |>
+dplyr::mutate(
+  Year = base::as.character(year),
+  Population = base::format(estimate, big.mark = ",", scientific = FALSE)
+) |>
+dplyr::select(Year, Source = source, Population)
+
+ft_dec <- flextable::flextable(dec_display)
+ft_dec <- ds_style_flextable(
+ft_dec,
+title = base::paste0("Decennial Census: ", params$city, ", ", params$state)
+)
+ft_dec
+```
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: decennial-table-download
+#| echo: false
+ds_download_data_btn(
+  dec_display,
+  filename_base = base::paste0(base::tolower(params$city), "_decennial_census"),
+  label         = "Download Decennial Data (CSV)"
+)
+```
+:::
+
+
+# Unified Longitudinal Dataset
+
+Combined dataset with normalized schema across all sources.
+
+```{r}
+#| label: unify
+
+# PEP data already has series column (population, density_per_sq_mile)
+pep_long <- pep
+pep_long$series_label <- base::paste0("pep_", pep_long$series)
+
+acs_long <- acs
+acs_long$series_label <- base::ifelse(
+base::is.na(acs_long$series_label),
+acs_long$series,
+acs_long$series_label
+)
+
+dec_long <- decennial
+dec_long$series_label <- "population_decennial"
+
+longitudinal <- dplyr::bind_rows(pep_long, acs_long, dec_long)
+longitudinal <- longitudinal |>
+dplyr::select(source, series_label, year, estimate, moe) |>
+dplyr::arrange(series_label, year)
+```
+
+```{r}
+#| label: longitudinal-summary
+
+summary_tbl <- longitudinal |>
+dplyr::group_by(series_label) |>
+dplyr::summarise(
+  year_min = base::min(year, na.rm = TRUE),
+  year_max = base::max(year, na.rm = TRUE),
+  n_obs    = dplyr::n(),
+  .groups  = "drop"
+) |>
+dplyr::mutate(
+  year_min = base::as.character(year_min),
+  year_max = base::as.character(year_max)
+)
+
+ft_summary <- flextable::flextable(summary_tbl)
+ft_summary <- flextable::set_header_labels(
+ft_summary,
+series_label = "Series",
+year_min     = "First Year",
+year_max     = "Last Year",
+n_obs        = "Observations"
+)
+ft_summary <- ds_style_flextable(ft_summary, title = "Longitudinal Dataset Summary")
+ft_summary
+```
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: longitudinal-summary-download
+#| echo: false
+ds_download_data_btn(
+  longitudinal,
+  filename_base = base::paste0(base::tolower(params$city), "_longitudinal_all_series"),
+  label         = "Download Longitudinal Data (CSV)"
+)
+```
+:::
+
+
+# Inflation Adjustment
+
+CPI-U annual averages from FRED for converting nominal dollars to `r params$base_year` constant dollars.
+
+```{r}
+#| label: cpi-pull
+
+year_min <- base::min(c(params$years_acs, params$years_pep), na.rm = TRUE)
+year_max <- base::max(c(params$years_acs, params$years_pep), na.rm = TRUE)
+
+cpi_tbl <- ds_get_cpiu_rs_annual(
+start_year = year_min,
+end_year   = year_max,
+base_year  = params$base_year,
+cache_dir  = params$cache_inflation_dir
+)
+```
+
+```{r}
+#| label: cpi-table
+
+cpi_display <- cpi_tbl |>
+dplyr::mutate(
+  Year = base::as.character(year),
+  `Base Year` = base::as.character(base_year),
+  `CPI-U Avg` = base::round(cpi_annual_avg, 2),
+  Factor = base::round(factor_to_base, 4)
+) |>
+dplyr::select(Year, `CPI-U Avg`, `Base Year`, Factor)
+
+ft_cpi <- flextable::flextable(cpi_display)
+ft_cpi <- ds_style_flextable(
+ft_cpi,
+title = base::paste0("CPI-U Inflation Factors (Base: ", params$base_year, ")")
+)
+ft_cpi
+```
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: cpi-table-download
+#| echo: false
+ds_download_data_btn(
+  cpi_display,
+  filename_base = base::paste0(base::tolower(params$city), "_cpi_factors"),
+  label         = "Download CPI Data (CSV)"
+)
+```
+:::
+
+
+# Real Income Analysis
+
+Median household income adjusted to `r params$base_year` dollars.
+```{r}
+#| label: income-real
+
+income_nominal <- acs_long |>
+dplyr::filter(series_label == "median_hh_income") |>
+dplyr::select(source, series_label, year, estimate, moe)
+
+if (base::nrow(income_nominal) > 0L) {
+income_real <- ds_adjust_to_base_dollars(
+  df        = income_nominal,
+  value_col = "estimate",
+  year_col  = "year",
+  cpi_tbl   = cpi_tbl,
+  out_col   = "estimate_real"
+)
+} else {
+income_real <- tibble::tibble()
+}
+```
+
+```{r}
+#| label: income-table
+#| eval: !expr nrow(income_real) > 0
+
+income_display <- income_real |>
+dplyr::arrange(year) |>
+dplyr::mutate(
+  Year          = base::as.character(year),
+  Nominal       = base::paste0("$", base::format(base::round(estimate, 0), big.mark = ",")),
+  Real          = base::paste0("$", base::format(base::round(estimate_real, 0), big.mark = ","))
+) |>
+dplyr::select(Year, Nominal, Real)
+
+ft_income <- flextable::flextable(income_display)
+ft_income <- ds_style_flextable(
+ft_income,
+title = base::paste0("Median Household Income (", params$base_year, " Dollars)")
+)
+ft_income
+```
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: income-table-download
+#| echo: false
+#| eval: !expr nrow(income_real) > 0
+ds_download_data_btn(
+  income_display,
+  filename_base = base::paste0(base::tolower(params$city), "_income_real"),
+  label         = "Download Income Data (CSV)"
+)
+```
+:::
+
+
+# Population Trend (XmR Chart)
+
+Statistical process control chart for PEP population estimates.
+
+## Version 1: qicharts2
+
+```{r}
+#| label: xmr-chart-v1
+#| fig-width: 8
+#| fig-height: 5
+
+# Filter to population only (not density) for the chart
+pop_chart <- pep |>
+dplyr::filter(series == "population") |>
+dplyr::select(year, estimate) |>
+dplyr::arrange(year)
+
+p_xmr1 <- ds_plot_xmr(
+df        = pop_chart,
+year_col  = "year",
+value_col = "estimate",
+title     = base::paste0("Population XmR: ", params$city, ", ", params$state),
+subtitle  = "PEP Annual Population Estimates (qicharts2)",
+y_label   = "Population"
+)
+print(p_xmr1)
+```
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: xmr-chart-v1-download
+#| echo: false
+ds_download_plot_btn(
+  p_xmr1,
+  filename_base = base::paste0(base::tolower(params$city), "_population_xmr_v1"),
+  label         = "Download XmR Chart v1 (PNG)",
+  width = 8, height = 5
+)
+```
+:::
+
+## Version 2: Custom ggplot2
+
+```{r}
+#| label: xmr-chart-v2
+#| fig-width: 9
+#| fig-height: 5
+
+p_xmr2 <- ds_plot_xmr2(
+df        = pop_chart,
+year_col  = "year",
+value_col = "estimate",
+title     = base::paste0("Population XmR: ", params$city, ", ", params$state),
+subtitle  = "PEP Annual Population Estimates (custom ggplot2)",
+y_label   = "Population"
+)
+print(p_xmr2)
+```
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: xmr-chart-v2-download
+#| echo: false
+ds_download_plot_btn(
+  p_xmr2,
+  filename_base = base::paste0(base::tolower(params$city), "_population_xmr_v2"),
+  label         = "Download XmR Chart v2 (PNG)",
+  width = 9, height = 5
+)
+```
+:::
+
+
+# Export Data
+
+```{r}
+#| label: export
+
+base::dir.create("out", showWarnings = FALSE, recursive = TRUE)
+
+readr::write_csv(
+longitudinal,
+base::file.path("out", "longitudinal_place_series.csv")
+)
+
+readr::write_csv(
+cpi_tbl,
+base::file.path("out", "inflation_cpi_table.csv")
+)
+
+if (base::nrow(income_real) > 0L) {
+readr::write_csv(
+  income_real,
+  base::file.path("out", "income_real_base_year.csv")
+)
+}
+```
+
+Data exported to `out/` directory:
+
+- `longitudinal_place_series.csv` — All series combined
+- `inflation_cpi_table.csv` — CPI factors
+- `income_real_base_year.csv` — Inflation-adjusted income
+
+::: {.content-visible when-format="html"}
+```{r}
+#| label: export-download
+#| echo: false
+ds_download_data_btn(
+  longitudinal,
+  filename_base = base::paste0(
+    base::tolower(params$city), "_", params$state,
+    "_all_series_longitudinal"
+  ),
+  label = "Download Complete Dataset (CSV)"
+)
+```
+:::
+
+
+# Using This Template for Other Cities
+
+To analyze a different city, change only these values in the `params` code chunk at the top of the document:
+
+```r
+params <- base::list(
+  city  = "Austin",
+  state = "TX",
+  ...
+)
+```
+
+Everything else adapts automatically. Clear your cache directory if switching cities:
+
+```r
+unlink("cache", recursive = TRUE)
+```
+
+
+## Notes
+
+- **1990 Decennial**: Not supported by tidycensus for place-level data. Use NHGIS for earlier years.
+- **ACS Years**: ACS 5-year estimates are labeled by end-year. First available: 2009 (covering 2005–2009).
+- **PEP 2020+**: Uses tidycensus which reads Census flat files directly.

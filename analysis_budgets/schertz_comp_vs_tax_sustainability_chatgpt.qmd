@@ -1,0 +1,257 @@
+---
+title: "Schertz FY 2025–26: Compensation Growth vs. Tax Rate (Sustainability Review)"
+authors:
+    - Dan Swart
+    - ChatGPT
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    theme: cosmo
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+## Purpose and scope
+
+This memo reviews one issue only: **whether recurring compensation growth is being supported by a stable revenue base, or whether it increases pressure for future property tax rate increases**.
+
+It is written as a policy critique focused on long-term sustainability and tax impact.
+
+## What the budget says (direct quotes)
+
+The budget states the merit/step program begins midyear:
+
+> “These changes are planned to take effect midyear and cost $784,000.” (Budget Highlights, p. 7)
+
+The budget shows the adopted/proposed tax rates:
+
+- FY 2024–25 rate: **$0.4900**  
+- No-New-Revenue rate: **$0.5064**  
+- Budget proposed rate: **$0.5064** (Tax Rates table, p. 11)
+
+The budget also reports weakness in the existing tax base:
+
+> “Without new value from annexations and development, the value of the existing properties decreased by $83,012,028.” (Property tax discussion, p. 11)
+
+## Full-year correction for the merit/step program
+
+Because the merit/step program starts midyear, the $784,000 amount is a **half-year** cost. For sustainability and “time-to-double” analysis, the recurring **full-year** amount should be used:
+
+- Half-year shown in the budget: **$784,000**
+- Full-year recurring amount: **$784,000 × 2 = $1,568,000**
+
+This matters because recurring pay commitments do not end after one year. They become a permanent part of the payroll base.
+
+## Key sustainability concern: short-term financing vs. long-term commitments
+
+A fundamental financial principle is to match **short-term financing** with **short-term costs**, and **long-term revenue sources** with **long-term commitments**.
+
+When a city supports a **long-term, recurring** payroll commitment using revenue gains that are not reliable (for example, gains that depend on a changing tax base or one-time conditions), the result is predictable: **future tax rate increases become not optional, but inevitable** unless services are reduced or hiring is frozen.
+
+---
+
+## Inputs and assumptions (transparent and editable)
+
+```r
+#| label: inputs-assumptions-table
+
+assumptions <- data.frame(
+  Item = c(
+    "Merit/Step cost shown in budget (half-year)",
+    "Full-year recurring Merit/Step cost",
+    "FY 2024-25 tax rate",
+    "FY 2025-26 No-New-Revenue / Proposed rate",
+    "FY 2025-26 total taxable value"
+  ),
+  Value = c(
+    "$784,000 (midyear start)",
+    "$1,568,000 (784,000 × 2)",
+    "$0.4900 per $100",
+    "$0.5064 per $100",
+    "$5,734,815,455"
+  ),
+  Source = c(
+    "Budget Highlights (p. 7)",
+    "Calculated from budget statement",
+    "Tax Rates table (p. 11)",
+    "Tax Rates table (p. 11)",
+    "Property tax discussion (p. 11)"
+  )
+)
+
+flextable::flextable(assumptions) |>
+  flextable::autofit()
+```
+
+---
+
+## Time-to-double and structural pressure
+
+This chart shows the relationship between ongoing compensation growth (as a percent per year) and how quickly costs can double. It is a simple planning tool: higher ongoing growth rates lead to much faster doubling.
+
+```{r}
+#| label: time-to-double-plot
+
+growth_rates <- data.frame(
+  annual_growth_rate = seq(0.01, 0.08, by = 0.005)
+) |>
+  dplyr::mutate(
+    annual_growth_pct = annual_growth_rate * 100,
+    doubling_time_years = log(2) / log(1 + annual_growth_rate)
+  )
+
+ggplot2::ggplot(growth_rates, ggplot2::aes(x = annual_growth_pct, y = doubling_time_years)) +
+  ggplot2::geom_line(linewidth = 1) +
+  ggplot2::labs(
+    title = "Time to Double vs. Ongoing Compensation Growth",
+    x = "Ongoing compensation growth (% per year)",
+    y = "Approximate years to double"
+  ) +
+  ggplot2::theme_minimal()
+```
+
+### Plain-language takeaway (10th grade level)
+
+If payroll keeps rising every year, it eventually doubles.  
+When payroll doubles, the city needs much more revenue just to keep services the same.
+
+---
+
+## 5-year projection model: payroll pressure vs. projected tax collected
+
+### What this model does
+
+This model compares:
+
+1. **Payroll pressure** = starting payroll base + recurring annual increase (full-year $1.568M)  
+2. **Projected tax collected** (simplified) = taxable value × assumed growth × tax rate
+
+This is not a full revenue forecast. It is a focused stress test to keep the conversation on compensation growth vs. the property tax base.
+
+### Growth rates used (shown in scenario names)
+
+- **Optimistic:** 4.0% annual taxable value growth  
+- **Baseline:** 2.0% annual taxable value growth  
+- **Stress:** -0.5% annual taxable value decline  
+
+### Model code (editable)
+
+
+
+```{r}
+#| label: five-year-model
+
+# Inputs (edit if you want)
+tax_rate_per_100 <- 0.5064
+taxable_value_start <- 5734815455
+
+# Merit/Step full-year recurring cost (from midyear $784k statement)
+merit_step_full_year <- 784000 * 2
+
+# Illustrative payroll base (replace with a confirmed payroll base if desired)
+payroll_base_start <- 48623715
+
+years <- 0:5
+
+scenarios <- data.frame(
+  scenario = c("Optimistic (4% Growth)",
+               "Baseline (2% Growth)",
+               "Stress (-0.5% Growth)"),
+  taxable_value_growth = c(0.04, 0.02, -0.005)
+)
+
+proj <- tidyr::expand_grid(
+  scenarios,
+  year = years
+) |>
+  dplyr::mutate(
+    taxable_value = taxable_value_start * (1 + taxable_value_growth) ^ year,
+    projected_tax_collected = (taxable_value / 100) * tax_rate_per_100,
+    payroll_pressure = payroll_base_start + (merit_step_full_year * year),
+    gap = projected_tax_collected - payroll_pressure
+  )
+```
+
+### Projection table (includes Gap)
+
+Gap is defined as:
+
+- **gap = projected_tax_collected − payroll_pressure**
+
+So:
+- **Positive gap** = more tax capacity than payroll pressure (less stress)
+- **Negative gap** = payroll pressure is larger (more stress)
+
+```{r}
+#| label: projection-table-with-gap
+
+proj_table <- proj |>
+  dplyr::mutate(
+    projected_tax_collected = round(projected_tax_collected, 0),
+    payroll_pressure = round(payroll_pressure, 0),
+    gap = round(gap, 0)
+  ) |>
+  dplyr::select(
+    scenario,
+    year,
+    projected_tax_collected,
+    payroll_pressure,
+    gap
+  )
+
+flextable::flextable(proj_table) |>
+  flextable::colformat_num(
+    j = c("projected_tax_collected", "payroll_pressure", "gap"),
+    big.mark = ",",
+    digits = 0
+  ) |>
+  flextable::autofit()
+```
+
+### Projection plot
+
+
+```{r}
+#| label: five-year-plot
+
+plot_df <- proj |>
+  tidyr::pivot_longer(
+    cols = c(projected_tax_collected, payroll_pressure),
+    names_to = "metric",
+    values_to = "value"
+  ) |>
+  dplyr::mutate(
+    metric = dplyr::recode(
+      metric,
+      projected_tax_collected = "Projected Tax Collected",
+      payroll_pressure = "Payroll Pressure (Base + $1.568M/year)"
+    )
+  )
+
+ggplot2::ggplot(plot_df, ggplot2::aes(x = year, y = value, linetype = metric)) +
+  ggplot2::geom_line(linewidth = 1) +
+  ggplot2::facet_wrap(~ scenario, scales = "free_y") +
+  ggplot2::scale_y_continuous(labels = scales::label_dollar()) +
+  ggplot2::scale_x_continuous(breaks = years) +
+  ggplot2::labs(
+    title = "5-Year Projection: Projected Tax Collected vs Payroll Pressure",
+    x = "Years after FY 2025–26",
+    y = "Dollars (illustrative)",
+    linetype = ""
+  ) +
+  ggplot2::theme_minimal()
+```
+
+---
+
+
+## Bottom line (focused only on compensation vs tax rate)
+
+- The merit/step program cost shown in the budget is **midyear** ($784,000), which becomes **$1.568M per year** when annualized. (p. 7)
+- The property tax rate is proposed at the **No-New-Revenue** rate ($0.5064), and the budget reports the **existing** tax base declined without new growth. (p. 11)
+- That combination creates a sustainability risk: **recurring payroll growth** can keep stacking up even when the tax base is not reliably growing.
+
+If the city continues to add recurring compensation costs without matching them to long-term, stable funding, **large tax rate increases are not optional, but inevitable** unless staffing or services are reduced.

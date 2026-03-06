@@ -1,0 +1,1141 @@
+---
+title: "Sensitivity Analysis: PSPC Compensation Study Comparator Group"
+subtitle: "City of Schertz, Texas — What Happens When You Remove the Giants?"
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
+format:
+  html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: true     # Set to 'false' for drafts. Override if you're NOT sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
+execute:
+  echo: true
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+prefer-html: true
+
+params:
+  data_updated: !expr format(Sys.Date(), "%B %Y")
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+
+# install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
+
+# census_api_key("95496766c51541ee6f402c1e1a8658581285b759", install = TRUE, overwrite = TRUE)
+
+
+# # load libraries - NOT NEEDED
+
+# Download button helpers live here; knitr::is_html_output() guard is inside
+# the helpers so they silently no-op when rendering to typst
+source(here::here("R", "download_button_helpers.R"))
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+# Standard table styler: blue italic title row + palegreen column header row.
+# Defined here so all QMDs that source this setup get the same presentation
+# without depending on census_helpers.R for a purely cosmetic function.
+ds_style_flextable <- function(ft, title = NULL) {
+  if (!base::is.null(title)) {
+    ft <- flextable::add_header_lines(ft, values = title)
+    ft <- flextable::color(ft, i = 1, part = "header", color = "blue")
+    ft <- flextable::italic(ft, i = 1, part = "header")
+    ft <- flextable::align(ft, i = 1, part = "header", align = "left")
+    ft <- flextable::fontsize(ft, i = 1, part = "header", size = 12)
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "white")
+    ft <- flextable::bg(ft, i = 2, part = "header", bg = "palegreen")
+  } else {
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "palegreen")
+  }
+  ft <- flextable::autofit(ft)
+  ft
+}
+
+
+# Flextable built-in themes:
+  # flextable::theme_alafoli()	|>  # BLAH
+  # flextable::theme_apa()  # THIS IS NICE
+  # flextable::theme_booktabs() |>  # NICE, MORE COMPACT
+  # flextable::theme_box() |>   # OK, INCLUDES CELL BORDERS
+  # flextable::theme_tron() |>  # 'DARK MODE' BLUE TEXT
+  # flextable::theme_tron_legacy() |>   # 'DARK MODE' YELLOW TEXT
+  # flextable::theme_vader() |>    # 'DARK MODE' WHITE TEXT
+  # flextable::theme_vanilla() |>   # NOT SPECIAL
+  # flextable::theme_zebra()	|>
+  #
+
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 28,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 22,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 18,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18),
+        # ggplot2::element_blank(),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+        # ggplot2::element_blank(),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 18,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+
+claude <- ellmer::chat_anthropic(model = "claude-opus-4-6-20260205")
+  
+# Set seed for reproducibility
+base::set.seed(123)
+
+```
+
+\
+
+#### **Filename:** 
+2023_PSPC_Rough_Sensitivity_Analysis_ver2.qmd
+
+\
+
+
+## Purpose and Limitations
+
+This document presents a **sensitivity analysis** — not a recalculation — of the December 2023 PSPC Classification and Compensation Study for the City of Schertz.
+
+**Why a sensitivity analysis rather than a recalculation?** The PSPC study reports a single "Survey Midpoint" per position, which is an already-computed average across all comparator cities. 
+
+The underlying city-by-city data are not disclosed. We cannot algebraically remove Austin and San Antonio from the average because we do not have
+the individual data points. What we *can* do is model plausible scenarios for how the survey midpoints would change if large-city comparators were excluded, anchored in published research on the city-size wage premium.
+
+**Every assumption is stated explicitly.** The reader can accept, reject, or modify any assumption and trace its impact through the analysis. This is designed to be transparent and defensible as an illustration of comparator sensitivity — not as a definitive restatement of market rates.  
+
+
+## The City-Size Wage Premium: Research Basis
+
+The academic literature on the "urban wage premium" — the empirical finding that larger cities pay higher wages — provides the foundation for the assumptions.
+
+```{r}
+#| label: research-basis
+
+research <- dplyr::tibble(
+  Source = c(
+    "Baum-Snow & Pavan (2012)\nReview of Economic Studies",
+    "Yankow (2006)\nJournal of Urban Economics",
+    "Glaeser & Maré (2001)\nJournal of Labor Economics",
+    "NLC City Fiscal Conditions (2024)"
+  ),
+  Finding = c(
+    "Nominal wage premium of 19% for medium cities and 29% for large cities over small areas. After controlling for individual fixed effects: 7% (medium) and 15% (large).",
+    "OLS identifies 19% wage premium for large urban areas. Fixed-effects estimation reduces this to ~5-6% after controlling for unobserved worker heterogeneity.",
+    "25% raw wage advantage for large-city workers. Fixed-effects estimation reduces premium to 4.5-11% depending on sample.",
+    "Cities 10K-50K population: 25% reported wage increases in FY2024. Cities over 300K: only 5% reported increases. Small cities facing disproportionate wage pressure."
+  ),
+  Premium_Range = c(
+    "7% to 29%",
+    "5% to 19%",
+    "4.5% to 25%",
+    "N/A (growth rates)"
+  )
+)
+
+ft_research <- flextable::flextable(research) |>
+  flextable::add_header_lines(
+    values = "Published Research on City-Size Wage Premiums"
+  ) |>
+  flextable::color(i = 1, part = "header", color = "steelblue") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, part = "header", align = "left") |>
+  flextable::fontsize(i = 1, part = "header", size = 12) |>
+  flextable::bg(i = 1, part = "header", bg = "white") |>
+  flextable::bg(i = 2, part = "header", bg = "palegreen") |>
+  flextable::set_table_properties(layout = "autofit") |>
+  flextable::width(j = 1, width = 1.8) |>
+  flextable::width(j = 2, width = 3.5) |>
+  flextable::width(j = 3, width = 1.2)
+
+ft_research
+```
+
+**Key takeaway:** The research consistently finds that large cities (populations over 500K) pay a wage premium of roughly **5% to 20%** over smaller areas, depending on methodology and controls. For *municipal government* positions specifically, the premium is likely at the **lower end** of this range because public sector pay is less responsive to local labor market conditions than private sector pay (hopefully, constrained by budgets, pay scales, and political processes).  
+
+**Our modeling assumptions:** We test three scenarios for the degree to which Austin (pop. ~980K) and San Antonio (pop. ~1.5M) inflate the PSPC survey midpoints relative to what the remaining comparators alone would produce:
+
+- **Conservative:** 8% premium (lower bound of fixed-effects estimates)  
+
+- **Moderate:** 12% premium (midpoint of research range for public sector)  
+- **Aggressive:** 18% premium (upper range, reflecting full nominal differential)  
+
+
+## Comparator Group Composition
+
+```{r}
+#| label: comparator-composition
+
+comparators <- dplyr::tibble(
+  City = c("San Antonio", "Austin", "Round Rock", "Georgetown",
+           "San Marcos", "Kyle", "New Braunfels", "Schertz",
+           "Cibolo", "Seguin", "Universal City", "Buda", "Live Oak"),
+  Population = c(1527000, 980000, 130000, 96000,
+                 72000, 63000, 56000, 43000,
+                 34000, 30000, 21000, 16000, 16000),
+  Ratio_to_Schertz = c(35.5, 22.8, 3.0, 2.2,
+                        1.7, 1.5, 1.3, 1.0,
+                        0.8, 0.7, 0.5, 0.4, 0.4),
+  Category = c("Excluded (36x Schertz)", "Excluded (23x Schertz)",
+               rep("Retained — Core Comparator", 5),
+               "Schertz (Reference City)",
+               rep("Retained — Core Comparator", 5)),
+  In_Study = c("Core", "Core", "Core", "Core",
+               "Core", "Core", "Core", "Reference",
+               "Core", "Core", "Core", "Core", "Core")
+)
+
+# Reorder by population descending
+comparators <- comparators |>
+  dplyr::arrange(dplyr::desc(Population))
+
+ft_comp <- flextable::flextable(
+  comparators |> dplyr::select(-In_Study)
+) |>
+  flextable::add_header_lines(
+    values = "PSPC Core Comparator Cities with Population Context"
+  ) |>
+  flextable::color(i = 1, part = "header", color = "steelblue") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, part = "header", align = "left") |>
+  flextable::fontsize(i = 1, part = "header", size = 12) |>
+  flextable::bg(i = 1, part = "header", bg = "white") |>
+  flextable::bg(i = 2, part = "header", bg = "palegreen") |>
+  flextable::colformat_num(j = "Population", big.mark = ",", digits = 0) |>
+  flextable::colformat_num(j = "Ratio_to_Schertz", digits = 1) |>
+  flextable::set_table_properties(layout = "autofit")
+
+# Highlight the excluded rows (San Antonio and Austin are rows 1 and 2)
+ft_comp <- ft_comp |>
+  flextable::bg(i = 1:2, part = "body", bg = "#FFE0E0") |>
+  flextable::bg(
+    i = which(comparators$City == "Schertz"),
+    part = "body",
+    bg = "#E0E0FF"
+  )
+
+ft_comp
+```
+
+```{r}
+#| label: fig-population-comparison
+#| fig-cap: "Population of PSPC Core Comparator Cities Relative to Schertz"
+#| fig-height: 5
+#| fig-width: 8
+
+plot_data <- comparators |>
+  dplyr::filter(City != "Schertz") |>
+  dplyr::mutate(
+    Excluded = dplyr::if_else(
+      City %in% c("Austin", "San Antonio"),
+      "Excluded from Sensitivity Analysis",
+      "Retained in Sensitivity Analysis"
+    ),
+    City = forcats::fct_reorder(City, Population)
+  )
+
+ggplot2::ggplot(
+  plot_data,
+  ggplot2::aes(x = City, y = Population / 1000, fill = Excluded)
+) +
+  ggplot2::geom_col(width = 0.7) +
+  ggplot2::geom_hline(
+    yintercept = 43,
+    linetype = "dashed",
+    color = "steelblue",
+    linewidth = 0.8
+  ) +
+  ggplot2::annotate(
+    "text", x = 2, y = 65,
+    label = "Schertz (~43K)",
+    color = "steelblue",
+    fontface = "bold",
+    size = 3.5
+  ) +
+  ggplot2::coord_flip() +
+  ggplot2::scale_fill_manual(
+    values = c(
+      "Excluded from Sensitivity Analysis" = "#D9534F",
+      "Retained in Sensitivity Analysis" = "#5CB85C"
+    )
+  ) +
+  ggplot2::scale_y_continuous(
+    labels = scales::label_comma(suffix = "K")
+  ) +
+  ggplot2::labs(
+    title = "The Comparator Group Problem in One Chart",
+    subtitle = "San Antonio and Austin are 23x and 36x the size of Schertz",
+    x = NULL,
+    y = "Population (thousands)",
+    fill = NULL
+  ) +
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    legend.position = "bottom",
+    plot.title = ggplot2::element_text(face = "bold"),
+    panel.grid.major.y = ggplot2::element_blank()
+  )
+```
+
+**Note on "Additional Sources":** The PSPC study also included county governments (Bexar County, Williamson County, etc.), utility districts, and ESDs. These entities have fundamentally different tax bases and compensation structures from municipal governments. 
+
+We cannot model their exclusion because we do not know which positions they contributed to. Their inclusion likely introduces additional upward bias for certain positions.  
+
+
+## Sensitivity Analysis: Methodology
+
+### The Mathematical Problem
+
+Suppose the PSPC study surveyed $n$ comparator employers for a given position and reported the average midpoint as $\bar{M}$. If Austin and San Antonio are two of those $n$ employers, and their midpoints are higher than the remaining $(n-2)$ employers by some premium $p$, then the reported average is:
+
+$$\bar{M} = \frac{(n-2) \cdot \bar{M}_{small} + 2 \cdot \bar{M}_{small}(1+p)}{n} = \bar{M}_{small}\left(1 + \frac{2p}{n}\right)$$
+
+Solving for the smaller-city average:
+
+$$\bar{M}_{small} = \frac{\bar{M}}{1 + \frac{2p}{n}}$$
+
+We do not know $n$ (how many cities matched each position) or $p$ (the exact premium). But we can model the sensitivity across plausible values.  
+
+
+### Assumptions
+
+```{r}
+#| label: assumptions-table
+
+assumptions <- dplyr::tibble(
+  Parameter = c(
+    "Number of comparators per position (n)",
+    "Large-city premium: Conservative",
+    "Large-city premium: Moderate",
+    "Large-city premium: Aggressive",
+    "Positions where Austin/SA contributed data"
+  ),
+  Assumption = c(
+    "6 to 10 (central estimate: 8)",
+    "8% above smaller-city average",
+    "12% above smaller-city average",
+    "18% above smaller-city average",
+    "All 65 civilian benchmark positions"
+  ),
+  Basis = c(
+    "12 core comparator cities minus Schertz, plus selected additional sources; not all cities match all positions",
+    "Lower bound of fixed-effects estimates in literature (Yankow 2006)",
+    "Midpoint of research range; reflects mixed public/private sector benchmark",
+    "Upper range nominal premium (Baum-Snow & Pavan 2012); likely overstates public sector differential",
+    "Conservative assumption; actual coverage unknown because PSPC does not disclose position-level match counts"
+  )
+)
+
+ft_assumptions <- flextable::flextable(assumptions) |>
+  flextable::add_header_lines(
+    values = "Sensitivity Analysis Assumptions"
+  ) |>
+  flextable::color(i = 1, part = "header", color = "steelblue") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, part = "header", align = "left") |>
+  flextable::fontsize(i = 1, part = "header", size = 12) |>
+  flextable::bg(i = 1, part = "header", bg = "white") |>
+  flextable::bg(i = 2, part = "header", bg = "palegreen") |>
+  flextable::set_table_properties(layout = "autofit") |>
+  flextable::width(j = 1, width = 2.0) |>
+  flextable::width(j = 2, width = 1.8) |>
+  flextable::width(j = 3, width = 2.7)
+
+ft_assumptions
+```
+
+
+
+### Critical Caveat
+
+This analysis **assumes equal weighting** of comparators. If PSPC weighted by city size (which some firms do), the impact of removing Austin and San Antonio would be **larger** than modeled here. 
+
+If PSPC used median rather than mean, the impact would be **smaller**. We do not know which method was used because the study does not disclose it.  
+
+
+## Results
+
+```{r}
+#| label: build-position-data
+
+# ── PSPC study data: all 65 civilian benchmark positions ──
+positions <- dplyr::tibble(
+  Position = c(
+    "Building Inspector", "Computer Systems Support Engineer",
+    "Financial Analyst", "Civic Center Manager",
+    "Director of Public Affairs", "Meter Technician",
+    "Director of Parks, Rec & Community Svcs", "Police Chief",
+    "Risk and Safety Specialist", "Fire Chief",
+    "Director of Library", "City Engineer",
+    "Human Resources Generalist", "Director of Finance",
+    "Director of Human Resources", "Recreation Manager",
+    "Director of Information Technology", "Deputy City Secretary",
+    "Assistant City Manager", "Director of Public Works",
+    "Utility Billing Clerk", "Senior Systems Administrator",
+    "Public Safety Communications Mgr", "Court Administrator",
+    "Permit Technician", "Parks Manager",
+    "Electrician (Journeyman)", "Traffic Signal & Sign Tech",
+    "Utility Billing Manager", "Code Enforcement Officer",
+    "Communications Officer", "Street Worker I",
+    "Animal Services Officer", "Drainage Worker I",
+    "Business Engagement Manager", "Exec Dir of Economic Development",
+    "Streets and Drainage Manager", "SCADA Technician",
+    "Purchasing Manager", "Engineer - P.E.",
+    "Parks Maintenance Technician", "Dir of Planning & Community Dev",
+    "Accounts Payable Coordinator", "IT Support Specialist",
+    "Customer Relations Representative", "EMS Billing Specialist",
+    "Administrative Assistant", "Plumber (Journeyman)",
+    "Planning Manager", "Library Assistant",
+    "Engineering Inspector", "Accountant",
+    "Librarian", "HVAC Technician",
+    "Service Worker I", "Police Records Specialist",
+    "EMS Chief", "Deputy Court Clerk",
+    "Emergency Management Coordinator", "Planner",
+    "GIS Specialist", "Facilities Manager",
+    "Water/Wastewater Manager", "Fleet Mechanic",
+    "Civilian Evidence Technician"
+  ),
+  Schertz_Midpoint = c(
+    52834, 64219, 58248, 64219, 109835, 43466,
+    121093, 133506, 55475, 133506, 109835, 133506,
+    55475, 133506, 127148, 64219, 133506, 58248,
+    162276, 133506, 41240, 78058, 67429, 78058,
+    41240, 74342, 58248, 45638, 67429, 50318,
+    50318, 41240, 43466, 41240, 70802, 133506,
+    86059, 81961, 81961, 94881, 41240, 133506,
+    47922, 55475, 41240, 45638, 43466, 58248,
+    90363, 41240, 61161, 64219, 61161, 58248,
+    48487, 43466, 133506, 45638, 94881, 64219,
+    58248, 90363, 104605, 55475, 64219
+  ),
+  PSPC_Survey_Midpoint = c(
+    69374, 81039, 72998, 80024, 136613, 53716,
+    149363, 163880, 68021, 163302, 134346, 162702,
+    66778, 160217, 152408, 76725, 159246, 69375,
+    192408, 157680, 48055, 90663, 78245, 90264,
+    47510, 85202, 66495, 51910, 76601, 56925,
+    56822, 46108, 48567, 45900, 78762, 147772,
+    94885, 90122, 89991, 104088, 44948, 145319,
+    51935, 60118, 44415, 49005, 46607, 62446,
+    96734, 43660, 64246, 66879, 63054, 59735,
+    49659, 44138, 135486, 46245, 95440, 63938,
+    57948, 89748, 103525, 51972, 50937
+  )
+)
+
+# ── Calculate original variance ──
+positions <- positions |>
+  dplyr::mutate(
+    Original_Variance_Pct = (Schertz_Midpoint - PSPC_Survey_Midpoint) /
+      PSPC_Survey_Midpoint * 100
+  )
+
+# ── Sensitivity scenarios ──
+# For each scenario, compute adjusted survey midpoint after removing
+# large-city premium effect.
+# M_small = M_reported / (1 + 2*p/n)
+# We use n = 8 as central estimate
+
+n_comparators <- 8
+premiums <- c(Conservative = 0.08, Moderate = 0.12, Aggressive = 0.18)
+
+for (scenario in names(premiums)) {
+  p <- premiums[[scenario]]
+  adjustment_factor <- 1 + (2 * p / n_comparators)
+  col_midpoint <- paste0("Adj_Midpoint_", scenario)
+  col_variance <- paste0("Adj_Variance_", scenario)
+
+  positions[[col_midpoint]] <- positions$PSPC_Survey_Midpoint / adjustment_factor
+  positions[[col_variance]] <- (positions$Schertz_Midpoint -
+    positions[[col_midpoint]]) / positions[[col_midpoint]] * 100
+}
+```
+
+
+### Adjusted Market Midpoints: Sample Positions
+
+```{r}
+#| label: tbl-sample-positions
+
+# ── Show a representative sample of positions ──
+sample_positions <- c(
+  "Building Inspector", "Police Chief", "Fire Chief",
+  "Director of Finance", "Assistant City Manager",
+  "Director of Public Works", "Human Resources Generalist",
+  "Parks Manager", "Electrician (Journeyman)",
+  "Administrative Assistant", "Street Worker I",
+  "Accountant", "Fleet Mechanic", "Planner"
+)
+
+sample_data <- positions |>
+  dplyr::filter(Position %in% sample_positions) |>
+  dplyr::arrange(Original_Variance_Pct) |>
+  dplyr::select(
+    Position,
+    Schertz_Midpoint,
+    PSPC_Survey_Midpoint,
+    Original_Variance_Pct,
+    Adj_Midpoint_Conservative,
+    Adj_Variance_Conservative,
+    Adj_Midpoint_Moderate,
+    Adj_Variance_Moderate,
+    Adj_Midpoint_Aggressive,
+    Adj_Variance_Aggressive
+  )
+
+display_sample <- sample_data |>
+  dplyr::transmute(
+    Position,
+    `Schertz\nMidpoint` = scales::dollar(Schertz_Midpoint, accuracy = 1),
+    `PSPC Survey\nMidpoint` = scales::dollar(PSPC_Survey_Midpoint, accuracy = 1),
+    `Original\nGap` = sprintf("%.1f%%", Original_Variance_Pct),
+    `8% Adj.\nMidpoint` = scales::dollar(Adj_Midpoint_Conservative, accuracy = 1),
+    `8% Adj.\nGap` = sprintf("%.1f%%", Adj_Variance_Conservative),
+    `12% Adj.\nMidpoint` = scales::dollar(Adj_Midpoint_Moderate, accuracy = 1),
+    `12% Adj.\nGap` = sprintf("%.1f%%", Adj_Variance_Moderate),
+    `18% Adj.\nMidpoint` = scales::dollar(Adj_Midpoint_Aggressive, accuracy = 1),
+    `18% Adj.\nGap` = sprintf("%.1f%%", Adj_Variance_Aggressive)
+  )
+
+ft_sample <- flextable::flextable(display_sample) |>
+  flextable::add_header_lines(
+    values = "Selected Positions: Original vs. Adjusted Market Gaps"
+  ) |>
+  flextable::color(i = 1, part = "header", color = "steelblue") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, part = "header", align = "left") |>
+  flextable::fontsize(i = 1, part = "header", size = 11) |>
+  flextable::bg(i = 1, part = "header", bg = "white") |>
+  flextable::bg(i = 2, part = "header", bg = "palegreen") |>
+  flextable::fontsize(part = "body", size = 8) |>
+  flextable::fontsize(i = 2, part = "header", size = 8) |>
+  flextable::set_table_properties(layout = "autofit") |>
+  flextable::align(j = 2:10, align = "right", part = "body")
+
+ft_sample
+```
+
+
+### Distribution Shift: How the Gap Changes  
+
+
+```{r}
+#| label: fig-distribution-shift
+#| fig-cap: "Distribution of Market Gaps Under Different Comparator Assumptions"
+#| fig-height: 6
+#| fig-width: 9
+
+# ── Reshape for plotting ──
+gap_data <- positions |>
+  dplyr::select(
+    Position,
+    `PSPC Original` = Original_Variance_Pct,
+    `Conservative (8%)` = Adj_Variance_Conservative,
+    `Moderate (12%)` = Adj_Variance_Moderate,
+    `Aggressive (18%)` = Adj_Variance_Aggressive
+  ) |>
+  tidyr::pivot_longer(
+    cols = -Position,
+    names_to = "Scenario",
+    values_to = "Gap_Pct"
+  ) |>
+  dplyr::mutate(
+    Scenario = factor(Scenario, levels = c(
+      "PSPC Original",
+      "Conservative (8%)",
+      "Moderate (12%)",
+      "Aggressive (18%)"
+    ))
+  )
+
+ggplot2::ggplot(gap_data, ggplot2::aes(x = Gap_Pct, fill = Scenario)) +
+  ggplot2::geom_density(alpha = 0.35, linewidth = 0.6) +
+  ggplot2::geom_vline(xintercept = -5, linetype = "dashed", color = "gray40") +
+  ggplot2::geom_vline(xintercept = 5, linetype = "dashed", color = "gray40") +
+  ggplot2::geom_vline(xintercept = 0, linetype = "solid", color = "black",
+                      linewidth = 0.5) +
+  ggplot2::annotate(
+    "text", x = 0, y = Inf, label = "At Market",
+    vjust = 2, fontface = "bold", size = 3
+  ) +
+  ggplot2::annotate(
+    "rect", xmin = -5, xmax = 5,
+    ymin = -Inf, ymax = Inf,
+    alpha = 0.08, fill = "green"
+  ) +
+  ggplot2::scale_fill_manual(values = c(
+    "PSPC Original" = "#D9534F",
+    "Conservative (8%)" = "#F0AD4E",
+    "Moderate (12%)" = "#5BC0DE",
+    "Aggressive (18%)" = "#5CB85C"
+  )) +
+  ggplot2::labs(
+    title = "Removing Large-City Comparators Shifts the Distribution Rightward",
+    subtitle = "Green shaded region = within +/-5% of market (\"comparable\")",
+    x = "Schertz Variance from Survey Midpoint (%)",
+    y = "Density",
+    fill = "Scenario"
+  ) +
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    legend.position = "bottom",
+    plot.title = ggplot2::element_text(face = "bold")
+  )
+```
+
+
+### Summary Statistics: The Headline Numbers
+
+```{r}
+#| label: tbl-summary-stats
+
+# ── Compute summary stats for each scenario ──
+compute_summary <- function(variance_col, label) {
+  vals <- positions[[variance_col]]
+  dplyr::tibble(
+    Scenario = label,
+    `Mean Gap` = sprintf("%.1f%%", mean(vals)),
+    `Median Gap` = sprintf("%.1f%%", stats::median(vals)),
+    `Positions Below -5%` = sum(vals < -5),
+    `Pct Below -5%` = sprintf("%.0f%%", sum(vals < -5) / length(vals) * 100),
+    `Positions Comparable` = sum(vals >= -5 & vals <= 5),
+    `Pct Comparable` = sprintf("%.0f%%", sum(vals >= -5 & vals <= 5) /
+      length(vals) * 100),
+    `Positions Above +5%` = sum(vals > 5),
+    `Pct Above +5%` = sprintf("%.0f%%", sum(vals > 5) / length(vals) * 100)
+  )
+}
+
+summary_stats <- dplyr::bind_rows(
+  compute_summary("Original_Variance_Pct", "PSPC Original"),
+  compute_summary("Adj_Variance_Conservative", "Conservative (8% adj.)"),
+  compute_summary("Adj_Variance_Moderate", "Moderate (12% adj.)"),
+  compute_summary("Adj_Variance_Aggressive", "Aggressive (18% adj.)")
+)
+
+ft_summary <- flextable::flextable(summary_stats) |>
+  flextable::add_header_lines(
+    values = "How the PSPC Headline Findings Change Under Each Scenario"
+  ) |>
+  flextable::color(i = 1, part = "header", color = "steelblue") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, part = "header", align = "left") |>
+  flextable::fontsize(i = 1, part = "header", size = 11) |>
+  flextable::bg(i = 1, part = "header", bg = "white") |>
+  flextable::bg(i = 2, part = "header", bg = "palegreen") |>
+  flextable::fontsize(part = "body", size = 9) |>
+  flextable::fontsize(i = 2, part = "header", size = 9) |>
+  flextable::set_table_properties(layout = "autofit") |>
+  flextable::align(j = 2:9, align = "center", part = "body") |>
+  flextable::align(j = 2:9, align = "center", part = "header") |>
+  flextable::bg(i = 1, part = "body", bg = "#FFE0E0")
+
+ft_summary
+```
+
+
+### Estimated Cost Implications  
+
+```{r}
+#| label: tbl-cost-estimates
+
+# ── The PSPC study estimated $942K for civilian adjustments. ──
+# We can estimate the proportional reduction in cost under each scenario.
+# Logic: cost is roughly proportional to the total gap. If the average gap
+# shrinks by X%, the cost should shrink by approximately the same proportion.
+# This is a simplification (individual employee placement matters), but
+# directionally correct.
+
+original_mean_gap <- mean(positions$Original_Variance_Pct)
+original_civilian_cost <- 942000
+original_public_safety_cost <- 1364000
+original_total <- original_civilian_cost + original_public_safety_cost
+
+# Only positions with negative gaps get adjustments
+compute_cost_reduction <- function(original_gaps, adjusted_gaps,
+                                   original_cost) {
+  # Sum of negative gaps (the total "below market" dollars driving cost)
+  orig_neg_sum <- sum(pmin(original_gaps, 0))
+  adj_neg_sum <- sum(pmin(adjusted_gaps, 0))
+
+  # Proportional reduction
+  if (orig_neg_sum == 0) return(original_cost)
+  ratio <- adj_neg_sum / orig_neg_sum
+  round(original_cost * ratio, -3)  # Round to nearest thousand
+}
+
+cost_estimates <- dplyr::tibble(
+  Scenario = c("PSPC Original", "Conservative (8%)",
+               "Moderate (12%)", "Aggressive (18%)"),
+  `Est. Civilian Cost` = scales::dollar(c(
+    original_civilian_cost,
+    compute_cost_reduction(
+      positions$Original_Variance_Pct,
+      positions$Adj_Variance_Conservative,
+      original_civilian_cost
+    ),
+    compute_cost_reduction(
+      positions$Original_Variance_Pct,
+      positions$Adj_Variance_Moderate,
+      original_civilian_cost
+    ),
+    compute_cost_reduction(
+      positions$Original_Variance_Pct,
+      positions$Adj_Variance_Aggressive,
+      original_civilian_cost
+    )
+  ), accuracy = 1),
+  `Est. Public Safety Cost` = scales::dollar(c(
+    original_public_safety_cost,
+    compute_cost_reduction(
+      positions$Original_Variance_Pct,
+      positions$Adj_Variance_Conservative,
+      original_public_safety_cost
+    ),
+    compute_cost_reduction(
+      positions$Original_Variance_Pct,
+      positions$Adj_Variance_Moderate,
+      original_public_safety_cost
+    ),
+    compute_cost_reduction(
+      positions$Original_Variance_Pct,
+      positions$Adj_Variance_Aggressive,
+      original_public_safety_cost
+    )
+  ), accuracy = 1),
+  `Est. Total Cost` = scales::dollar(c(
+    original_total,
+    compute_cost_reduction(
+      positions$Original_Variance_Pct,
+      positions$Adj_Variance_Conservative,
+      original_total
+    ),
+    compute_cost_reduction(
+      positions$Original_Variance_Pct,
+      positions$Adj_Variance_Moderate,
+      original_total
+    ),
+    compute_cost_reduction(
+      positions$Original_Variance_Pct,
+      positions$Adj_Variance_Aggressive,
+      original_total
+    )
+  ), accuracy = 1),
+  `Est. Savings vs. Original` = scales::dollar(c(
+    0,
+    original_total - compute_cost_reduction(
+      positions$Original_Variance_Pct,
+      positions$Adj_Variance_Conservative,
+      original_total
+    ),
+    original_total - compute_cost_reduction(
+      positions$Original_Variance_Pct,
+      positions$Adj_Variance_Moderate,
+      original_total
+    ),
+    original_total - compute_cost_reduction(
+      positions$Original_Variance_Pct,
+      positions$Adj_Variance_Aggressive,
+      original_total
+    )
+  ), accuracy = 1)
+)
+
+ft_cost <- flextable::flextable(cost_estimates) |>
+  flextable::add_header_lines(
+    values = "Estimated Cost Implications by Scenario"
+  ) |>
+  flextable::color(i = 1, part = "header", color = "steelblue") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, part = "header", align = "left") |>
+  flextable::fontsize(i = 1, part = "header", size = 11) |>
+  flextable::bg(i = 1, part = "header", bg = "white") |>
+  flextable::bg(i = 2, part = "header", bg = "palegreen") |>
+  flextable::set_table_properties(layout = "autofit") |>
+  flextable::align(j = 2:5, align = "right", part = "body") |>
+  flextable::bg(i = 1, part = "body", bg = "#FFE0E0")
+
+ft_cost
+```
+
+
+### The Reclassification Effect
+
+```{r}
+#| label: fig-reclassification
+#| fig-cap: "How Positions Reclassify Under Each Scenario"
+#| fig-height: 5
+#| fig-width: 8
+
+# ── Count positions in each category by scenario ──
+classify <- function(gaps) {
+  dplyr::tibble(
+    Below = sum(gaps < -5),
+    Comparable = sum(gaps >= -5 & gaps <= 5),
+    Above = sum(gaps > 5)
+  )
+}
+
+reclass <- dplyr::bind_rows(
+  classify(positions$Original_Variance_Pct) |>
+    dplyr::mutate(Scenario = "PSPC\nOriginal"),
+  classify(positions$Adj_Variance_Conservative) |>
+    dplyr::mutate(Scenario = "Conservative\n(8%)"),
+  classify(positions$Adj_Variance_Moderate) |>
+    dplyr::mutate(Scenario = "Moderate\n(12%)"),
+  classify(positions$Adj_Variance_Aggressive) |>
+    dplyr::mutate(Scenario = "Aggressive\n(18%)")
+) |>
+  tidyr::pivot_longer(
+    cols = c(Below, Comparable, Above),
+    names_to = "Category",
+    values_to = "Count"
+  ) |>
+  dplyr::mutate(
+    Scenario = factor(Scenario, levels = c(
+      "PSPC\nOriginal", "Conservative\n(8%)",
+      "Moderate\n(12%)", "Aggressive\n(18%)"
+    )),
+    Category = factor(Category, levels = c("Above", "Comparable", "Below"))
+  )
+
+ggplot2::ggplot(
+  reclass,
+  ggplot2::aes(x = Scenario, y = Count, fill = Category)
+) +
+  ggplot2::geom_col(position = "stack", width = 0.6) +
+  ggplot2::geom_text(
+    ggplot2::aes(label = Count),
+    position = ggplot2::position_stack(vjust = 0.5),
+    color = "white",
+    fontface = "bold",
+    size = 4
+  ) +
+  ggplot2::scale_fill_manual(
+    values = c(
+      "Below" = "#D9534F",
+      "Comparable" = "#F0AD4E",
+      "Above" = "#5CB85C"
+    ),
+    labels = c(
+      "Below" = "Below Market (< -5%)",
+      "Comparable" = "Comparable (+/- 5%)",
+      "Above" = "Above Market (> +5%)"
+    )
+  ) +
+  ggplot2::labs(
+    title = "Removing Large-City Bias Shifts Positions Toward \"Comparable\"",
+    subtitle = paste0("Total positions: ", nrow(positions)),
+    x = NULL,
+    y = "Number of Positions",
+    fill = NULL
+  ) +
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    legend.position = "bottom",
+    plot.title = ggplot2::element_text(face = "bold")
+  )
+```
+
+
+## Interpretation and Caveats  
+
+### What This Analysis Shows  
+
+1. **The PSPC headline finding is sensitive to comparator composition.** Under the moderate scenario (12% large-city premium), the proportion of positions classified as "below market" drops meaningfully, and the average gap narrows.
+
+2. **Even after adjustment, Schertz was still likely behind market for many
+positions.** This analysis does not argue that no pay correction was warranted. It
+argues that the *magnitude* of the correction was inflated by the comparator group.
+
+3. **The cost differential is material.** Even the conservative scenario suggests
+the City may have overshot "market" as defined by its actual peer cities by a
+meaningful amount.
+
+### What This Analysis Cannot Show
+
+1. **Exact position-level adjustments.** We applied a uniform adjustment factor. In
+reality, some positions (e.g., Police Chief, Fire Chief) may have had more
+large-city matches while others (e.g., Library Assistant) may have had fewer. The
+position-level estimates should be treated as illustrative.
+
+2. **The effect of county and utility comparators.** Bexar County, Williamson
+County, San Antonio Water System, and New Braunfels Utilities were also included.
+These entities may introduce additional upward bias for certain positions. We cannot
+model their removal.
+
+3. **ERI private-sector data impact.** The inclusion of private-sector benchmarks
+from ERI's Salary Assessor for the Austin-San Antonio corridor likely adds further
+upward pressure on certain positions. This is unquantifiable from the report.
+
+4. **The actual weighting scheme.** If PSPC used median rather than mean, the impact
+of outliers (including Austin and San Antonio) would be smaller. If they used
+size-weighted averages, the impact would be larger. We assumed equal-weighted mean.
+
+### The Bottom Line
+
+The PSPC study's comparator group is the primary driver of its finding that Schertz
+is significantly below market. A more defensible peer group — limited to cities of
+comparable size and operational scope — would have produced a smaller gap, a lower
+cost estimate, and potentially a different recommendation. The Council adopted a
+\$2.3 million expenditure based on a study that did not disclose its weighting
+methodology, did not present sensitivity analysis, and did not test its conclusions
+against operationally similar peer cities.
+
+**The right question is not "was Schertz below market?" (probably yes) but "how far
+below, compared to whom, and was \$2.3M the right-sized response?"** This analysis
+suggests the answer to the last question is: probably not.
+
+---
+
+## Appendix: Full Position Data by Scenario
+
+```{r}
+#| label: tbl-full-appendix
+
+# ── Full dataset for all 65 positions ──
+full_display <- positions |>
+  dplyr::arrange(Original_Variance_Pct) |>
+  dplyr::transmute(
+    Position,
+    `Schertz Mid.` = scales::dollar(Schertz_Midpoint, accuracy = 1),
+    `PSPC Mid.` = scales::dollar(PSPC_Survey_Midpoint, accuracy = 1),
+    `Orig. Gap` = sprintf("%.1f%%", Original_Variance_Pct),
+    `8% Gap` = sprintf("%.1f%%", Adj_Variance_Conservative),
+    `12% Gap` = sprintf("%.1f%%", Adj_Variance_Moderate),
+    `18% Gap` = sprintf("%.1f%%", Adj_Variance_Aggressive)
+  )
+
+ft_full <- flextable::flextable(full_display) |>
+  flextable::add_header_lines(
+    values = "All 65 Civilian Benchmark Positions: Gap Under Each Scenario"
+  ) |>
+  flextable::color(i = 1, part = "header", color = "steelblue") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, part = "header", align = "left") |>
+  flextable::fontsize(i = 1, part = "header", size = 11) |>
+  flextable::bg(i = 1, part = "header", bg = "white") |>
+  flextable::bg(i = 2, part = "header", bg = "palegreen") |>
+  flextable::fontsize(part = "body", size = 7) |>
+  flextable::fontsize(i = 2, part = "header", size = 8) |>
+  flextable::set_table_properties(layout = "autofit") |>
+  flextable::align(j = 2:7, align = "right", part = "body")
+
+ft_full
+```
+
+---
+
+*Analysis prepared `r Sys.Date()`. All assumptions are documented and modifiable.
+Source data: PSPC FY 2024 Classification and Compensation Study, December 2023.
+Research citations: Baum-Snow & Pavan (2012), Yankow (2006), Glaeser & Maré (2001),
+NLC City Fiscal Conditions Survey (2024).*

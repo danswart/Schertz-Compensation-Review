@@ -96,7 +96,7 @@ quarto:
 
 # for .qmd filesd
 execute:
-  echo: true
+  echo: false
   message: false
   warning: false
   eval: true
@@ -107,7 +107,7 @@ execute:
 # for .rmd files
 knitr:
   opts_chunk:
-    echo: true
+    echo: false
     error: false
     warning: false
     message: false

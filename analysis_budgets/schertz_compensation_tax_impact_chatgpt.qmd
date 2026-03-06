@@ -1,0 +1,115 @@
+---
+title: "Schertz FY 2025–26 Proposed Budget — Clarification on Compensation vs. Overall Deficit"
+format: html
+editor: source
+---
+
+## What was backwards in the earlier interpretation
+
+You’re right to flag this.
+
+The proposed FY 2025–26 **General Fund** budget is still **in deficit overall** (planned use of fund balance), even though the narrative ties the M&O rate and other resources to a set of priorities (including compensation adjustments).
+
+The General Fund summary shows:
+
+-   **Revenues:** \$52,499,128\
+-   **Expenditures:** \$53,754,934\
+-   **Over/(Under):** **(\$1,255,805)**【32:12†Schertz FY 2025-26 Proposed Budget.pdf†L47-L53】
+
+And the multi-year General Fund table also shows “Change in Fund Balance … **-\$1,255,806**” for FY 2025–26【32:1†Schertz FY 2025-26 Proposed Budget.pdf†L20-L22】.
+
+So: even after the proposed tax rate, the General Fund remains short by about **\$1.256M** because other costs increased (the executive summary explicitly lists cyber security upgrades, new firefighters, equipment replacements, etc.)【32:8†Schertz FY 2025-26 Proposed Budget.pdf†L58-L63】.
+
+## What the budget says about compensation increases
+
+Citywide, the budget describes Merit/Step compensation adjustments and states:
+
+-   “Non-uniformed employees will be eligible for a 0-4% increase… uniformed public safety… 4%… planned to take effect midyear and cost **\$784,000**.”【32:14†Schertz FY 2025-26 Proposed Budget.pdf†L45-L50】
+
+## Proposed M&O rate change (General Fund)
+
+The budget breaks the total rate into M&O and I&S and shows:
+
+-   **General Fund (M&O):** \$0.3383 (FY 2025–26) vs \$0.3326 (FY 2024–25)【32:3†Schertz FY 2025-26 Proposed Budget.pdf†L49-L52】
+    -   That is an M&O increase of:\
+        \[ 0.3383 - 0.3326 = 0.0057 \] i.e., **\$0.0057 per \$100** of taxable value.
+
+The budget also reports the City’s total taxable value as **\$5,734,815,455**【32:3†Schertz FY 2025-26 Proposed Budget.pdf†L37-L41】.
+
+### Mechanical revenue from the M&O rate change (showing work)
+
+If you apply the \$0.0057 per \$100 increase to the stated taxable value:
+
+\[ \Delta \text{Revenue} \approx \frac{0.0057}{100}\times 5,734,815,455 \]
+
+```{r}
+taxable_value <- 5734815455
+delta_mo_rate <- 0.3383 - 0.3326  # per $100
+
+delta_mo_revenue_mechanical <- taxable_value/100 * delta_mo_rate
+delta_mo_revenue_mechanical
+```
+
+**Result:** about **\$326,884** in additional levy, mechanically, on the stated taxable value.
+
+> Important: The budget’s “No-New-Revenue” framework means the relationship between a “rate change” and “new net revenue” is not always as simple as multiplying the new total taxable value by the rate difference, because the NNR rate is defined to raise the same revenue on **last year’s** properties, and exemptions/collections can also affect net revenue.
+
+A more direct “dollar impact” statement in the budget is:
+
+-   “The City Council hereby ratifies the budget will raise more total property taxes than last year's budget by **\$1,287,413**…”【32:9†Schertz FY 2025-26 Proposed Budget.pdf†L31-L35】
+
+That \$1.287M is the document’s own stated year-over-year increase in total property taxes (citywide) under the proposal.
+
+## So do “new revenues” cover compensation increases?
+
+Two different ways to frame the question:
+
+### A) “Does the proposed M&O rate increase alone cover the \$784k compensation program cost?”
+
+Using the simple mechanical estimate above, the **M&O rate increase (\~\$326.9k)** is **less than** the **\$784k** citywide Merit/Step program cost【32:14†Schertz FY 2025-26 Proposed Budget.pdf†L45-L50】, so **M&O rate change alone would not cover it** if you assume:
+
+-   \$784k is incremental cost, and\
+-   property tax rate change is the only funding source.
+
+But the proposed budget is not structured that way; it includes many revenue sources, and it is also explicitly a deficit General Fund budget【32:12†Schertz FY 2025-26 Proposed Budget.pdf†L47-L53】.
+
+### B) “Does the overall property tax increase under the proposal cover compensation increases?”
+
+If you use the budget’s own statement that total property taxes rise by **\$1,287,413** year-over-year【32:9†Schertz FY 2025-26 Proposed Budget.pdf†L31-L35】, then—*as a purely arithmetic comparison*—that is **greater than \$784,000**.
+
+However, that does **not** mean compensation is the only reason taxes increase. The executive summary lists multiple major expenditure drivers beyond compensation (cyber security upgrades, added firefighters, equipment replacements, etc.)【32:8†Schertz FY 2025-26 Proposed Budget.pdf†L58-L63】, and the General Fund still ends in deficit【32:12†Schertz FY 2025-26 Proposed Budget.pdf†L47-L53】.
+
+## “What rate increase would be required” calculations
+
+These calculations answer: *If the City wanted to raise enough additional property tax revenue to cover a target amount, holding everything else constant, what rate increment (per \$100) would be required?*
+
+### 1) To cover the \$784,000 compensation program
+
+```{r}
+comp_cost <- 784000
+rate_needed_for_comp <- comp_cost / taxable_value * 100
+rate_needed_for_comp
+```
+
+\[ \Delta \text{Rate}\_{comp} \approx 0.01367 \]
+
+That is **\$0.01367 per \$100** (≈ **1.367 cents per \$100**).
+
+### 2) To eliminate the General Fund deficit (\~\$1,255,805)
+
+```{r}
+gf_deficit <- 1255805
+rate_needed_for_deficit <- gf_deficit / taxable_value * 100
+rate_needed_for_deficit
+```
+
+\[ \Delta \text{Rate}\_{deficit} \approx 0.02190 \]
+
+That is **\$0.02190 per \$100** (≈ **2.190 cents per \$100**).
+
+## Bottom line
+
+-   The **General Fund** is still budgeted to draw down reserves by about **\$1.256M**【32:12†Schertz FY 2025-26 Proposed Budget.pdf†L47-L53】 even with the proposed tax rate.\
+-   The budget explicitly quantifies a **\$784k** citywide Merit/Step compensation adjustment program【32:14†Schertz FY 2025-26 Proposed Budget.pdf†L45-L50】.\
+-   The proposed **M&O rate** moves from **\$0.3326** to **\$0.3383** per \$100【32:3†Schertz FY 2025-26 Proposed Budget.pdf†L49-L52】; a mechanical application to the stated taxable value yields about **\$326.9k** in additional levy (not enough by itself to cover \$784k).\
+-   The budget also states total property taxes rise by **\$1,287,413** over last year’s budget【32:9†Schertz FY 2025-26 Proposed Budget.pdf†L31-L35】—which is more than \$784k—but that increase is supporting multiple spending priorities, and the fund still runs a deficit.

@@ -1,5 +1,5 @@
 ---
-title: "Compensation Elements Growth Rates Comparison and Compensation vs Inflation"
+title: "Compensation Elements Growth Rate Comparisons and Compensation vs Inflation"
 subtitle: "FY21 - FY25"
 description: ""
 authors: 
@@ -182,7 +182,28 @@ flextable::set_flextable_defaults(
   # flextable::theme_vader() |>    # 'DARK MODE' WHITE TEXT
   # flextable::theme_vanilla() |>   # NOT SPECIAL
   # flextable::theme_zebra()	|>
-  #
+
+
+
+# Standard table styler: blue italic title row + palegreen column header row.
+# Defined here so all QMDs that source this setup get the same presentation
+# without depending on census_helpers.R for a purely cosmetic function.
+ds_style_flextable <- function(ft, title = NULL) {
+  if (!base::is.null(title)) {
+    ft <- flextable::add_header_lines(ft, values = title)
+    ft <- flextable::color(ft, i = 1, part = "header", color = "blue")
+    ft <- flextable::italic(ft, i = 1, part = "header")
+    ft <- flextable::align(ft, i = 1, part = "header", align = "left")
+    ft <- flextable::fontsize(ft, i = 1, part = "header", size = 12)
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "white")
+    ft <- flextable::bg(ft, i = 2, part = "header", bg = "palegreen")
+  } else {
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "palegreen")
+  }
+  ft <- flextable::autofit(ft)
+  ft
+}
+
 
 
 # Set global theme for consistent plots
@@ -269,7 +290,7 @@ ggplot2::theme_set(
 )
 
 
-claude <- ellmer::chat_anthropic(model = "claude-opus-4-6-20260205")
+# claude <- ellmer::chat_anthropic(model = "claude-opus-4-6-20260205")
 
 # -----------------------------------------------------------------------------
 # Download button helper (HTML only)
@@ -321,7 +342,7 @@ and_doubling_time.qmd
 \
 
 
-## Compensaation Elements Growth Rates Comparison and Compensation vs Inflation
+## Compensation Elements Growth Rate Comparisons and Compensation vs Inflation
 
 ```{r}
 #| label: growth-rates-comparison-data
@@ -381,11 +402,11 @@ growth_rates_all |>
   dplyr::rename(
     FY = fiscal_year,
     `Imputed?` = benefits_imputed,
-    `Inflation` = inflation_rate,
-    `Total Comp` = total_comp_growth,
-    `Regular Earnings` = regular_growth,
-    `Add'l Benefits` = benefits_growth,
-    `Employees` = employee_growth
+    `Inflation Rate` = inflation_rate,
+    `Total Comp Growth Rate` = total_comp_growth,
+    `Regular Earnings Growth Rate` = regular_growth,
+    `Add'l Benefits Growth Rate` = benefits_growth,
+    `Employee Count Growth Rate` = employee_growth
   ) |>
   flextable::flextable() |>
   flextable::add_header_lines("Year-over-Year Growth Rates by Category") |>
@@ -438,32 +459,36 @@ growth_rates_long <- growth_rates_all |>
   dplyr::filter(!base::is.na(total_comp_growth)) |>
   dplyr::select(
     fiscal_year,
-    `Inflation (FRED)` = inflation_rate,
-    `Total Compensation` = total_comp_growth,
-    `Regular Earnings` = regular_growth,
-    `Additional Benefits` = benefits_growth,
-    `Employee Count` = employee_growth
+    `Inflation Rate (FRED)`          = inflation_rate,
+    `Total Compensation Growth Rate` = total_comp_growth,
+    `Regular Earnings Growth Rate`   = regular_growth,
+    `Additional Benefits Growth Rate`= benefits_growth,
+    `Employee Count Growth Rate`     = employee_growth
   ) |>
   tidyr::pivot_longer(
-    cols = -fiscal_year,
-    names_to = "metric",
+    cols      = -fiscal_year,
+    names_to  = "metric",
     values_to = "growth_rate"
   ) |>
   dplyr::mutate(
     metric = base::factor(
       metric,
-      levels = c("Inflation (FRED)", "Total Compensation", "Regular Earnings", 
-                 "Additional Benefits", "Employee Count")
+      levels = c("Inflation Rate (FRED)",
+                 "Total Compensation Growth Rate",
+                 "Regular Earnings Growth Rate",
+                 "Additional Benefits Growth Rate",
+                 "Employee Count Growth Rate")
     )
   )
 
+
 # Define colors for each metric
 metric_colors <- c(
-  "Inflation (FRED)" = "firebrick",
-  "Total Compensation" = "steelblue",
-  "Regular Earnings" = "darkgreen",
-  "Additional Benefits" = "purple",
-  "Employee Count" = "darkorange"
+  "Inflation Rate (FRED)"          = "firebrick",
+  "Total Compensation Growth Rate" = "steelblue",
+  "Regular Earnings Growth Rate"   = "darkgreen",
+  "Additional Benefits Growth Rate"= "purple",
+  "Employee Count Growth Rate"     = "darkorange"
 )
 
 # Find each metric's FIRST fiscal year for LEFT-side endpoint labels
@@ -478,12 +503,12 @@ plot_growth_rates <- ggplot2::ggplot(
   ggplot2::aes(x = fiscal_year, y = growth_rate, group = metric, color = metric)
 ) +
   ggplot2::geom_hline(yintercept = 0, linetype = "solid", color = "gray50") +
-  ggplot2::geom_line(linewidth = 1.5) +
-  ggplot2::geom_point(size = 4) +
+  ggplot2::geom_line(linewidth = 2.0) +
+  ggplot2::geom_point(size = 6) +
   ggplot2::geom_text(
     ggplot2::aes(label = base::sprintf("%.1f%%", growth_rate)),
     vjust = -1.2,
-    size = 3.5,
+    size = 6.0,
     show.legend = FALSE
   ) +
   ggrepel::geom_text_repel(
@@ -493,7 +518,7 @@ plot_growth_rates <- ggplot2::ggplot(
     hjust = 1,
     nudge_x = -0.3,
     segment.color = "gray70",
-    size = 4,
+    size = 6,
     fontface = "bold",
     color = "black"
   ) +
@@ -576,7 +601,7 @@ rule_of_70 <- dplyr::tibble(
   dplyr::mutate(
     doubling_time_num = dplyr::case_when(
       growth_rate_num <= 0 ~ NA_real_,
-      TRUE ~ 70 / growth_rate_num
+      TRUE ~ 70.0 / growth_rate_num
     ),
     doubled_amount = current_amount * 2
   ) |>
@@ -652,7 +677,7 @@ avg_rates <- growth_rates_all |>
 # Build Rule of 70 table with averages
 rule_of_70_avg <- dplyr::tibble(
   Metric = c(
-    "Inflation (FRED)",
+    "Inflation Rate (FRED)",
     "Total Compensation",
     "Regular Earnings",
     "Additional Benefits",
@@ -732,26 +757,63 @@ ds_download_data_btn(
 # =============================================================================
 # INTERPRETATION SUMMARY
 # =============================================================================
-
-base::cat("=== GROWTH RATES ANALYSIS SUMMARY ===\n\n")
-
-# Latest year comparison
-base::cat("FY25 Growth Rates:\n")
-base::cat("  - Inflation (FRED):", sprintf("%.2f%%", latest_data$inflation_rate), "\n")
-base::cat("  - Total Compensation:", sprintf("%.2f%%", latest_data$total_comp_growth), "\n")
-base::cat("  - Regular Earnings:", sprintf("%.2f%%", latest_data$regular_growth), "\n")
-base::cat("  - Additional Benefits:", sprintf("%.2f%%", latest_data$benefits_growth), "\n")
-base::cat("  - Employee Count:", sprintf("%.2f%%", latest_data$employee_growth), "\n\n")
-
-# Key insight
 comp_vs_inflation <- latest_data$total_comp_growth - latest_data$inflation_rate
-if (comp_vs_inflation > 0) {
-  base::cat("KEY FINDING: Total compensation growth EXCEEDS inflation by", 
-            sprintf("%.2f", comp_vs_inflation), "percentage points in FY25.\n")
-} else {
-  base::cat("KEY FINDING: Total compensation growth is BELOW inflation by", 
-            sprintf("%.2f", base::abs(comp_vs_inflation)), "percentage points in FY25.\n")
-}
+
+exceeds <- comp_vs_inflation > 0
+finding_text <- base::sprintf(
+  "Total compensation growth %s inflation by %.2f percentage points in FY25.",
+  ifelse(exceeds, "EXCEEDS", "is BELOW"),
+  base::abs(comp_vs_inflation)
+)
+
+growth_summary_df <- data.frame(
+  Metric       = c("Inflation Rate (FRED)",
+                   "Total Compensation Growth Rate",
+                   "Regular Earnings Growth Rate",
+                   "Additional Benefits Growth Rate",
+                   "Employee Count Growth Rate",
+                   "Comp Growth MINUS Inflation"),
+  FY25_Rate    = base::sprintf("%.2f%%",
+                   c(latest_data$inflation_rate,
+                     latest_data$total_comp_growth,
+                     latest_data$regular_growth,
+                     latest_data$benefits_growth,
+                     latest_data$employee_growth,
+                     comp_vs_inflation)),
+  stringsAsFactors = FALSE
+)
+
+n_rows  <- base::nrow(growth_summary_df)
+
+ft_growth <- flextable::flextable(growth_summary_df) |>
+  flextable::set_header_labels(
+    Metric    = "Metric",
+    FY25_Rate = "FY25 Growth Rate"
+  ) |>
+  flextable::align(j = "FY25_Rate", align = "right", part = "all") |>
+  flextable::bold(i = n_rows, part = "body") |>
+  flextable::color(
+    i = n_rows, j = "FY25_Rate",
+    color = ifelse(exceeds, "firebrick", "darkgreen"),
+    part = "body"
+  ) |>
+  flextable::hline(i = n_rows - 1,
+                   border = officer::fp_border(color = "navy", width = 2),
+                   part = "body") |>
+  flextable::add_footer_lines(base::paste("Key Finding:", finding_text)) |>
+  flextable::fontsize(part = "footer", size = 10) |>
+  flextable::italic(part = "footer") |>
+  flextable::color(part  = "footer",
+                   color = ifelse(exceeds, "firebrick", "darkgreen")) |>
+  ds_style_flextable(title = "FY25 Growth Rates Analysis Summary")
+
+ft_growth
 ```
 
+```{r}
+
+
+ds_download_data_btn(growth_summary_df, "growth_rates_summary")
+
+```
 ------------------------------------------------------------------------

@@ -1,0 +1,2056 @@
+---
+title: "City of Schertz — FY 2025-26 Proposed Budget: Compensation Increase Analysis"
+subtitle: ""
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
+format:
+  html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: true     # Set to 'false' for drafts. Override if you're NOT sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
+execute:
+  echo: true
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+prefer-html: true
+
+params:
+  data_updated: !expr format(Sys.Date(), "%B %Y")
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+# Capture current filename for use in document
+file_name <- if (!base::is.null(knitr::current_input())) {
+  paste0(tools::file_path_sans_ext(knitr::current_input()), ".qmd")
+} else {
+  "interactive_session.qmd"
+}
+
+file_stem <- tools::file_path_sans_ext(file_name)
+
+
+
+# install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
+
+# census_api_key("95496766c51541ee6f402c1e1a8658581285b759", install = TRUE, overwrite = TRUE)
+
+
+# # load libraries - NOT NEEDED
+
+# Download button helpers live here; knitr::is_html_output() guard is inside
+# the helpers so they silently no-op when rendering to typst
+source(here::here("R", "download_button_helpers.R"))
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  theme_fun = base::identity,          # <-- add this
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+# Standard table styler: blue italic title row + palegreen column header row.
+# Defined here so all QMDs that source this setup get the same presentation
+# without depending on census_helpers.R for a purely cosmetic function.
+ds_style_flextable <- function(ft, title = NULL) {
+  if (!base::is.null(title)) {
+    ft <- flextable::add_header_lines(ft, values = title)
+    ft <- flextable::color(ft, i = 1, part = "header", color = "blue")
+    ft <- flextable::italic(ft, i = 1, part = "header")
+    ft <- flextable::align(ft, i = 1, part = "header", align = "left")
+    ft <- flextable::fontsize(ft, i = 1, part = "header", size = 12)
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "white")
+    ft <- flextable::bg(ft, i = 2, part = "header", bg = "palegreen")
+  } else {
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "palegreen")
+  }
+  ft <- flextable::autofit(ft)
+  ft
+}
+
+
+# Flextable built-in themes:
+  # flextable::theme_alafoli()	|>  # BLAH
+  # flextable::theme_apa()  # THIS IS NICE
+  # flextable::theme_booktabs() |>  # NICE, MORE COMPACT
+  # flextable::theme_box() |>   # OK, INCLUDES CELL BORDERS
+  # flextable::theme_tron() |>  # 'DARK MODE' BLUE TEXT
+  # flextable::theme_tron_legacy() |>   # 'DARK MODE' YELLOW TEXT
+  # flextable::theme_vader() |>    # 'DARK MODE' WHITE TEXT
+  # flextable::theme_vanilla() |>   # NOT SPECIAL
+  # flextable::theme_zebra()	|>
+  #
+
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 28,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 22,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 18,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18),
+        # ggplot2::element_blank(),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+        # ggplot2::element_blank(),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 18,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+
+# claude <- ellmer::chat_anthropic(model = "claude-opus-4-6-20260205")
+  
+# Set seed for reproducibility
+base::set.seed(123)
+
+```
+
+
+
+
+```{r}
+#| label: helper-functions
+#| include: false
+
+# No external packages required for this document — all computations are
+# in base R.  Formatting helpers are inline below.
+
+fmt_dollar <- function(x, digits = 0) {
+  paste0("$", formatC(x, format = "f", digits = digits, big.mark = ","))
+}
+
+fmt_pct <- function(x, digits = 1) {
+  paste0(formatC(x * 100, format = "f", digits = digits), "%")
+}
+
+
+
+```
+
+
+\
+
+#### **Filename:**
+
+::: {.content-visible when-format="html"}
+[`r file_name`]{style="word-break: break-all; font-size: 1.00em;"}
+:::
+
+```{=typst}
+#let wrap_underscores(s) = s.replace("_", "_\u{200B}")
+#text(size: 16pt)[#raw(wrap_underscores("`r file_name`"))]
+```
+
+\
+\
+
+---
+
+## Background and Source
+
+This analysis is drawn from a careful reading of the **City of Schertz FY 2025-26
+Proposed Budget** document.  All figures come directly from the budget narratives,
+department summary tables, and the detailed account-level budget worksheets
+(ExpCategory 511 — Personnel Services totals).  No automated parsing routines
+were used; every number below was read from the document.
+
+The budget presents expenditure data across four columns most relevant to this
+analysis:
+
+```{r}
+#| label: budget-columns
+
+cols_df <- data.frame(
+  Column = c("2024-25 Budget", "2024-25 YTD Activity",
+             "2024-25 Projected", "2025-26 Budget (AB)"),
+  Description = c(
+    "Original adopted budget for the current year",
+    "Actual spending through 8/31/2025",
+    "Staff's year-end estimate — the baseline for comparison",
+    "Proposed budget — the subject of this analysis"
+  ),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(cols_df) |>
+  flextable::set_header_labels(Column = "Column", Description = "Description") |>
+  flextable::bold(i = 3:4, part = "body") |>
+  flextable::bg(i = 3:4, bg = "#FFFACD", part = "body") |>
+  ds_style_flextable(title = "Budget Document — Expenditure Columns Used in This Analysis")
+```
+
+```{r}
+#| label: download-budget-col-names
+
+ds_download_data_btn(cols_df, "25_26_budget_cols_described")
+
+```
+
+\
+\
+
+The comparison used throughout is **2024-25 Projected vs. 2025-26 Proposed
+Budget**, which is the standard "apples-to-apples" measure of the incremental cost of the new budget.
+
+---
+
+## Question 1: What is the Total Increase in Compensation Requested?
+
+### Explicit Statement from the Budget Document
+
+The budget message contains one explicit, composite dollar figure for the
+compensation policy changes:
+
+> *"Citywide the budget funds the Merit program for non-uniformed public safety
+> personnel and the Step program for uniformed public safety. These programs move
+> employees within their pay range but does not affect the starting wages of new
+> employees. Non-uniformed employees will be eligible for a 0–4% increase based
+> on performance and uniformed public safety employees could receive a 4% increase
+> based on the tenure schedule. **These changes are planned to take effect
+> midyear and cost \$784,000.**
+
+This **\$784,000** is the mid-year (six-month) cost of merit and step increases
+for **existing employees, across all funds**.
+
+The budget also states that the medical insurance plan was changed to a new
+provider in a way that **prevents any increase in premiums for 2026**, so the
+benefits cost impact for health insurance is essentially flat in the proposed
+budget.
+
+### New Positions Added (FY 2025-26)
+
+Beyond the merit/step program, 26 new positions were authorized:
+
+```{r}
+#| label: new-positions
+
+new_pos <- data.frame(
+  Fund      = c("General Fund", "Water & Sewer Fund", "EMS Fund",
+                "Drainage Fund", "TOTAL"),
+  Positions = c(10, 6, 4, 6, 26),
+  Detail    = c(
+    "6 Firefighters (Fire Station 4 staffing); 1 Asst. City Secretary; 1 Athletics Coordinator; 1 Recreation Specialist; 1 Senior Center Supervisor",
+    "3 Worker I's, 1 Worker II, 1 Crew Leader (new crew); 1 Worker I (floater)",
+    "4 EMTs (Medic 8 and Medic 9 peak-hour coverage)",
+    "3 Worker I's, 1 Worker II, 1 Crew Leader (new crew); 1 Floodplain Manager",
+    ""
+  ),
+  stringsAsFactors = FALSE
+)
+
+n_total <- base::nrow(new_pos)
+
+flextable::flextable(new_pos) |>
+  flextable::set_header_labels(
+    Fund = "Fund", Positions = "Positions", Detail = "Detail"
+  ) |>
+  flextable::align(j = "Positions", align = "center", part = "all") |>
+  flextable::bold(i = n_total, part = "body") |>
+  flextable::bg(i = n_total, bg = "#DDEEFF", part = "body") |>
+  flextable::hline(i = n_total - 1,
+                   border = officer::fp_border(color = "navy", width = 2),
+                   part = "body") |>
+  ds_style_flextable(title = "New Positions Proposed — FY 2025-26 (All Funds)")
+```
+
+
+
+```{r}
+#| label: download-new-positions-added
+
+ds_download_data_btn(new_pos, "25_26_budget_new_positions_added")
+
+```
+
+\
+\
+
+### Compiled Personnel Services Totals by Department
+
+The table below was compiled manually from the **ExpCategory: 511 —
+Personnel Services Total** rows in the budget worksheets.  "Personnel
+Services" in Schertz's chart of accounts (Category 511) encompasses:
+base wages, overtime, longevity pay, clothing/certification allowances,
+employer FICA, employer TMRS (retirement), employer health insurance,
+workers' compensation insurance, uniforms, training and travel, and
+miscellaneous employee-related costs.  **Benefits are therefore
+included.**
+
+```{r}
+#| tbl-cap: "Personnel Services (ExpCategory 511) by Department — FY 2024-25 Projected vs. FY 2025-26 Proposed Budget"
+
+# --------------------------------------------------------------------------
+# All figures read directly from the Schertz FY 2025-26 Proposed Budget PDF.
+# Columns: department name, fund, 2024-25 projected, 2025-26 budget.
+# --------------------------------------------------------------------------
+
+dept_data <- data.frame(
+  Fund = c(
+    # General Fund departments (Fund 101)
+    rep("General Fund (101)", 24),
+    # Water & Sewer Fund (Fund 202)
+    "Water & Sewer (202)",
+    "Water & Sewer (202)",
+    # Drainage Fund (Fund 202/579)
+    "Drainage (202)",
+    # EMS Fund (Fund 203)
+    "EMS (203)",
+    # Special Revenue
+    "Special Revenue (615)"
+  ),
+  Dept_ID = c(
+    150, 151, 152, 153, 154, 156, 164, 170, 173,
+    256, 257, 258, 259, 359, 460, 463, 464,
+    665, 853, 866, 868, 872, 877, 878,
+    176, 575,
+    579,
+    280,
+    609
+  ),
+  Department = c(
+    "City Council",
+    "City Manager",
+    "Municipal Court",
+    "311 / Customer Relations",
+    "Planning & Zoning",
+    "Economic Development",
+    "City Secretary",
+    "Public Affairs",
+    "Engineering",
+    "Police",
+    "Fire Rescue",
+    "Inspections",
+    "Neighborhood Services",
+    "Streets",
+    "Parks, Recreation & Community Svcs",
+    "Swim Pool",
+    "Event Facilities",
+    "Library",
+    "Information Technology",
+    "Human Resources",
+    "Finance",
+    "Purchasing & Asset Management",
+    "Fleet Services",
+    "Facility Services",
+    # W&S
+    "Utility Billing",
+    "Water & Sewer Administration",
+    # Drainage
+    "Drainage Operations",
+    # EMS
+    "Emergency Medical Services",
+    # Special Revenue
+    "Historical Committee"
+  ),
+  FY2425_Proj = c(
+    # General Fund — read from ExpCategory 511 Total, column 7
+     69525.00,    # City Council (150)
+   1067488.00,    # City Manager (151)
+    383922.00,    # Municipal Court (152)
+    137060.00,    # 311/Customer Relations (153)
+    463444.00,    # Planning & Zoning (154)
+    543724.00,    # Economic Development (156)
+    251676.00,    # City Secretary (164)
+    355153.00,    # Public Affairs (170)
+   1230173.00,    # Engineering (173)
+  12506800.00,    # Police (256)
+   8329400.00,    # Fire Rescue (257)
+   1388161.00,    # Inspections (258)
+    523406.00,    # Neighborhood Services (259)
+   1237425.00,    # Streets (359)
+   1411968.30,    # Parks (460)
+     22300.00,    # Swim Pool (463)
+    536887.00,    # Event Facilities (464)
+   1204714.30,    # Library (665)
+   1394110.00,    # IT (853)
+    759136.60,    # Human Resources (866)
+    819292.76,    # Finance (868)
+    300511.08,    # Purchasing & Asset Mgt (872)
+    862355.00,    # Fleet Services (877)
+   1149335.00,    # Facility Services (878)
+    # Water & Sewer
+    774837.00,    # Utility Billing (176)
+   2801020.00,    # W&S Administration (575)
+    # Drainage
+    597942.00,    # Drainage (579)
+    # EMS
+   9218278.73,    # EMS (203-280)
+    # Special Revenue
+      6350.00     # Historical Committee (615-609)
+  ),
+  FY2526_Budget = c(
+    # General Fund — read from ExpCategory 511 Total, column 8
+    109839.00,    # City Council (150)
+   1017376.00,    # City Manager (151)
+    373139.00,    # Municipal Court (152)
+    150518.00,    # 311/Customer Relations (153)
+    456245.00,    # Planning & Zoning (154)
+    554647.00,    # Economic Development (156)
+    336046.00,    # City Secretary (164)
+    348964.00,    # Public Affairs (170)
+   1272482.00,    # Engineering (173)
+  12249146.00,    # Police (256)
+   8829785.00,    # Fire Rescue (257)
+   1390202.00,    # Inspections (258)
+    521791.00,    # Neighborhood Services (259)
+   1323243.00,    # Streets (359)
+   1584494.30,    # Parks (460)
+     24575.00,    # Swim Pool (463)
+    521117.00,    # Event Facilities (464)
+   1198296.00,    # Library (665)
+   1367412.00,    # IT (853)
+    771430.00,    # Human Resources (866)
+    820727.00,    # Finance (868)
+    302455.00,    # Purchasing & Asset Mgt (872)
+    864312.00,    # Fleet Services (877)
+   1103336.00,    # Facility Services (878)
+    # Water & Sewer
+    788936.00,    # Utility Billing (176)
+   3462953.00,    # W&S Administration (575)
+    # Drainage
+   1018261.00,    # Drainage (579)
+    # EMS
+   9814819.00,    # EMS (203-280)
+    # Special Revenue
+      6350.00     # Historical Committee (615-609)
+  ),
+  stringsAsFactors = FALSE
+)
+
+dept_data$Change  <- dept_data$FY2526_Budget - dept_data$FY2425_Proj
+dept_data$Pct_Chg <- dept_data$Change / dept_data$FY2425_Proj
+
+disp_dept <- data.frame(
+  Fund          = dept_data$Fund,
+  Department    = dept_data$Department,
+  FY2425_Proj   = fmt_dollar(dept_data$FY2425_Proj),
+  FY2526_Budget = fmt_dollar(dept_data$FY2526_Budget),
+  Change        = ifelse(dept_data$Change >= 0,
+                         paste0("+", fmt_dollar(dept_data$Change)),
+                         paste0("(", fmt_dollar(base::abs(dept_data$Change)), ")")),
+  Pct_Chg       = ifelse(dept_data$Pct_Chg >= 0,
+                         paste0("+", fmt_pct(dept_data$Pct_Chg)),
+                         paste0("(", fmt_pct(base::abs(dept_data$Pct_Chg)), ")")),
+  stringsAsFactors = FALSE
+)
+
+dept_rows_neg <- base::which(dept_data$Change < 0)
+dept_rows_pos <- base::which(dept_data$Change > 0)
+
+flextable::flextable(disp_dept) |>
+  flextable::set_header_labels(
+    Fund = "Fund", Department = "Department",
+    FY2425_Proj = "FY 2024-25 Projected", FY2526_Budget = "FY 2025-26 Budget",
+    Change = "Change ($)", Pct_Chg = "Change (%)"
+  ) |>
+  flextable::align(j = c("FY2425_Proj","FY2526_Budget","Change","Pct_Chg"),
+                   align = "right", part = "all") |>
+  flextable::color(i = dept_rows_neg, j = "Change", color = "firebrick", part = "body") |>
+  flextable::color(i = dept_rows_pos, j = "Change", color = "darkgreen", part = "body") |>
+  ds_style_flextable(title = "Personnel Services (ExpCategory 511) by Department — FY 2024-25 Projected vs. FY 2025-26 Proposed")
+```
+
+
+
+
+```{r}
+#| label: download-personnel_services_by_dept
+
+ds_download_data_btn(disp_dept, "25_26_budget_personnel_services_by_dept")
+
+```
+
+\
+\
+
+
+```{r}
+#| tbl-cap: "Personnel Services Subtotals by Fund"
+
+# Subtotals by fund
+fund_summary <- do.call(rbind, lapply(unique(dept_data$Fund), function(f) {
+  sub <- dept_data[dept_data$Fund == f, ]
+  data.frame(Fund = f,
+             FY2425_Proj   = base::sum(sub$FY2425_Proj),
+             FY2526_Budget = base::sum(sub$FY2526_Budget),
+             Change        = base::sum(sub$Change),
+             stringsAsFactors = FALSE)
+}))
+
+grand <- data.frame(
+  Fund          = "GRAND TOTAL — All Funds",
+  FY2425_Proj   = base::sum(dept_data$FY2425_Proj),
+  FY2526_Budget = base::sum(dept_data$FY2526_Budget),
+  Change        = base::sum(dept_data$Change),
+  stringsAsFactors = FALSE
+)
+fund_summary          <- rbind(fund_summary, grand)
+fund_summary$Pct_Chg  <- fund_summary$Change / fund_summary$FY2425_Proj
+n_rows                <- base::nrow(fund_summary)
+
+fs_disp <- data.frame(
+  Fund          = fund_summary$Fund,
+  FY2425_Proj   = fmt_dollar(fund_summary$FY2425_Proj),
+  FY2526_Budget = fmt_dollar(fund_summary$FY2526_Budget),
+  Change        = ifelse(fund_summary$Change >= 0,
+                         paste0("+", fmt_dollar(fund_summary$Change)),
+                         paste0("(", fmt_dollar(base::abs(fund_summary$Change)), ")")),
+  Pct_Chg       = ifelse(fund_summary$Pct_Chg >= 0,
+                         paste0("+", fmt_pct(fund_summary$Pct_Chg)),
+                         paste0("(", fmt_pct(base::abs(fund_summary$Pct_Chg)), ")")),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(fs_disp) |>
+  flextable::set_header_labels(
+    Fund = "Fund", FY2425_Proj = "FY 2024-25 Projected",
+    FY2526_Budget = "FY 2025-26 Budget", Change = "Change ($)", Pct_Chg = "Change (%)"
+  ) |>
+  flextable::align(j = c("FY2425_Proj","FY2526_Budget","Change","Pct_Chg"),
+                   align = "right", part = "all") |>
+  flextable::bold(i = n_rows, part = "body") |>
+  flextable::bg(i = n_rows, bg = "#DDEEFF", part = "body") |>
+  flextable::hline(i = n_rows - 1,
+                   border = officer::fp_border(color = "navy", width = 2),
+                   part = "body") |>
+  ds_style_flextable(title = "Personnel Services Subtotals by Fund — FY 2024-25 Projected vs. FY 2025-26 Proposed")
+```
+
+
+
+```{r}
+#| label: download-personnel-services-subtotals-by-fund
+
+ds_download_data_btn(fs_disp, "25_26_budget_personnel_services_subtotals_by_fund")
+
+```
+
+\
+\
+
+### Key Findings — Total Compensation Increase
+
+```{r summary-findings}
+gf_proj   <- sum(dept_data$FY2425_Proj[dept_data$Fund == "General Fund (101)"])
+gf_budget <- sum(dept_data$FY2526_Budget[dept_data$Fund == "General Fund (101)"])
+gf_change <- gf_budget - gf_proj
+
+all_proj   <- sum(dept_data$FY2425_Proj)
+all_budget <- sum(dept_data$FY2526_Budget)
+all_change <- all_budget - all_proj
+
+# Non-GF increases (fee-funded)
+non_gf_change <- all_change - gf_change
+```
+
+- **All-funds Personnel Services increase:  
+  `r fmt_dollar(all_change)`** (from
+  `r fmt_dollar(all_proj)` to `r fmt_dollar(all_budget)`, a
+  `r fmt_pct(all_change/all_proj)` increase).
+
+- **General Fund (tax-supported) net increase:  
+  `r fmt_dollar(gf_change)`** — portion relevant to property tax funding.
+
+- **Fee-funded Personnel Services increase:  
+  `r fmt_dollar(non_gf_change)`**
+  (Water/Sewer, Drainage, EMS — presumably covered by utility fee increases and service contracts, not property taxes).
+
+- The **explicitly stated merit/step program cost is \$784,000 citywide:**    
+  (mid-year implementation, covering approximately the second half of FY 2025-26).  
+  
+  The annualized cost of the merit/step program would be approximately
+  **\$1,568,000**.
+
+- The difference between the merit/step policy cost and the net GF personnel
+  change (`r fmt_dollar(gf_change)`) reflects offsetting factors in individual
+  departments:  
+  — notably a **`r fmt_dollar(abs(dept_data$Change[dept_data$Department == "Police"]))` decrease in Police Personnel Services**  
+  
+  — and smaller decreases in several other departments (City Manager, Facility
+  Services, IT),  
+  
+  — partially offset by the 6 new firefighters
+  (`r fmt_dollar(dept_data$Change[dept_data$Department == "Fire Rescue"])` Fire Rescue increase) and other new positions.
+
+
+
+#### Notable Departmental Changes — General Fund
+
+```{r notable-changes}
+gf_num    <- dept_data[dept_data$Fund == "General Fund (101)", ]
+gf_num    <- gf_num[base::order(gf_num$Change, decreasing = TRUE), ]
+highlight <- rbind(head(gf_num, 5), tail(gf_num, 5))
+
+# Pre-compute row indices for coloring (formulae evaluate against hl_disp
+# which has character Change — use numeric indices from the source data instead)
+rows_neg  <- base::which(highlight$Change < 0)
+rows_pos  <- base::which(highlight$Change > 0)
+
+hl_disp <- data.frame(
+  Department    = highlight$Department,
+  FY2425_Proj   = fmt_dollar(highlight$FY2425_Proj),
+  FY2526_Budget = fmt_dollar(highlight$FY2526_Budget),
+  Change        = ifelse(highlight$Change >= 0,
+                         paste0("+", fmt_dollar(highlight$Change)),
+                         paste0("(", fmt_dollar(base::abs(highlight$Change)), ")")),
+  Pct_Chg       = ifelse(highlight$Pct_Chg >= 0,
+                         paste0("+", fmt_pct(highlight$Pct_Chg)),
+                         paste0("(", fmt_pct(base::abs(highlight$Pct_Chg)), ")")),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(hl_disp) |>
+  flextable::set_header_labels(
+    Department = "Department", FY2425_Proj = "FY 2024-25 Proj.",
+    FY2526_Budget = "FY 2025-26 Budget", Change = "Change ($)", Pct_Chg = "Change (%)"
+  ) |>
+  flextable::align(j = c("FY2425_Proj","FY2526_Budget","Change","Pct_Chg"),
+                   align = "right", part = "all") |>
+  flextable::color(i = rows_neg, j = "Change", color = "firebrick", part = "body") |>
+  flextable::color(i = rows_pos, j = "Change", color = "darkgreen", part = "body") |>
+  flextable::hline(i = 5, border = officer::fp_border(color = "navy", width = 2),
+                   part = "body") |>
+  ds_style_flextable(title = "Top 5 Increases / Top 5 Decreases — General Fund Personnel Services")
+```
+
+
+```{r}
+#| label: download-notable-dept-changes-gen-fund
+
+ds_download_data_btn(hl_disp, "25_26_budget_notable_dept_changes_gen_fund")
+
+```
+
+\
+\
+
+
+**Police decrease explanation:** The Police department shows a decrease of
+`r fmt_dollar(abs(dept_data$Change[dept_data$Department == "Police"]))` in
+Personnel Services.  
+
+Examining the individual account lines reveals that the
+FY 2024-25 projected year-end included elevated overtime actuals and medical services that will not recur at that level.  
+
+Regular pay (account 511110)
+actually *increases* from the FY 2024-25 budget (\$7,484,154) to the FY 2025-26 budget (\$7,773,694), consistent with the merit/step program.  
+
+The net dollar decrease is primarily an artifact of the 2024-25 projection being inflated above budget due to mid-year actuals.
+
+---
+
+## Question 2: Does the Increase Include Benefits?
+
+**Yes.**  Expenditure Category 511 — "Personnel Services" — is the
+account category that Schertz uses for all compensation-related costs.
+It includes the following account types (verified from the Police and EMS
+detailed account listings in the budget worksheet):
+
+```{r}
+#| label: account-types
+
+acct_df <- data.frame(
+  Account_Type = c("Regular wages", "Overtime", "Longevity pay",
+                   "Clothing / uniform allowance", "Certification allowance",
+                   "Employer FICA (Social Security + Medicare)",
+                   "Employer TMRS (retirement — Texas Municipal)",
+                   "Employer health insurance", "Workers' compensation insurance",
+                   "Unemployment compensation", "Training and travel",
+                   "Medical services (pre-employment, physicals)",
+                   "Employee recognition"),
+  Example_Accounts = c("511110","511120","511210","511220, 511606","511230",
+                        "511310","511350","511410","511500","511600",
+                        "511612","511617","511609"),
+  Included = rep("\u2713", 13),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(acct_df) |>
+  flextable::set_header_labels(
+    Account_Type     = "Account Type",
+    Example_Accounts = "Example Accounts",
+    Included         = "Included?"
+  ) |>
+  flextable::align(j = "Included", align = "center", part = "all") |>
+  flextable::color(j = "Included", color = "darkgreen", part = "body") |>
+  flextable::bold(j = "Included", part = "body") |>
+  ds_style_flextable(title = "ExpCategory 511 — Personnel Services Account Types")
+```
+
+
+```{r}
+#| label: download-personnel-svs-acct-types
+
+ds_download_data_btn(acct_df, "25_26_budget_personnel_svs_acct_types")
+
+```
+
+\
+\
+
+
+The budget explicitly states that the medical insurance provider change was
+structured to **prevent any premium increase**, meaning that health insurance
+costs are held approximately flat in the new budget year.  The overall
+Personnel Services increases therefore reflect primarily the wage/salary and
+associated payroll-tax components.
+
+In addition to ExpCategory 511, the Non-Departmental budget (Dept 101) carries
+a **Contingencies-Personnel** appropriation (account 101-101-534013) of
+**\$300,000** in both FY 2024-25 and FY 2025-26 — no change.  This is a
+reserve for unplanned personnel-related needs and is not part of the
+ExpCategory 511 totals compiled above.
+
+---
+
+## Question 3: Property Tax Rate Required to Cover the Compensation Increases
+
+### Overview of the Proposed Tax Rate
+
+The budget is funded at the **No-New-Revenue (NNR) rate** of **\$0.5064** per
+\$100 of taxable value — an increase of \$0.0164 over the FY 2024-25 rate of
+\$0.4900.
+
+```{r}
+#| tbl-cap: "City of Schertz Property Tax Rate — FY 2024-25 vs. FY 2025-26 Proposed"
+
+tax_tbl <- data.frame(
+  Component = c("Maintenance & Operations (M&O)", "Interest & Sinking (I&S)", "Total Rate"),
+  FY2425    = c(0.3326, 0.1574, 0.4900),
+  FY2526    = c(0.3383, 0.1681, 0.5064),
+  stringsAsFactors = FALSE
+)
+tax_tbl$Change <- tax_tbl$FY2526 - tax_tbl$FY2425
+
+tax_disp <- data.frame(
+  Component = tax_tbl$Component,
+  FY2425    = base::sprintf("$%.4f", tax_tbl$FY2425),
+  FY2526    = base::sprintf("$%.4f", tax_tbl$FY2526),
+  Change    = base::sprintf("+$%.4f", tax_tbl$Change),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(tax_disp) |>
+  flextable::set_header_labels(
+    Component = "Component",
+    FY2425 = "FY 2024-25 ($/100)",
+    FY2526 = "FY 2025-26 Proposed ($/100)",
+    Change = "Change ($/100)"
+  ) |>
+  flextable::align(j = c("FY2425","FY2526","Change"), align = "right", part = "all") |>
+  flextable::bold(i = 3, part = "body") |>
+  flextable::hline(i = 2, border = officer::fp_border(color = "navy", width = 1),
+                   part = "body") |>
+  ds_style_flextable(title = "City of Schertz Property Tax Rate — FY 2024-25 vs. FY 2025-26 Proposed")
+```
+
+
+
+```{r}
+#| label: download-changes-in-prop-tax-rates
+
+ds_download_data_btn(tax_disp, "25_26_budget_changes_in_prop_tax_rates")
+
+```
+
+\
+\
+
+
+
+The total taxable value as certified by the Guadalupe County Tax Assessor is
+**\$5,734,815,455**.
+
+### Revenue per Cent of Tax Rate
+
+```{r revenue-per-cent}
+# Derived from budgeted Ad Valorem Tax revenue and the proposed rate.
+# FY 2025-26 Ad Valorem Tax Current budgeted: $20,668,000 at $0.5064 rate.
+# Revenue per $0.01 per $100 = $20,668,000 / 50.64 (rate in cents)
+
+rate_2526_cents <- 50.64
+av_revenue_2526 <- 20668000
+rev_per_cent    <- av_revenue_2526 / rate_2526_cents
+
+rpc_df <- data.frame(
+  Item  = c("Budgeted Ad Valorem Tax Revenue (FY 2025-26)",
+            "Proposed tax rate",
+            "Revenue per $0.01 per $100 of rate"),
+  Value = c(fmt_dollar(av_revenue_2526),
+            base::sprintf("$%.4f per $100 (%.2f cents per $100)", 0.5064, rate_2526_cents),
+            fmt_dollar(rev_per_cent)),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(rpc_df) |>
+  flextable::set_header_labels(Item = "Item", Value = "Value") |>
+  flextable::align(j = "Value", align = "right", part = "all") |>
+  flextable::bold(i = 3, part = "body") |>
+  ds_style_flextable(title = "Ad Valorem Revenue Baseline — FY 2025-26")
+```
+
+Note: This per-cent figure implicitly incorporates the actual collection rate (delinquencies, exemptions).  It is a more reliable basis for rate calculations than applying the statutory taxable value directly.
+
+
+```{r}
+#| label: download-ad-velorem-revenue-baseline
+
+ds_download_data_btn(rpc_df, "25_26_budget_add_valorem_rev_baseline")
+
+```
+
+\
+\
+
+
+
+
+
+### Tax Rate Required to Cover General Fund Personnel Increase
+
+The property tax (M&O rate) supports only the **General Fund**.  Water/Sewer,
+Drainage, and EMS personnel costs are funded by fees and service contracts,
+not property taxes.
+
+```{r gf-tax-calc}
+# General Fund Personnel Services net change
+gf_pers_increase <- gf_change
+cents_needed     <- gf_pers_increase / rev_per_cent
+rate_needed      <- cents_needed / 100
+
+gtc_df <- data.frame(
+  Item  = c("General Fund Personnel Services net increase",
+            "Revenue per $0.01 per $100 of rate",
+            "Tax rate increase needed (cents per $100)",
+            "Tax rate increase needed ($/100)",
+            "Rate increase as % of current M&O rate ($0.3326)"),
+  Value = c(fmt_dollar(gf_pers_increase),
+            fmt_dollar(rev_per_cent),
+            base::sprintf("%.4f cents", cents_needed),
+            base::sprintf("$%.4f per $100", rate_needed),
+            base::sprintf("%.1f%%", rate_needed / 0.3326 * 100)),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(gtc_df) |>
+  flextable::set_header_labels(Item = "Item", Value = "Value") |>
+  flextable::align(j = "Value", align = "right", part = "all") |>
+  flextable::bold(i = 4, part = "body") |>
+  ds_style_flextable(title = "Tax Rate Required to Cover General Fund Personnel Services Increase")
+```
+
+
+
+```{r}
+#| label: download-rate-reqd-cover-gf-personnel-increase
+
+ds_download_data_btn(gtc_df, "25_26_budget_rate_req_cover_gf_pers_increase")
+
+```
+
+\
+\
+
+
+### Dollar Impact on Taxpayers
+
+To translate the tax rate increase into a dollar cost per taxpayer, we need a
+typical taxable home value.  The budget does not publish the median taxable
+value directly, but we can derive an approximation.
+
+```{r taxpayer-impact}
+# Total taxable value from budget: $5,734,815,455
+# Total homesteads approximated from the document:
+#   2,616 properties use Disabled Veteran exemption (~23% of homesteads)
+#   => total homesteads ≈ 2,616 / 0.23 ≈ 11,374
+# Total taxable value includes commercial properties too.
+# For illustrative purposes, compute per typical home values.
+
+total_taxable      <- 5734815455
+home_values        <- c(200000, 300000, 400000, 500000)
+rate_increase      <- rate_needed
+full_rate_increase <- 0.5064 - 0.4900
+
+impact_df <- data.frame(
+  Taxable_Value       = fmt_dollar(home_values),
+  Personnel_Only      = fmt_dollar(home_values / 100 * rate_increase,      digits = 2),
+  Full_Rate_Increase  = fmt_dollar(home_values / 100 * full_rate_increase,  digits = 2),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(impact_df) |>
+  flextable::set_header_labels(
+    Taxable_Value      = "Taxable Home Value",
+    Personnel_Only     = "GF Personnel Increase Only ($/yr)",
+    Full_Rate_Increase = "Full Proposed Rate Increase +$0.0164 ($/yr)"
+  ) |>
+  flextable::align(j = c("Taxable_Value","Personnel_Only","Full_Rate_Increase"),
+                   align = "right", part = "all") |>
+  ds_style_flextable(title = "Estimated Annual Property Tax Impact by Home Value")
+```
+
+
+```{r}
+#| label: download-est-tax-impact-by-home-value
+
+ds_download_data_btn(impact_df, "25_26_budget_est_tax_impact_by_home_value")
+
+```
+
+\
+\
+
+
+
+### Citywide Merit/Step Program — Standalone Rate Calculation
+
+The budget explicitly states the merit/step program costs **\$784,000 citywide** for the half-year (mid-year implementation).  If we isolate only this policy cost and ask how much of it falls on property taxpayers, we need the General Fund share.
+
+The document does not publish a GF-only merit/step figure, but we can estimate it proportionally using the ratio of GF Personnel Services to total personnel services:
+
+```{r merit-step-calc}
+gf_share      <- gf_proj / all_proj
+gf_merit_step <- 784000 * gf_share
+rate_merit_step <- (gf_merit_step / rev_per_cent) / 100
+
+ms_df <- data.frame(
+  Item  = c("Total merit/step program cost (half-year, all funds)",
+            "General Fund share of total personnel services",
+            "Estimated GF portion of merit/step cost (half-year)",
+            "Tax rate to fund GF merit/step cost alone (half-year)",
+            "Annualized GF merit/step cost (full year)",
+            "Tax rate to fund annualized GF merit/step cost"),
+  Value = c(fmt_dollar(784000),
+            base::sprintf("%s (%.1f%%)", fmt_dollar(gf_proj), gf_share * 100),
+            fmt_dollar(gf_merit_step),
+            base::sprintf("$%.4f per $100", rate_merit_step),
+            fmt_dollar(gf_merit_step * 2),
+            base::sprintf("$%.4f per $100", rate_merit_step * 2)),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(ms_df) |>
+  flextable::set_header_labels(Item = "Item", Value = "Value") |>
+  flextable::align(j = "Value", align = "right", part = "all") |>
+  flextable::bold(i = c(4, 6), part = "body") |>
+  flextable::hline(i = 4, border = officer::fp_border(color = "navy", style = "dashed"),
+                   part = "body") |>
+  ds_style_flextable(title = "Merit/Step Program — General Fund Share and Tax Rate Equivalent")
+```
+
+
+
+```{r}
+#| label: download-est-tax-impact-merit-step
+
+ds_download_data_btn(ms_df, "25_26_budget_est_tax_impact_merit_step_prgrm")
+
+```
+
+\
+\
+
+
+---
+
+## Question 4: Is the Proposed Tax Rate Sufficient to Cover the Compensation Increases?
+
+```{r sufficiency-check}
+# Proposed M&O rate increase revenue
+mo_rate_increase    <- 0.3383 - 0.3326
+mo_revenue_increase <- mo_rate_increase * 100 * rev_per_cent
+
+gf_rev_2425  <- 52632269
+gf_rev_2526  <- 52499128
+gf_rev_change <- gf_rev_2526 - gf_rev_2425
+
+# --- Table 1: GF Revenue summary ---
+rev_df <- data.frame(
+  Item  = c("GF Revenue FY 2024-25 (year-end estimate)",
+            "GF Revenue FY 2025-26 (proposed budget)",
+            "Net GF Revenue change"),
+  Value = c(fmt_dollar(gf_rev_2425),
+            fmt_dollar(gf_rev_2526),
+            ifelse(gf_rev_change >= 0,
+                   paste0("+", fmt_dollar(gf_rev_change)),
+                   paste0("(", fmt_dollar(base::abs(gf_rev_change)), ")"))),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(rev_df) |>
+  flextable::set_header_labels(Item = "Item", Value = "Value") |>
+  flextable::align(j = "Value", align = "right", part = "all") |>
+  flextable::bold(i = 3, part = "body") |>
+  flextable::color(i = 3, j = "Value", color = "firebrick", part = "body") |>
+  ds_style_flextable(title = "General Fund Revenue — FY 2024-25 vs. FY 2025-26")
+```
+
+
+```{r}
+#| label: download-gf-rev-25-v-26
+
+ds_download_data_btn(rev_df, "25_26_budget_gf_rev_25_v_26")
+
+```
+
+\
+\
+
+
+
+```{r}
+
+# --- Table 2: Rate sufficiency test ---
+covers <- mo_revenue_increase >= gf_change
+suf_df <- data.frame(
+  Item  = c("M&O rate increase ($0.0057) — additional revenue generated",
+            "GF Personnel Services net increase (full year)",
+            "Surplus / (Shortfall) of rate increase vs. personnel increase",
+            "Rate increase DOES cover full-year GF personnel increase?",
+            "Memo: merit/step cost as stated in budget (HALF-YEAR)",
+            "Memo: annualized merit/step cost (full year)",
+            "Rate increase revenue vs. annualized merit/step cost"),
+  Value = c(fmt_dollar(mo_revenue_increase),
+            fmt_dollar(gf_change),
+            ifelse(covers,
+                   paste0("+", fmt_dollar(mo_revenue_increase - gf_change)),
+                   paste0("(", fmt_dollar(base::abs(mo_revenue_increase - gf_change)), ")")),
+            ifelse(covers, "YES", "NO"),
+            fmt_dollar(784000),
+            fmt_dollar(784000 * 2),
+            ifelse(mo_revenue_increase >= 784000 * 2,
+                   paste0("+", fmt_dollar(mo_revenue_increase - 784000 * 2)),
+                   paste0("(", fmt_dollar(base::abs(mo_revenue_increase - 784000 * 2)), ")"))),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(suf_df) |>
+  flextable::set_header_labels(Item = "Item", Value = "Value") |>
+  flextable::align(j = "Value", align = "right", part = "all") |>
+  flextable::bold(i = c(3, 4), part = "body") |>
+  flextable::color(i = 3, j = "Value",
+                   color = ifelse(covers, "darkgreen", "firebrick"), part = "body") |>
+  flextable::color(i = 4, j = "Value",
+                   color = ifelse(covers, "darkgreen", "firebrick"), part = "body") |>
+  flextable::hline(i = 4, border = officer::fp_border(color = "navy", style = "dashed"),
+                   part = "body") |>
+  flextable::italic(i = c(5, 6, 7), part = "body") |>
+  ds_style_flextable(title = "Rate Sufficiency Test — Does M&O Increase Cover Personnel Increase?")
+```
+
+
+```{r}
+#| label: rate-sufficiency-test
+
+ds_download_data_btn(suf_df, "25_26_budget_rate_sufficiency_test")
+
+```
+
+\
+\
+
+
+### Deficit Budget Context
+
+Despite the No-New-Revenue rate increase, the General Fund remains in
+**deficit**:
+
+```{r}
+
+gf_deficit_df <- data.frame(
+  Item   = c("FY 2025-26 GF Revenue (proposed)",
+             "FY 2025-26 GF Expenditures (proposed)",
+             "Surplus / (Deficit)",
+             "Resulting Reserve Balance",
+             "Reserve as % of Expenditures",
+             "City Reserve Policy Maximum"),
+  Amount = c(fmt_dollar(52499128),
+             fmt_dollar(53754934),
+             paste0("(", fmt_dollar(1255806), ")"),
+             fmt_dollar(13936617),
+             "26.8%",
+             "≤ 26.0%"),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(gf_deficit_df) |>
+  flextable::set_header_labels(Item = "Item", Amount = "Amount") |>
+  flextable::align(j = "Amount", align = "right", part = "all") |>
+  flextable::bold(i = 3, part = "body") |>
+  flextable::color(i = 3, j = "Amount", color = "firebrick", part = "body") |>
+  flextable::hline(i = 2, border = officer::fp_border(color = "navy", width = 1),
+                   part = "body") |>
+  ds_style_flextable(title = "General Fund — FY 2025-26 Budget Surplus / (Deficit)")
+```
+
+
+```{r}
+#| label: budget-gf-surplus-or-deficit
+
+ds_download_data_btn(gf_deficit_df, "25_26_budget_gf_surplus_or_deficit")
+
+```
+
+\
+\
+
+
+
+
+
+The proposed budget would draw down reserves by \$1,255,806, leaving the
+reserve balance at \$13,936,617, which is *above* the City's own 26% maximum
+policy target.  This means the budget proposes to overspend relative to
+current revenue while still technically meeting the reserve floor — but the
+reserve direction is downward.
+
+Other funds are also in deficit:
+
+```{r}
+
+other_funds_df <- data.frame(
+  Fund         = c("Water & Sewer", "Drainage", "SEDC", "EMS"),
+  Revenue      = c(fmt_dollar(35391478), fmt_dollar(2316283),
+                   fmt_dollar(8928608),  fmt_dollar(17504469)),
+  Expenditures = c(fmt_dollar(36695153), fmt_dollar(2818831),
+                   fmt_dollar(16701463), fmt_dollar(17149568)),
+  Surplus_Def  = c(paste0("(", fmt_dollar(1303675), ")"),
+                   paste0("(", fmt_dollar(502548),  ")"),
+                   paste0("(", fmt_dollar(7772855),  ")"),
+                   paste0("+", fmt_dollar(354901))),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(other_funds_df) |>
+  flextable::set_header_labels(
+    Fund = "Fund", Revenue = "Revenue",
+    Expenditures = "Expenditures", Surplus_Def = "Surplus / (Deficit)"
+  ) |>
+  flextable::align(j = c("Revenue","Expenditures","Surplus_Def"),
+                   align = "right", part = "all") |>
+  flextable::color(i = c(1,2,3), j = "Surplus_Def", color = "firebrick", part = "body") |>
+  flextable::color(i = 4,        j = "Surplus_Def", color = "darkgreen", part = "body") |>
+  ds_style_flextable(title = "Other Funds — FY 2025-26 Budget Surplus / (Deficit)")
+```
+
+The EMS fund is the only major operating fund with a projected surplus, made possible by a 20% increase in contracted service revenues and a \$100/transport fee increase.
+
+
+```{r}
+#| label: budget-other-funds-surplus-or-deficit
+
+ds_download_data_btn(other_funds_df, "25_26_budget_other_funds_surplus_or_deficit")
+
+```
+
+\
+\
+
+
+### A Note on Sales Tax as a Funding Source
+
+Sales tax contributes approximately **\$15.3 million** to General Fund revenues
+in FY 2025-26 — roughly **29% of total GF resources**.  It is the second-largest
+revenue source after property taxes.
+
+However, **sales tax is not a policy lever**.  The City's sales tax allocation
+is fixed by state law at 1% to the General Fund; the City cannot increase it by
+budget action.  Sales tax revenue fluctuates with economic conditions and retail
+activity — making it less predictable than property tax and an unreliable basis
+for funding permanent compensation commitments.
+
+Any compensation shortfall — whether from the current deficit, from the
+annualized merit/step run-rate hitting FY 2026-27, or from future increases —
+can only be addressed through some combination of:
+
+- **Property tax rate increases** (up to the voter-approval rate cap),
+- **Utility and drainage fee increases** (for the fee-funded funds), or
+- **Reserve drawdowns** (a one-time measure, not a recurring solution).
+
+Sales tax growth may incidentally relieve future pressure, but it cannot be
+counted on, and it cannot be deliberately increased by Council action.  It is
+therefore excluded from the rate calculations in this analysis.
+
+---
+
+## Question 5: Annual Growth Rate and Doubling Time for Total Compensation
+
+### Data Available
+
+The budget worksheets present four fiscal years of Personnel Services data for every department:
+
+```{r}
+#| label: data-years
+
+yr_df <- data.frame(
+  Year        = c("FY 2022-23", "FY 2023-24", "FY 2024-25", "FY 2025-26"),
+  Description = c("Actual expenditures", "Actual expenditures",
+                  "Year-end projected (staff estimate)", "Proposed budget"),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(yr_df) |>
+  flextable::set_header_labels(Year = "Year", Description = "Description") |>
+  flextable::bold(i = 4, part = "body") |>
+  flextable::bg(i = 4, bg = "#FFFACD", part = "body") |>
+  ds_style_flextable(title = "Personnel Services Data Available — Four Fiscal Years")
+```
+
+
+
+```{r}
+#| label: budget-describe-comp-data-available
+
+ds_download_data_btn(yr_df, "25_26_budget_describe_comp_data_available")
+
+```
+
+\
+\
+
+
+
+
+This yields a **3-year span** for CAGR calculation (FY 2022-23 → FY 2025-26 proposed), with a 2-year cross-check using FY 2024-25 projected as the endpoint to avoid dependence on the proposed budget.
+
+### Complete Four-Year Dataset
+
+```{r}
+#| tbl-cap: "Personnel Services — Four-Year History, All Departments"
+
+# Values read from ExpCategory: 511 - Personnel Services Total rows,
+# column 2 (FY22-23 Actual) and column 4 (FY23-24 Actual).
+
+dept_data$FY2223_Act <- c(
+  # General Fund (24 departments, same order as dept_data)
+    65991.00,    # City Council (150)
+  1268219.37,    # City Manager (151)
+   349992.25,    # Municipal Court (152)
+   130167.92,    # 311/Customer Relations (153)
+   332998.93,    # Planning & Zoning (154)
+         0.00,   # Economic Development (156) — dept created FY23-24
+   195204.99,    # City Secretary (164)
+   338315.64,    # Public Affairs (170)
+   995485.25,    # Engineering (173)
+  9667983.16,    # Police (256)
+  6825077.73,    # Fire Rescue (257)
+  1056532.12,    # Inspections (258)
+   423553.18,    # Neighborhood Services (259)
+   996132.16,    # Streets (359)
+  1035692.62,    # Parks (460)
+    17692.84,    # Swim Pool (463)
+   440489.69,    # Event Facilities (464)
+  1001807.06,    # Library (665)
+  1147821.16,    # IT (853)
+   643658.58,    # Human Resources (866)
+   696231.81,    # Finance (868)
+   267811.27,    # Purchasing & Asset Mgt (872)
+   694009.96,    # Fleet Services (877)
+   897424.16,    # Facility Services (878)
+  # Water & Sewer
+   601713.12,    # Utility Billing (176)
+  1942709.33,    # W&S Administration (575)
+  # Drainage
+   634080.66,    # Drainage (579)
+  # EMS
+  7602824.08,    # EMS (203-280)
+  # Special Revenue
+      3558.32    # Historical Committee (615-609)
+)
+
+dept_data$FY2324_Act <- c(
+  # General Fund
+    70269.22,    # City Council (150)
+  1133902.71,    # City Manager (151)
+   365992.45,    # Municipal Court (152)
+   150130.32,    # 311/Customer Relations (153)
+   415440.81,    # Planning & Zoning (154)
+   373804.15,    # Economic Development (156)
+   218750.26,    # City Secretary (164)
+   361689.77,    # Public Affairs (170)
+  1050157.62,    # Engineering (173)
+ 11191198.57,    # Police (256)
+  8283649.91,    # Fire Rescue (257)
+  1261620.00,    # Inspections (258)
+   506751.71,    # Neighborhood Services (259)
+  1091718.73,    # Streets (359)
+  1322151.35,    # Parks (460)
+    15723.23,    # Swim Pool (463)
+   543478.03,    # Event Facilities (464)
+  1154459.87,    # Library (665)
+  1343640.33,    # IT (853)
+   713034.39,    # Human Resources (866)
+   727058.93,    # Finance (868)
+   234729.59,    # Purchasing & Asset Mgt (872)
+   897046.05,    # Fleet Services (877)
+  1115683.58,    # Facility Services (878)
+  # Water & Sewer
+   653083.93,    # Utility Billing (176)
+  2210979.68,    # W&S Administration (575)
+  # Drainage
+   613853.27,    # Drainage (579)
+  # EMS
+  8986816.34,    # EMS (203-280)
+  # Special Revenue
+        0.00     # Historical Committee (615-609) — no activity FY23-24
+)
+
+# Four-year totals by scope
+calc_totals <- function(fund_filter = NULL) {
+  sub <- if (is.null(fund_filter)) dept_data else dept_data[dept_data$Fund %in% fund_filter, ]
+  c(FY2223 = sum(sub$FY2223_Act),
+    FY2324 = sum(sub$FY2324_Act),
+    FY2425 = sum(sub$FY2425_Proj),
+    FY2526 = sum(sub$FY2526_Budget))
+}
+
+gf_funds   <- "General Fund (101)"
+gf_totals  <- calc_totals(gf_funds)
+all_totals <- calc_totals()
+
+hist_df <- data.frame(
+  Scope         = c("General Fund", "All Funds Combined"),
+  FY2223        = c(fmt_dollar(gf_totals["FY2223"]),  fmt_dollar(all_totals["FY2223"])),
+  FY2324        = c(fmt_dollar(gf_totals["FY2324"]),  fmt_dollar(all_totals["FY2324"])),
+  FY2425        = c(fmt_dollar(gf_totals["FY2425"]),  fmt_dollar(all_totals["FY2425"])),
+  FY2526        = c(fmt_dollar(gf_totals["FY2526"]),  fmt_dollar(all_totals["FY2526"])),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(hist_df) |>
+  flextable::set_header_labels(
+    Scope  = "Scope",
+    FY2223 = "FY 2022-23 Actual",
+    FY2324 = "FY 2023-24 Actual",
+    FY2425 = "FY 2024-25 Projected",
+    FY2526 = "FY 2025-26 Proposed"
+  ) |>
+  flextable::align(j = c("FY2223","FY2324","FY2425","FY2526"),
+                   align = "right", part = "all") |>
+  ds_style_flextable(title = "Personnel Services — Four-Year History by Scope")
+```
+
+
+```{r}
+#| label: budget-four-year-dataset
+
+ds_download_data_btn(hist_df, "25_26_budget_4_yr_dataset")
+
+```
+
+\
+\
+
+
+
+
+### Annualized Adjustment for the Merit/Step Program
+
+The FY 2025-26 budget **deliberately understates** the full cost of the
+compensation increases because the merit/step program is implemented
+**mid-year** — only half the annual cost appears in the budget.  The other
+half hits the City in FY 2026-27 before any new raises are negotiated.
+
+To project where compensation actually lands on a full-year run-rate basis,
+the CAGR calculation below uses an **annualized FY 2025-26 endpoint**: the
+budgeted Personnel Services totals with the second half of the merit/step cost
+added back.  This is the correct basis for doubling-time projections because
+doubling time is a forward-looking statement — it answers "how long until
+compensation is twice what it is today?" — and "today" should mean the full
+run-rate cost, not the discounted budget figure.
+
+```{r}
+
+# The budget states the merit/step program costs $784,000 citywide for the
+# half-year.  The full annualized incremental cost is $784,000 × 2 = $1,568,000.
+# The second half ($784,000) is not in the proposed budget at all.
+# We allocate the adjustment proportionally by fund share of total personnel.
+
+merit_half    <- 784000
+merit_full    <- merit_half * 2
+merit_addback <- merit_half
+
+gf_pers_budget  <- base::sum(dept_data$FY2526_Budget[dept_data$Fund == "General Fund (101)"])
+all_pers_budget <- base::sum(dept_data$FY2526_Budget)
+gf_share_2526   <- gf_pers_budget / all_pers_budget
+
+gf_2526_ann  <- gf_totals["FY2526"]  + merit_addback * gf_share_2526
+all_2526_ann <- all_totals["FY2526"] + merit_addback
+
+ann_df <- data.frame(
+  Item  = c("Merit/step half-year cost (as stated in budget)",
+            "Merit/step addback for annualization (2nd half, not in budget)",
+            "As-budgeted GF Personnel Services (FY 2025-26)",
+            "Annualized GF Personnel Services (full run-rate)",
+            "Addback — additional GF cost arriving in FY 2026-27",
+            "As-budgeted All-Funds Personnel Services (FY 2025-26)",
+            "Annualized All-Funds Personnel Services (full run-rate)",
+            "Addback — additional All-Funds cost arriving in FY 2026-27"),
+  Value = c(fmt_dollar(merit_half),
+            fmt_dollar(merit_addback),
+            fmt_dollar(gf_totals["FY2526"]),
+            fmt_dollar(gf_2526_ann),
+            fmt_dollar(gf_2526_ann - gf_totals["FY2526"]),
+            fmt_dollar(all_totals["FY2526"]),
+            fmt_dollar(all_2526_ann),
+            fmt_dollar(all_2526_ann - all_totals["FY2526"])),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(ann_df) |>
+  flextable::set_header_labels(Item = "Item", Value = "Value") |>
+  flextable::align(j = "Value", align = "right", part = "all") |>
+  flextable::bold(i = c(4, 5, 7, 8), part = "body") |>
+  flextable::color(i = c(5, 8), j = "Value", color = "firebrick", part = "body") |>
+  flextable::hline(i = c(2, 5),
+                   border = officer::fp_border(color = "navy", style = "dashed"),
+                   part = "body") |>
+  ds_style_flextable(title = "Merit/Step Annualization — Budget vs. Full Run-Rate")
+```
+
+
+```{r}
+#| label: budget-merit-step-annualization
+
+ds_download_data_btn(ann_df, "25_26_budget_merit_step_annualized")
+
+```
+
+\
+\
+
+
+### Compound Annual Growth Rates (CAGR)
+
+$$\text{CAGR} = \left(\frac{V_n}{V_0}\right)^{1/n} - 1 \qquad t_{\text{double}} = \frac{\ln 2}{\ln(1 + \text{CAGR})}$$
+
+Two sets of CAGR are presented: one using the **as-budgeted** FY 2025-26
+figures (half-year merit/step), and one using the **annualized** figures
+(full-year run-rate).  The annualized CAGR is the appropriate basis for
+doubling-time projections.
+
+```{r}
+#| tbl-cap: "CAGR and Doubling Time — As-Budgeted vs. Annualized"
+
+cagr          <- function(v0, vn, n) (vn / v0)^(1/n) - 1
+doubling_time <- function(r) log(2) / log(1 + r)
+
+scopes <- list(
+  list(label = "General Fund — as budgeted",  v0 = gf_totals["FY2223"],
+       v2425 = gf_totals["FY2425"], v2526 = gf_totals["FY2526"],
+       vy1324 = gf_totals["FY2324"]),
+  list(label = "General Fund — annualized",   v0 = gf_totals["FY2223"],
+       v2425 = gf_totals["FY2425"], v2526 = gf_2526_ann,
+       vy1324 = gf_totals["FY2324"]),
+  list(label = "All Funds — as budgeted",     v0 = all_totals["FY2223"],
+       v2425 = all_totals["FY2425"], v2526 = all_totals["FY2526"],
+       vy1324 = all_totals["FY2324"]),
+  list(label = "All Funds — annualized",      v0 = all_totals["FY2223"],
+       v2425 = all_totals["FY2425"], v2526 = all_2526_ann,
+       vy1324 = all_totals["FY2324"])
+)
+
+cagr_results <- do.call(rbind, lapply(scopes, function(s) {
+  c3 <- cagr(s$v0,     s$v2526,  3)
+  c2 <- cagr(s$v0,     s$v2425,  2)
+  y1 <- cagr(s$vy1324, s$v2425,  1)
+  y2 <- cagr(s$v2425,  s$v2526,  1)
+  data.frame(
+    Scope    = s$label,
+    CAGR_3yr = fmt_pct(c3),
+    DT_3yr   = base::sprintf("%.1f yrs", doubling_time(c3)),
+    CAGR_2yr = fmt_pct(c2),
+    DT_2yr   = base::sprintf("%.1f yrs", doubling_time(c2)),
+    YoY_2425 = fmt_pct(y1),
+    YoY_2526 = fmt_pct(y2),
+    stringsAsFactors = FALSE
+  )
+}))
+
+flextable::flextable(cagr_results) |>
+  flextable::set_header_labels(
+    Scope    = "Scope",
+    CAGR_3yr = "3-yr CAGR (FY22-23→FY25-26)",
+    DT_3yr   = "Doubling Time",
+    CAGR_2yr = "2-yr CAGR (FY22-23→FY24-25)",
+    DT_2yr   = "Doubling Time",
+    YoY_2425 = "YoY FY24-25",
+    YoY_2526 = "YoY FY25-26"
+  ) |>
+  flextable::align(j = c("CAGR_3yr","DT_3yr","CAGR_2yr","DT_2yr","YoY_2425","YoY_2526"),
+                   align = "right", part = "all") |>
+  flextable::bold(i = c(2, 4), part = "body") |>
+  flextable::bg(i = c(2, 4), bg = "#FFF8DC", part = "body") |>
+  flextable::hline(i = c(2),
+                   border = officer::fp_border(color = "navy", style = "dashed"),
+                   part = "body") |>
+  ds_style_flextable(title = "CAGR and Doubling Time — As-Budgeted vs. Annualized (highlighted rows = annualized)")
+```
+
+
+
+```{r}
+#| label: budget-cagr-doubling-time
+
+ds_download_data_btn(cagr_results, "25_26_budget_cagr_doubling_times")
+
+```
+
+\
+\
+
+
+```{r}
+
+gf_c3_ann   <- cagr(gf_totals["FY2223"],  gf_2526_ann,  3)
+gf_dt3_ann  <- doubling_time(gf_c3_ann)
+all_c3_ann  <- cagr(all_totals["FY2223"], all_2526_ann, 3)
+all_dt3_ann <- doubling_time(all_c3_ann)
+
+summary_cagr_df <- data.frame(
+  Scope         = c("General Fund (annualized)", "All Funds (annualized)"),
+  CAGR_3yr      = c(fmt_pct(gf_c3_ann),   fmt_pct(all_c3_ann)),
+  Doubling_Time = c(base::sprintf("%.1f years", gf_dt3_ann),
+                    base::sprintf("%.1f years", all_dt3_ann)),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(summary_cagr_df) |>
+  flextable::set_header_labels(
+    Scope = "Scope", CAGR_3yr = "3-Year CAGR (Annualized)",
+    Doubling_Time = "Doubling Time"
+  ) |>
+  flextable::align(j = c("CAGR_3yr","Doubling_Time"), align = "right", part = "all") |>
+  flextable::bold(part = "body") |>
+  flextable::fontsize(i = 1:2, size = 16, part = "body") |>
+  flextable::color(j = "Doubling_Time", color = "firebrick", part = "body") |>
+  ds_style_flextable(title = "Key Result: Annualized Personnel Compensation Growth Rate")
+```
+
+
+```{r}
+#| label: budget-key-cagr-results
+
+ds_download_data_btn(summary_cagr_df, "25_26_budget_key_cagr_results")
+
+```
+
+\
+\
+
+
+### Interpretation
+
+At the annualized 3-year CAGR, compare the compensation doubling time against:
+
+- **Property tax revenue** — Schertz's long-run growth has averaged ~7% per year
+  (doubling time ~10 years), constrained by the voter-approval rate cap.
+- **Population growth** — approximately 2–3% per year in the Schertz area
+  (doubling time 23–35 years).
+
+If compensation costs compound faster than either revenue or population, the
+gap grows exponentially and must eventually be closed by rate increases,
+service cuts, or reserve drawdowns.  The year-over-year figures show whether
+the growth rate is accelerating or decelerating.
+
+---
+
+
+
+## Supplemental: Full-Year (Annualized) Compensation Cost Impact
+
+The proposed FY 2025-26 budget includes only **half a year** of merit/step
+increases.  The City will face the **full annualized run-rate** beginning in
+FY 2026-27, before any new compensation adjustments are negotiated.  This
+section presents those forward-looking figures.
+
+```{r}
+#| tbl-cap: "Full-Year Run-Rate Compensation — FY 2026-27 Baseline Projection"
+
+addback_gf     <- gf_2526_ann  - gf_totals["FY2526"]
+addback_all    <- all_2526_ann - all_totals["FY2526"]
+rev_per_cent_v <- av_revenue_2526 / rate_2526_cents
+rate_addback   <- (addback_gf / rev_per_cent_v) / 100
+
+# --- Table 1: Run-rate comparison ---
+rr_df <- data.frame(
+  Item  = c("As-budgeted GF Personnel Services (FY 2025-26)",
+            "Annualized GF Personnel Services (full run-rate)",
+            "Additional GF cost arriving in FY 2026-27",
+            "As-budgeted All-Funds Personnel Services (FY 2025-26)",
+            "Annualized All-Funds Personnel Services (full run-rate)",
+            "Additional All-Funds cost arriving in FY 2026-27"),
+  Value = c(fmt_dollar(gf_totals["FY2526"]),
+            fmt_dollar(gf_2526_ann),
+            fmt_dollar(addback_gf),
+            fmt_dollar(all_totals["FY2526"]),
+            fmt_dollar(all_2526_ann),
+            fmt_dollar(addback_all)),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(rr_df) |>
+  flextable::set_header_labels(Item = "Item", Value = "Value") |>
+  flextable::align(j = "Value", align = "right", part = "all") |>
+  flextable::bold(i = c(2, 3, 5, 6), part = "body") |>
+  flextable::color(i = c(3, 6), j = "Value", color = "firebrick", part = "body") |>
+  flextable::hline(i = 3, border = officer::fp_border(color = "navy", width = 1),
+                   part = "body") |>
+  ds_style_flextable(title = "Full-Year Run-Rate — As-Budgeted vs. Annualized Personnel Costs")
+
+```
+
+
+```{r}
+#| label: budgeted-v-annualized-comp-costs
+
+ds_download_data_btn(rr_df, "25_26_budgeted_v_annualized_comp_costs")
+
+```
+
+\
+\
+
+```{r}
+
+# --- Table 2: Tax rate equivalent of the addback ---
+ta_df <- data.frame(
+  Item  = c("Additional GF revenue needed (merit/step addback)",
+            "Revenue per $0.01 of tax rate",
+            "Additional rate increase required to fund addback"),
+  Value = c(fmt_dollar(addback_gf),
+            fmt_dollar(rev_per_cent_v),
+            base::sprintf("$%.4f per $100", rate_addback)),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(ta_df) |>
+  flextable::set_header_labels(Item = "Item", Value = "Value") |>
+  flextable::align(j = "Value", align = "right", part = "all") |>
+  flextable::bold(i = 3, part = "body") |>
+  flextable::color(i = 3, j = "Value", color = "firebrick", part = "body") |>
+  ds_style_flextable(title = "Tax Rate Equivalent — FY 2026-27 Merit/Step Addback (GF Only)")
+
+```
+
+
+```{r}
+#| label: budget-tax-rate-equiv
+
+ds_download_data_btn(ta_df, "25_26_budget_tax_rate_equiv")
+
+```
+
+\
+\
+
+
+```{r}
+
+# --- Table 3: Taxpayer impact ---
+home_vals <- c(200000, 300000, 400000, 500000)
+gf_proj_2425 <- base::sum(dept_data$FY2425_Proj[dept_data$Fund == "General Fund (101)"])
+
+ti_df <- data.frame(
+  Home_Value   = fmt_dollar(home_vals),
+  Addback_Cost = fmt_dollar(home_vals / 100 * rate_addback, digits = 2),
+  FullYr_Total = fmt_dollar(home_vals / 100 *
+                               (gf_2526_ann - gf_proj_2425) / (rev_per_cent_v * 100) * 100,
+                             digits = 2),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(ti_df) |>
+  flextable::set_header_labels(
+    Home_Value   = "Taxable Home Value",
+    Addback_Cost = "Merit/Step Addback Cost (FY 2026-27) ($/yr)",
+    FullYr_Total = "Total GF Personnel Increase vs FY24-25 — Annualized ($/yr)"
+  ) |>
+  flextable::align(j = c("Home_Value","Addback_Cost","FullYr_Total"),
+                   align = "right", part = "all") |>
+  ds_style_flextable(title = "Taxpayer Impact — Full-Year Merit/Step Cost by Home Value")
+```
+
+
+```{r}
+#| label: budget-taxpayer-impact
+
+ds_download_data_btn(ti_df, "25_26_budget_taxpayer_impact")
+
+```
+
+\
+\
+
+**Bottom line:** The FY 2025-26 budget presents the merit/step program as a
+\$784,000 cost.  That figure is accurate for the current budget year only.
+By FY 2026-27, the identical compensation structure costs **\$1,568,000
+per year** before any additional raises — simply because employees will
+receive the increase for a full 12 months instead of 6.  This is a structural
+cost commitment, not a one-time event.
+
+---
+
+## Summary of Findings
+
+```{r final-summary}
+# --- Table 1: Compensation summary ---
+comp_df <- data.frame(
+  Item  = c("Merit/Step program — as stated in budget (half-year, all funds)",
+            "Merit/Step program — annualized full-year run-rate (all funds)",
+            "Net Personnel Services increase — General Fund (full year)",
+            "Net Personnel Services increase — Fee-funded funds (full year)",
+            "Net Personnel Services increase — ALL FUNDS (full year)",
+            "Benefits included in above totals?"),
+  Value = c(fmt_dollar(784000),
+            fmt_dollar(784000 * 2),
+            fmt_dollar(gf_change),
+            fmt_dollar(non_gf_change),
+            fmt_dollar(all_change),
+            "YES — ExpCategory 511 includes all wages, benefits, and payroll costs"),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(comp_df) |>
+  flextable::set_header_labels(Item = "Item", Value = "Value") |>
+  flextable::align(j = "Value", align = "right", part = "all") |>
+  flextable::bold(i = c(2, 5), part = "body") |>
+  flextable::color(i = 2, j = "Value", color = "firebrick", part = "body") |>
+  flextable::hline(i = 2, border = officer::fp_border(color = "navy", style = "dashed"),
+                   part = "body") |>
+  ds_style_flextable(title = "Summary — Compensation Increases")
+
+# --- Table 2: Tax rate analysis ---
+rate_df <- data.frame(
+  Item  = c("Current M&O rate (FY 2024-25)",
+            "Proposed M&O rate — No-New-Revenue (FY 2025-26)",
+            "M&O rate increase proposed",
+            "Rate needed solely for GF personnel increase (full year)",
+            "Rate needed solely for GF merit/step — half-year (as budgeted)",
+            "Rate needed solely for GF merit/step — annualized (full year)",
+            "Revenue per $0.01 of rate (at FY 2025-26 taxable base)"),
+  Value = c("$0.3326 per $100",
+            "$0.3383 per $100",
+            "+$0.0057 per $100",
+            base::sprintf("$%.4f per $100", rate_needed),
+            base::sprintf("$%.4f per $100", rate_merit_step),
+            base::sprintf("$%.4f per $100", rate_merit_step * 2),
+            fmt_dollar(rev_per_cent)),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(rate_df) |>
+  flextable::set_header_labels(Item = "Item", Value = "Value") |>
+  flextable::align(j = "Value", align = "right", part = "all") |>
+  flextable::bold(i = c(3, 4), part = "body") |>
+  ds_style_flextable(title = "Summary — Property Tax Rate Analysis")
+
+# --- Table 3: Deficit and sufficiency ---
+covers <- mo_revenue_increase >= gf_change
+def_df <- data.frame(
+  Item  = c("General Fund deficit (FY 2025-26 proposed)",
+            "M&O rate increase revenue generated ($0.0057)",
+            "Does rate increase cover the full-year GF personnel increase?",
+            "Budget is structurally balanced (revenue ≥ expenditures)?",
+            "Reserve direction"),
+  Value = c(paste0("(", fmt_dollar(1255806), ")"),
+            fmt_dollar(mo_revenue_increase),
+            ifelse(covers, "YES", paste0("NO — shortfall of ",
+                                          fmt_dollar(gf_change - mo_revenue_increase))),
+            "NO",
+            "Declining — reserves drawn down by $1,255,806"),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(def_df) |>
+  flextable::set_header_labels(Item = "Item", Value = "Value") |>
+  flextable::align(j = "Value", align = "right", part = "all") |>
+  flextable::bold(i = c(1, 3, 4), part = "body") |>
+  flextable::color(i = c(1, 3, 4, 5), j = "Value", color = "firebrick", part = "body") |>
+  ds_style_flextable(title = "Summary — Deficit Context and Rate Sufficiency")
+```
+
+### Interpretation
+
+1. **The explicit merit/step compensation policy costs \$784,000** across all
+   funds for a half-year.  The annualized run-rate is approximately
+   **\$1.57 million** citywide.
+
+2. **The total net increase in Personnel Services across all funds is
+   `r fmt_dollar(all_change)`**, inclusive of all wages, benefits, and
+   employee-related costs.  Benefits are included in this figure.
+
+3. **Only the General Fund increase (`r fmt_dollar(gf_change)`) is
+   property-tax-supported.**  The fee-funded funds (Water/Sewer, Drainage, EMS)
+   cover their own personnel increases through utility fees and service contract
+   revenues.
+
+4. **The proposed M&O rate increase of \$0.0057** (from \$0.3326 to \$0.3383)
+   generates approximately \$`r format(round(mo_revenue_increase), big.mark=",")`
+   in additional revenue — **not sufficient** to cover the General Fund
+   personnel net increase of `r fmt_dollar(gf_change)` on its own, let alone
+   the full General Fund deficit of \$1,255,806. The rate increase covers only
+   a portion of the compensation increase; the remainder is absorbed by
+   drawing down reserves.
+
+5. **Important note on the \$784,000 merit/step figure vs. the budget totals.**
+   The \$784,000 stated in the budget message is explicitly a **half-year cost**
+   (the program takes effect mid-fiscal-year). All Personnel Services totals
+   compiled in this analysis are **full fiscal-year** figures from the budget
+   worksheets. These two figures cannot be directly compared without adjustment.
+   The annualized (full-year) cost of the merit/step program is approximately
+   **\$1,568,000 citywide**. Conversely, the full-year net General Fund
+   Personnel Services change of `r fmt_dollar(gf_change)` is suppressed below
+   the annualized merit/step cost because some departments show decreases
+   (notably Police, whose FY 2024-25 projected year-end was inflated by
+   mid-year overtime actuals that will not recur).
+
+5. **Taxpayer cost decomposition — what are the raises actually costing you?**
+   The full proposed rate increase of \$0.0164 per \$100 covers multiple drivers,
+   not just compensation.  The table below decomposes the total additional tax
+   for a range of home values into the personnel-driven portion and everything
+   else (debt service increases, new facility operating costs, and other
+   expenditure growth).  The "non-personnel" column is what the taxpayer would
+   pay even if there had been **zero compensation increase**.
+
+```{r}
+#| label: taxpayer-decomp
+
+home_vals_d  <- c(200000, 300000, 400000, 500000)
+non_pers_rate <- full_rate_increase - rate_needed   # rate increase not driven by personnel
+
+decomp_df <- data.frame(
+  Home_Value  = fmt_dollar(home_vals_d),
+  Total_Addl  = fmt_dollar(home_vals_d / 100 * full_rate_increase,  digits = 2),
+  Personnel   = fmt_dollar(home_vals_d / 100 * rate_needed,         digits = 2),
+  Non_Pers    = fmt_dollar(home_vals_d / 100 * non_pers_rate,       digits = 2),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(decomp_df) |>
+  flextable::set_header_labels(
+    Home_Value = "Taxable Home Value",
+    Total_Addl = "Total Additional Tax\n(Full $0.0164 Rate Increase)",
+    Personnel  = "Personnel-Driven Portion\n(GF Compensation Increase)",
+    Non_Pers   = "Non-Personnel Portion\n(Would Pay With Zero Raises)"
+  ) |>
+  flextable::align(j = c("Home_Value","Total_Addl","Personnel","Non_Pers"),
+                   align = "right", part = "all") |>
+  flextable::bold(j = "Non_Pers", part = "body") |>
+  flextable::color(j = "Personnel", color = "firebrick", part = "body") |>
+  flextable::add_footer_lines(
+    base::sprintf(
+      "Rate decomposition: $%.4f total increase = $%.4f personnel + $%.4f other drivers (per $100 taxable value)",
+      full_rate_increase, rate_needed, non_pers_rate
+    )
+  ) |>
+  flextable::fontsize(part = "footer", size = 10) |>
+  flextable::italic(part = "footer") |>
+  ds_style_flextable(title = "Annual Property Tax Impact Decomposition — $300K Taxable Home Pays ~$X for Raises Alone")
+```
+
+---
+
+*Analysis prepared by Dan Swart, CPA (ret.)| 
+Sources: City of Schertz FY 2025-26 Proposed Budget
+         (Excel budget document dated August 2025) | All figures read directly from budget document; no automated parsing routines were used.*

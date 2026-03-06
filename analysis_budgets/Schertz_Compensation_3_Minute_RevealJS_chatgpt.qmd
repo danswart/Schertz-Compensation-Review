@@ -1,0 +1,100 @@
+---
+title: "Schertz Compensation Sustainability Warning"
+format:
+  revealjs:
+    theme: simple
+    slide-number: true
+    progress: true
+    transition: fade
+    incremental: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+## Why I'm speaking today
+
+- One issue only: **How fast total compensation is growing**
+- This is about **math and sustainability**, not politics
+- If recurring costs grow faster than stable revenue, tax rate pressure builds
+
+---
+
+## FY25 baseline (from City payroll spreadsheet)
+
+- Estimated **General-Fund-type** total compensation: **~$35.0M**
+- Benefits are a major driver:
+  - Benefits are about **39% of earnings**
+  - Fully-loaded compensation rises even when wages are flat
+
+---
+
+## FY26 merit/step cost is shown as midyear
+
+The budget states:
+
+> “These changes are planned to take effect midyear and cost $784,000.”
+
+So the **full-year wage impact** is:
+
+- $784k × 2 = **$1.568M/year**
+
+With the FY25 benefits load applied, the **fully-loaded recurring impact** is about:
+
+- **~$2.18M/year**
+
+---
+
+## What “doubling time” means
+
+If total compensation grows at a steady annual rate, it eventually doubles.
+
+- Faster growth = **much faster doubling**
+- Doubling means the City needs **much more revenue** just to keep services the same
+
+---
+
+## Sensitivity: years to double at different growth rates
+
+| Annual growth rate | Approx. years to double |
+|---:|---:|
+| 3% | 24 |
+| 4% | 18 |
+| 5% | 14 |
+| 6% | 12 |
+| 7% | 10 |
+
+**Important caveat:** Even if no additional raises are approved, total compensation can still grow **3–5%** due to benefits (healthcare, retirement, payroll taxes). A one-year medical plan “no increase” does not remove long-term inflation.
+
+---
+
+## The warning bell
+
+- A recurring fully-loaded increase of roughly **$2.18M/year** is not a one-time event  
+- It becomes part of the payroll base and compounds
+- That pushes the City toward a **12–16 year** doubling-time zone under realistic assumptions
+
+---
+
+## The financial principle (must say)
+
+A fundamental financial principle is:
+
+- **Match long-term commitments with long-term reliable revenue**
+
+Recurring compensation is a **long-term commitment**.
+
+Temporary conditions (one-year insurance freezes, unusually strong sales tax months, short-term workarounds) are **not** long-term funding.
+
+If the curves do not match, **dramatic tax rate increases are not optional — they become inevitable**.
+
+---
+
+## Closing
+
+- I support fair pay and retaining staff
+- My concern is the **long-run math**
+- Please treat the doubling-time signal as an early warning, and plan accordingly
+
+Thank you.

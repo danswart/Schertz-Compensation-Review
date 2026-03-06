@@ -1,0 +1,84 @@
+---
+title: "Compensation Commitment Growth Rate"
+subtitle: "Information Council Needs to Govern Most Effectively"
+format:
+  html:
+    toc: false
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+>"Compound interest is the eighth wonder of the world. He who understands it, earns it; he who doesn't, pays it." - 
+>Albert Einstein
+
+
+# Costs Will Double Faster Than You Think
+
+When the City approves a budget, it is not just approving one year of spending.  It is committing the City ***and the taxpayers*** to long-term financial obligations.
+
+Compensation is, by far, the largest recurring commitment in the General Fund.  It includes wages, overtime, retirement contributions, health insurance, payroll taxes, and other employer-paid benefits.
+
+Total compensation commitments grow annually even if no pay raises are given.  This is due to increasing benefit costs.  That means the cost ***compounds over time***.  
+
+Small annual increases lead to large long-term obligations.
+
+---
+
+
+# Get The Essential Numbers
+
+Before voting on recurring compensation commitments, staff should provide Council with:
+
+1. The fully loaded total compensation for the prior year.  
+2. The fully loaded total compensation proposed for the new budget year.  
+3. The year-over-year growth rate of total compensation.  
+4. The implied doubling time at that growth rate.  
+5. A sensitivity range showing what happens if compensation grows at 3%, 4%, 5%, 6%, 4% and 8% annually.
+
+These are not advanced financial tools.  
+
+They are basic measures of structural sustainability.
+
+---
+
+# Why Doubling Time Matters
+
+A growth rate of 5–6% may not sound large.
+
+But at 6% annual growth, total compensation doubles in about 12 years.  
+At 5%, it doubles in about 14 years.  
+At 4%, it doubles in about 18 years.
+
+Doubling time is not a theory.  It is simple math.
+
+If compensation doubles, the revenue supporting it must also double, which always means increasing tax rates and fees.  Or, services must be reduced (which never happens).
+
+---
+
+# In the End, Council Has the Responsibility
+
+Council members cannot reasonably be expected to reverse-engineer these numbers from hundreds of pages of budget detail.
+
+If the fully loaded compensation growth rate is not clearly presented, then the long-term impact of recurring compensation commitments is ***not transparent***.
+
+The most effective governance requires understanding not only this year's budget, but the rate of growth of large costs over time.
+
+Recurring compensation increases are very long-term commitments.  
+
+They must be matched with long-term, reliable revenue growth.
+
+Without that alignment, significant tax rate and fee increases are inevitable, not optional.
+
+---
+
+
+# Conclusion
+
+Clear disclosure of total compensation growth and doubling time is super-important for Council to consider each and every year.
+
+It is essential information for making the best decisions.
+
+If Council receives these figures before approving recurring compensation commitments they will make the best decisions possible for the taxpayers.
+

@@ -1,0 +1,379 @@
+---
+title: "Your Taxes Went Up. Here Is How That Decision Was Made."
+subtitle: "A Plain-Language Review of the City of Schertz FY 2025-26 Budget Process for Staffing and Compensation"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: false
+    theme: cosmo
+    self-contained: true
+  pdf:
+    toc: true
+    geometry: margin=1in
+    fontsize: 11pt
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup}
+#| include: false
+fmt_dollar <- function(x, digits = 0)
+  paste0("$", formatC(x, format = "f", digits = digits, big.mark = ","))
+```
+
+---
+
+## What the Budget Proposes
+
+The City of Schertz is proposing a property tax rate of **\$0.5064 per \$100
+of taxable value** for FY 2025-26, up from \$0.4900 last year. That is an
+increase of \$0.0164 per \$100 — or roughly **\$49 per year** for a home with
+a taxable value of \$300,000. That same home paid about \$1,470 in city
+property taxes last year. Under the proposed rate, it would pay about \$1,519.
+
+The proposed budget also increases utility fees. Water rates increase 2%.
+Sewer rates increase 3%. The average monthly bill goes up approximately \$2.46.
+The drainage fee nearly doubles — from \$5.20 to \$8.00 per month — an
+increase of \$33.60 per year per household.
+
+In total, the City is proposing to spend approximately **\$139.3 million**
+across all funds in FY 2025-26. That is \$4.1 million more than the current
+year — a 3% increase.
+
+```{r impact-table}
+#| tbl-cap: "Estimated Annual Impact of Proposed Rate and Fee Increases — by Home Value"
+
+home_vals <- c(200000, 300000, 400000, 500000)
+tax_increase <- 0.0164
+
+tax_impact   <- home_vals / 100 * tax_increase
+sewer_impact <- 2.46 * 12
+drainage_imp <- (8.00 - 5.20) * 12
+
+impact_tbl <- data.frame(
+  Home_Value   = fmt_dollar(home_vals),
+  Tax_Impact   = fmt_dollar(tax_impact, digits = 2),
+  Util_Impact  = fmt_dollar(sewer_impact, digits = 2),
+  Drain_Impact = fmt_dollar(drainage_imp, digits = 2),
+  Total        = fmt_dollar(tax_impact + sewer_impact + drainage_imp, digits = 2)
+)
+
+knitr::kable(impact_tbl,
+  col.names = c("Taxable Home Value", "Property Tax Increase",
+                "Water/Sewer Increase", "Drainage Fee Increase",
+                "Total Annual Increase"),
+  align = c("r","r","r","r","r"))
+```
+
+Where is that money going? The two largest drivers are **employee compensation**
+and **new positions**. This document examines how those decisions were made —
+and what questions the process did not answer.
+
+---
+
+## The Two Biggest Cost Drivers
+
+### Compensation Increases
+
+The budget proposes a **merit program** for non-public-safety employees
+(0–4% raise based on performance evaluation) and a **step increase** for
+public safety employees (up to 4% based on tenure). The City states that
+these increases will cost **\$784,000 citywide**.
+
+That \$784,000 figure deserves a closer look. The raises take effect
+*mid-year* — halfway through the fiscal year. So the budget only reflects
+*half* the annual cost. Starting in FY 2026-27, those same raises cost
+**\$1,568,000 per year** — before any additional raises are proposed.
+That additional \$784,000 will appear in next year's budget as part of the
+existing baseline, largely invisible as a discrete cost.
+
+When you look at total employee compensation — wages, overtime, retirement
+contributions, health insurance, workers' compensation, and all related costs —
+the numbers are larger still. Reading through every department in the budget,
+General Fund personnel costs are proposed at approximately **\$37.5 million**
+for FY 2025-26, up from \$36.9 million last year. Across all funds combined
+(including Water/Sewer, Drainage, and EMS), total personnel costs rise from
+approximately \$50.3 million to \$52.6 million.
+
+### New Positions
+
+The budget adds **26 new positions** across all funds:
+
+```{r positions-table}
+#| tbl-cap: "Proposed New Positions — FY 2025-26"
+
+pos_tbl <- data.frame(
+  Fund = c("General Fund","General Fund","General Fund","General Fund",
+           "Water & Sewer","EMS","Drainage"),
+  Count = c(6, 1, 2, 1, 6, 4, 6),
+  Description = c(
+    "Firefighters — to staff the new Fire Station 4",
+    "Assistant City Secretary",
+    "Athletics Coordinator and Recreation Specialist (Soccer Complex takeover)",
+    "Senior Center Supervisor (Senior Center operations takeover)",
+    "New water/wastewater crew plus one floater position",
+    "EMTs to staff additional ambulances at peak hours",
+    "New drainage maintenance crew plus a Floodplain Manager"
+  ),
+  stringsAsFactors = FALSE
+)
+
+knitr::kable(pos_tbl,
+  col.names = c("Fund","Positions","Description"),
+  align = c("l","c","l"))
+```
+
+Every one of these positions represents a permanent, recurring cost. Unlike a
+road repair or an equipment purchase, a position does not depreciate. It comes
+back every year — with a raise.
+
+---
+
+## How These Decisions Were Made
+
+Here is the process, as it actually works:
+
+The **City Manager's office** prepares the proposed budget and presents it to
+City Council. Council reviews it, asks questions at public hearings, and votes.
+Citizens can attend those hearings and comment.
+
+In practice, the information Council receives comes almost entirely from the
+City Manager's office. Council members are part-time elected officials; the
+City Manager and department heads are full-time professionals. The professionals
+know their departments in detail. That is appropriate — but it also means that
+the information flowing to Council is shaped by the people whose budgets are
+being reviewed.
+
+This is not unusual. It is how most city governments work. The question is
+whether the information provided is sufficient for Council to evaluate the
+requests — or whether Council is being asked to trust the professionals
+without the data needed to verify their claims.
+
+---
+
+## What the Justifications Actually Said
+
+For each of the 26 proposed new positions, what case did the budget document
+make?
+
+For the **6 firefighters**, the justification is clear and concrete: a new
+fire station is being built and cannot operate without staff. This is a
+straightforward operational necessity.
+
+For the **Soccer Complex and Senior Center positions**, the City is taking
+over operations previously managed by other entities. The headcount follows
+the operations transfer. Whether those positions are sized correctly for the
+actual workload is not addressed.
+
+For the **Assistant City Secretary**, the budget says the position is needed
+to help "with existing operations." That is the complete justification. No
+workload data. No description of what existing operations are currently
+unmet. No alternative considered.
+
+For the **Water/Sewer crew**, the justification is growth. Fair enough —
+Schertz is a growing city. But how many service connections are currently
+maintained per crew? How does that compare to what an efficiently run
+water utility maintains? The budget does not say.
+
+For the **4 EMTs**, the budget describes the goal of reducing response times
+and staffing peak call hours. Have response times actually increased? By how
+much? What is the call volume trend? What do the best-performing EMS
+operations of comparable size look like? None of this appears.
+
+For the **Drainage crew**, the need is described as maintaining existing
+channels and planning for expansions. How many channel-miles are currently
+maintained per crew? What is the backlog of deferred maintenance? The budget
+does not say.
+
+For the **Floodplain Manager**, a regulatory mandate is cited. That is a
+legitimate driver — but the specific mandate and its requirements are not named.
+
+**The pattern is consistent:** the City tells you *what* it wants to hire.
+It does not show you *why that number* is the right answer, or whether the
+existing workforce is being used as efficiently as possible before more is
+added.
+
+---
+
+## What Frugal Governance Looks Like
+
+Frugality in government is not the same as cutting services. It means getting
+the maximum value from every dollar before asking taxpayers for more. A
+frugal governing body asks different questions than one that simply reviews
+what staff proposes.
+
+Here is the difference in practice.
+
+**What a deferential Council asks:**
+*"Does this request seem reasonable given the department's description of its needs?"*
+
+**What a frugal Council asks:**
+*"Show us the trend in calls per unit, work orders per employee, and response
+times over the last three years. Show us how the most efficient comparable
+city handles this function. Explain what you tried before concluding that
+adding headcount was the answer."*
+
+The first approach depends on trust. The second approach verifies. Both
+trust and verification have their place — but for permanent spending
+commitments that compound over time, verification is the governing body's
+obligation to the people who pay the bills.
+
+There is a principle that applies directly here: **governing bodies should
+look to outside organizations not for examples of how to spend as much as
+others, but for examples of how to deliver the same — or better — service
+for less.** The benchmark is efficiency, not average practice. If another
+Texas city of similar size maintains its water infrastructure with fewer
+crew members per service connection, the question is not whether Schertz
+is close to the average. The question is how to get to where that efficient
+city is.
+
+---
+
+## The Compounding Reality
+
+Every compensation increase and every new position adds to a base that grows
+from year to year. Consider what that means over time.
+
+General Fund personnel costs have grown at a compound annual rate of
+approximately **12%** over the three years for which data is available in
+this budget — from roughly \$26.6 million in FY 2022-23 to a proposed
+\$37.5 million in FY 2025-26. At that rate, personnel costs would double
+in approximately **6 years**.
+
+```{r doubling-table}
+#| tbl-cap: "Illustrative Doubling Projections at Current Growth Rate"
+
+base_gf  <- 37500000   # approx annualized GF personnel
+base_all <- 52600000   # approx annualized all-funds personnel
+cagr     <- 0.12
+years    <- c(0, 3, 6, 9, 12)
+
+proj_tbl <- data.frame(
+  Years_From_Now = paste0("FY ", 2026 + years),
+  GF_Personnel   = fmt_dollar(base_gf  * (1 + cagr)^years),
+  All_Personnel  = fmt_dollar(base_all * (1 + cagr)^years)
+)
+
+knitr::kable(proj_tbl,
+  col.names = c("Year", "General Fund Personnel Costs",
+                "All Funds Personnel Costs"),
+  align = c("l","r","r"))
+```
+
+Property tax revenue, constrained by state law and the voter-approval rate
+cap, grows at roughly 7% per year under good conditions — a doubling time
+of about 10 years. Personnel costs growing at 12% per year outpace revenue
+growing at 7% per year by a compounding margin. The gap between what the
+City costs and what taxpayers can fund through current revenue sources does
+not stay flat — it widens, year after year, until something breaks.
+
+That something is usually: a larger tax increase than anyone expected, a
+sudden reduction in services, or a draw-down of reserves. None of these
+outcomes announce themselves in advance. They accumulate quietly, then arrive
+all at once.
+
+---
+
+## The Constituency Dynamic
+
+When a City Manager's office proposes adding 26 positions, it is worth
+understanding what those positions mean organizationally — beyond their
+direct cost.
+
+Each new employee becomes part of the organization. The organization has
+an interest in retaining and supporting its employees. That interest
+generates future budget pressure — for training, for equipment, for
+compensation increases, for additional support positions. Each new position
+is not just a line item; it is the beginning of an organizational commitment.
+
+This is not a criticism of the employees. It is a description of how
+organizations behave. A growing workforce generates internal political
+support for further growth. Department heads who have grown their teams
+advocate for their teams. The City Manager who approved the growth defends
+it. Over time, the employees of a city government become its most
+reliable constituency — present at every budget meeting, professionally
+invested in the outcome, and far more organized than the general public.
+
+The remedy is not hostility toward city employees. The remedy is a
+governing body that maintains independent standards for what evidence
+it requires — and holds those standards consistently, regardless of
+how requests are framed.
+
+---
+
+## What Citizens Can Ask
+
+Public comment at City Council meetings is most effective when it is
+specific. The following questions are grounded in the budget document and
+ask for information the City should be able to provide.
+
+**On staffing:**
+
+1. *"For each of the 26 new positions proposed, what is the three-year trend
+   in the primary workload indicator for that department — calls, service
+   connections, work orders, or equivalent — and what is the current output
+   per existing employee?"*
+
+2. *"What alternatives to adding headcount were evaluated before each new
+   position was proposed, and what was the result of that evaluation?"*
+
+3. *"What are the City's adopted service-level standards for Police, Fire,
+   EMS, Water/Sewer, and Drainage — and how does current performance compare
+   to those standards?"*
+
+**On compensation:**
+
+4. *"The proposed merit/step program costs \$784,000 in FY 2025-26 because
+   it takes effect mid-year. What is the full annualized cost beginning in
+   FY 2026-27, and is that amount shown in the five-year financial forecast?"*
+
+5. *"General Fund personnel costs have grown at approximately 12% per year
+   for three years. What is the long-run property tax revenue growth rate,
+   and what is the plan for closing the gap between compensation growth and
+   revenue growth?"*
+
+**On frugality:**
+
+6. *"Which Texas city of comparable size delivers comparable services at the
+   lowest cost per unit of output — and what practices make that possible?"*
+
+7. *"Before adding positions in any department, what is the productivity
+   trend for existing employees in that department over the last three years?"*
+
+These are not hostile questions. They are the questions a governing body
+should ask before voting — and that citizens are entitled to ask when
+their governing body does not.
+
+---
+
+## Three Recommendations
+
+**1. Require data before approving staffing requests.**
+Every proposed position should come with three years of workload trend data,
+current unit productivity figures, a description of alternatives considered,
+and the full annualized cost — not just the budget-year cost. Requests that
+lack this information should be deferred, not approved.
+
+**2. Set service-level standards before the next budget cycle.**
+Without adopted standards, there is no objective way to evaluate whether
+current service is adequate or whether more resources are genuinely needed.
+The City should establish measurable standards for each major function, set
+by Council — not by the departments being measured.
+
+**3. Demand the full-year cost, every time.**
+When the City presents a compensation increase as taking effect mid-year,
+the full annualized run-rate — what it costs starting the following year —
+must be shown alongside the budget-year figure. Budget documents that
+present only the discounted cost are not giving Council or the public an
+accurate picture of the commitment being made.
+
+---
+
+*This document is based on a reading of the City of Schertz FY 2025-26
+Proposed Budget. All figures come directly from that document. The analysis
+is intended to inform public understanding of the budget process and to
+identify questions that merit public attention.*

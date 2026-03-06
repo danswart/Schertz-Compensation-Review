@@ -96,7 +96,7 @@ quarto:
 
 # for .qmd filesd
 execute:
-  echo: false
+  echo: true
   message: false
   warning: false
   eval: true
@@ -107,7 +107,7 @@ execute:
 # for .rmd files
 knitr:
   opts_chunk:
-    echo: false
+    echo: true
     error: false
     warning: false
     message: false
@@ -278,20 +278,15 @@ base::set.seed(123)
 \
 
 #### **Filename:**
-get_cpi_and_analyze_with_buttons.qmd
+get_cpi_w_and_analyze_with_buttons.qmd
 
 \
 
 ## Introduction
 
-This document fetches **CPI-W** (Consumer Price Index for Urban Wage Earners and
-Clerical Workers, series `CWUR0000SA0`) from the Bureau of Labor Statistics
-public API v2, saves it locally to avoid redundant API calls, and produces
-charts and tables for municipal compensation benchmarking.
+This document fetches **CPI-W** (Consumer Price Index for Urban Wage Earners and Clerical Workers, series `CWUR0000SA0`) from the Bureau of Labor Statistics public API v2, saves it locally to avoid redundant API calls, and produces charts and tables for municipal compensation benchmarking.
 
-CPI-W is preferred over CPI-U for **employee compensation comparisons** because
-it tracks the price experience of wage-earning households specifically, and it
-is the index used for Social Security COLA adjustments.
+CPI-W is preferred over CPI-U for **employee compensation comparisons** because it tracks the price experience of wage-earning households specifically, and it is the index used for Social Security COLA adjustments.
 
 ---
 
