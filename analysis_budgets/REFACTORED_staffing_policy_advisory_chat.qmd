@@ -1,0 +1,776 @@
+---
+title: "Trust, But Verify"
+subtitle: "A Policy Framework for Evaluating Proposed Increases in Municipal Staffing and Compensation"
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
+format:
+  html:
+    echo: true
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: true     # Set to 'false' for drafts. Override if you're NOT sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    echo: false
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
+execute:
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+
+params:
+  data_updated: !expr format(Sys.Date(), "%B %Y")
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+# Capture current filename for use in document
+file_name <- if (!base::is.null(knitr::current_input())) {
+  paste0(tools::file_path_sans_ext(knitr::current_input()), ".qmd")
+} else {
+  "interactive_session.qmd"
+}
+
+file_stem <- base::paste0(tools::file_path_sans_ext(file_name), "_chat")
+
+
+
+# install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
+
+# census_api_key("95496766c51541ee6f402c1e1a8658581285b759", install = TRUE, overwrite = TRUE)
+
+
+# # load libraries - NOT NEEDED
+
+# Download button helpers live here; knitr::is_html_output() guard is inside
+# the helpers so they silently no-op when rendering to typst
+
+source(here::here("R", "report_format_helpers.R"))
+source(here::here("R", "flextable_helpers.R"))
+source(here::here("R", "download_button_helpers.R"))
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  theme_fun = base::identity,          # <-- add this
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+# Standard table styler: blue italic title row + palegreen column header row.
+# Defined here so all QMDs that source this setup get the same presentation
+# without depending on census_helpers.R for a purely cosmetic function.
+ds_style_flextable <- function(ft, title = NULL, title_size = 16) {
+  # Fixed layout helps long text wrap instead of expanding columns
+  ft <- flextable::set_table_properties(ft, layout = "fixed")
+
+  if (!base::is.null(title)) {
+    ft <- flextable::add_header_lines(ft, values = title)
+    ft <- flextable::color(ft, i = 1, part = "header", color = "blue")
+    ft <- flextable::italic(ft, i = 1, part = "header")
+    ft <- flextable::align(ft, i = 1, part = "header", align = "left")
+    ft <- flextable::bold(ft, i = 1, part = "header")
+    ft <- flextable::fontsize(ft, i = 1, part = "header", size = title_size)
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "white")
+    ft <- flextable::bg(ft, i = 2, part = "header", bg = "palegreen")
+
+    # Optional: make wrapped titles read better
+    ft <- flextable::line_spacing(ft, i = 1, part = "header", space = 1.2)
+  } else {
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "palegreen")
+  }
+
+  ft <- flextable::autofit(ft)
+  ft
+}
+
+
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 28,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 22,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 18,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18),
+        # ggplot2::element_blank(),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+        # ggplot2::element_blank(),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 18,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+
+# claude <- ellmer::chat_anthropic(model = "claude-opus-4-6-20260205")
+  
+# Set seed for reproducibility
+base::set.seed(123)
+
+```
+
+
+\
+
+#### **Filename:**
+
+::: {.content-visible when-format="html"}
+[`r file_name`]{style="word-break: break-all; font-size: 1.00em;"}
+:::
+
+```{=typst}
+#let wrap_underscores(s) = s.replace("_", "_\u{200B}")
+#text(size: 16pt)[#raw(wrap_underscores("`r file_name`"))]
+```
+
+\
+
+
+---
+
+> *"In God we trust. All others bring data."*
+> — W. Edwards Deming
+
+---
+
+## Adopt a Governing Principle for Budgeting  
+
+\
+Every request to add staff or increase compensation is a **permanent, compounding fiscal commitment**. Unlike a capital purchase that depreciates, a new position or a raise does not expire. It recurs every year, earns longevity increases, generates pension and other benefit obligations, and establishes the baseline from which the next increase is measured. The cumulative weight of these decisions determines whether
+a city remains fiscally sustainable or gradually, but inevitably,  overextends itself.
+
+A governing body that approves staffing and compensation requests on the basis of narrative justification — rather than measured evidence of need — is not exercising its best oversight. It looks more like ratifying whatever the administration chose to ask for.
+
+\
+
+The financial principle is simple:
+
+> ***A governing body's obligation is to the taxpayers who fund it, not to the
+> organization it oversees. That obligation includes requiring evidence of need 
+> before approving any permanent increase in the cost of government — and it
+> requires holding that standard consistently, regardless of how the request
+> is framed.***
+
+This is not distrust of staff. It is the institutional definition of fiduciary responsibility. Trust the professionals who run daily operations. But verify, with data, that every resource request reflects genuine need rather than organizational preference.
+
+---
+
+## Benchmarking Principle
+
+Governing bodies are often advised to look at peer cities to justify spending requests. This advice, applied carelessly, inverts the proper use of benchmarking.
+
+**The wrong question:** *"How much are other cities of similar size spending on this function?"*   &nbsp;&nbsp; This establishes a floor of mediocrity. If peer cities are overstaffed or overcompensated, benchmarking against them copies the same problems into your municipality.  Compensation studies amplify costs; they never lower costs.
+
+**The right questions:** *"Which cities are delivering comparable or superior service levels with fewer resources per unit of output — and what are they doing differently?"*
+
+*"Are they ***effective***, from the tax and rate-payers point of view?"*
+
+\
+
+Benchmarking should identify models of ***effectiveness***, not averages of current practice. The governing body's standard should be:  
+
+**If you want to draw comparisons to other organizations show us how they do more with less, not how they do the same (or less) with more cost.**
+
+Data sources that might support this type of benchmarking include:
+
+- **Texas Comptroller's Government Finance Data** — comparable city expenditures per capita and per function?
+- **ICMA Center for Performance Measurement** — voluntary city benchmarking on service outputs and unit costs?
+- **GFOA Best Practices** — service-level and staffing standards for municipal functions?
+- **Texas Municipal League Annual Survey** — statewide compensation and staffing comparisons?
+
+Any peer comparison submitted by staff should identify the most efficient
+and ***effective*** comparable cities, not the average. The question is not whether Schertz is in the middle of the pack. The question is whether Schertz can get to the front of the pack on cost per unit of ***effective*** service.
+
+---
+
+
+## Why Narrative Justification Just Doesn't Cut It
+
+Municipal organizations generate narrative justifications naturally. Staff
+are professionals who understand their functions and can describe their
+workloads in compelling terms. That is not the problem. The problem is that
+narrative justification is unfalsifiable — it cannot be shown to be wrong,
+which means it cannot be evaluated.
+
+Consider two justifications for adding a position:
+
+> *"The department is experiencing increased demand and staff are stretched
+> thin. An additional position would allow us to maintain service levels and
+> reduce burnout."*
+
+versus:
+
+> *"Calls for service increased 18% from FY 2022-23 to FY 2024-25 while
+> staffing remained flat, increasing the calls-per-unit ratio from 4.2 to
+> 4.9. Response times in Priority 2 calls have increased from 6.8 to 8.4
+> minutes over the same period, exceeding our adopted service level standard
+> of 8.0 minutes. Adding one unit would return the ratio to 4.5 and is
+> projected to reduce Priority 2 response times to 7.6 minutes."*
+
+The first statement invites sympathy. The second invites analysis. A governing body can only do its best job when staff also provide the second type of justification.
+
+**Accepting the first type as sufficient is how municipal organizations grow beyond what their taxpayers want to sustain** — not through any single bad decision, but through the accumulated weight of requests that were never subjected to quantitative scrutiny.
+
+---
+
+
+## The Constituency Problem
+
+When budget information consists primarily of narrative rather than data, the governing body's ability to push back is impaired — because the governing body has no independent baseline against which to evaluate the narrative.
+
+This dynamic is structural, not personal. It is not a criticism of any
+individual staff member. It is an observation about how this organization behaves: it is natural for staff to advocate for their own growth.
+
+Employees whose positions are being proposed want those positions approved. Departments that receive new resources grow in headcount and in internal political weight. Those employees become constituents of the administration that hired them.
+
+The remedy is institutional, not interpersonal:
+
+1. **Require data submissions** — not optional, not supplemental, mandatory
+2. **Require the data before the budget is presented** — not as a response to Council questions, but as a precondition for the request appearing in the proposed budget at all
+3. **Adopt a resolution** formalizing the required evidence standard so that future Councils are protected by policy, not dependent on the posture of individual members
+
+---
+
+
+
+## The Required Evidence Standard
+
+Every request to add a position or increase compensation — in any amount,
+for any reason — should be accompanied by a standard data submission covering
+the following six elements. Requests that do not include all six should not
+advance to a budget vote.
+
+### Element 1: Workload Trend
+
+A minimum of three years of the primary workload indicator for the function,
+expressed as a rate per unit time (calls per month, permits per quarter,
+service connections per year). The trend must be presented as a control chart
+or time-series plot — not as a year-over-year percentage. A single percentage
+comparison conceals variability and can be manipulated by choice of base year.
+
+### Element 2: Current Unit Productivity
+
+The ratio of output to input for the current staffing level, trended over
+the same three-year period. Examples:
+
+- EMS / Fire: unit hour utilization; calls per unit per shift
+- Police: calls for service per officer; case clearance rate
+- Public Works / Water-Sewer: service connections per crew; work orders
+  completed per FTE; maintenance backlog (age and dollar value)
+- Drainage: channel-miles maintained per crew; inspection cycle completion rate
+- Administrative: transactions per FTE; processing cycle time; error rate
+
+If productivity per existing employee is flat or declining while headcount is
+also flat, the case for adding staff is stronger. If productivity per employee
+is flat or declining while headcount has already grown, the case for adding
+more staff is weaker.
+
+### Element 3: Adopted Service-Level Standards
+
+What is the governing body's adopted standard for this function? If no standard
+exists, staff should propose one as part of the request. The proposed staffing
+level must be traceable to a specific gap between the current measured
+performance and the adopted standard.
+
+Without an adopted standard, there is no objective definition of "adequate
+service" — and without that, there is no objective basis for any staffing request.
+
+### Element 4: The Efficiency Alternative
+
+What options were considered other than adding headcount? This must include:
+
+- Process improvement or technology substitution
+- Redistribution of existing workload
+- Contracted or shared service arrangements
+- Adjusted service-level standards (if the current standard is more generous
+  than necessary)
+
+If none of these alternatives is viable, the submission must explain why, with
+supporting evidence. "We looked at it and it wasn't feasible" is not sufficient.
+
+### Element 5: The Cost of Not Acting
+
+If the position is not approved, what specifically happens? This must be
+expressed in measurable terms — not "service levels will suffer" but "Priority
+2 response times are projected to reach 9.1 minutes by FY 2026-27 based on
+current call volume trend, exceeding the adopted 8.0-minute standard." If the
+consequence cannot be stated in measurable terms, the urgency of the request
+should be questioned.
+
+### Element 6: The Full Annualized, Compounding Cost
+
+The cost of any staffing or compensation request must be presented as:
+
+- **Year 1 cost** — including salary, all benefits, and any one-time startup costs
+- **Annualized run-rate** — if the position starts or the raise takes effect
+  mid-year, the full 12-month cost must be shown explicitly
+- **5-year projected cost** — at the prevailing CAGR for the relevant
+  compensation category, to make the compounding impact visible
+- **Cost per unit of service** — what does this position cost per call, per
+  work order, per transaction, at the projected workload level?
+
+```{r}
+#| label: five-year-table
+
+base_total <- 65000 * 1.40
+cagr_rate  <- 0.10
+
+yr <- 1:5
+cost_tbl <- data.frame(
+  Year = paste0("Year ", yr),
+  Annual_Cost = base_total * (1 + cagr_rate)^(yr - 1),
+  Cumulative = cumsum(base_total * (1 + cagr_rate)^(yr - 1)),
+  stringsAsFactors = FALSE
+)
+
+cost_tbl_display <- cost_tbl |>
+  dplyr::mutate(
+    Annual_Cost = fmt_dollar(Annual_Cost),
+    Cumulative = fmt_dollar(Cumulative)
+  )
+
+cost_tbl_spec <- list(
+  title = "Illustrative 5-Year Cost Projection for a Single Position",
+  labels = list(
+    Year = "Year",
+    Annual_Cost = "Annual Cost (w/ Benefits)",
+    Cumulative = "Cumulative 5-Year Cost"
+  ),
+  footer_lines = "Assumes $65,000 base salary, 40% benefits load, 10% annual CAGR on total compensation. Actual CAGR for Schertz General Fund personnel: see companion compensation analysis."
+)
+
+ds_ft(cost_tbl_display, cost_tbl_spec)
+
+ds_download_data_btn(
+  cost_tbl,
+  filename_base = base::paste0(file_stem, "_five_year_cost_projection"),
+  label = "Download 5-Year Cost Table (CSV)"
+)
+```
+
+A position that appears to cost \$91,000 in Year 1 costs over \$600,000 in its
+first five years — before any additional raises are applied. This is the number
+the governing body should see before voting.
+
+---
+
+## The Staffing Request Evaluation Template
+
+The following checklist should be completed by staff for every proposed position
+and submitted to the governing body as part of the budget package. Council
+should decline to vote on any request for which this form is incomplete.
+
+```{r}
+#| label: eval-template
+
+template <- data.frame(
+  Element = c(
+    "1a. Primary workload indicator identified",
+    "1b. Three-year trend data provided (chart or table)",
+    "1c. Trend presented as a rate, not a percentage change only",
+    "2a. Current unit productivity metric identified",
+    "2b. Productivity trended over three years",
+    "2c. Productivity compared to most-efficient peer city",
+    "3a. Adopted service-level standard cited",
+    "3b. Current performance gap to standard quantified",
+    "3c. Projected performance gap without new position quantified",
+    "4a. Process improvement alternative evaluated",
+    "4b. Technology substitution alternative evaluated",
+    "4c. Contracted/shared service alternative evaluated",
+    "5a. Consequence of non-approval stated in measurable terms",
+    "5b. Timeline for consequence provided",
+    "6a. Full annualized cost shown (not mid-year only)",
+    "6b. 5-year cost projection provided",
+    "6c. Cost per unit of service calculated",
+    "6d. Peer city cost-per-unit comparison provided"
+  ),
+  Submitted = rep("☐  Yes   ☐  No   ☐  N/A", 18),
+  Notes = rep("", 18),
+  stringsAsFactors = FALSE
+)
+
+template_spec <- list(
+  title = "Required Staffing Request Submission Checklist",
+  labels = list(
+    Element = "Required Element",
+    Submitted = "Submitted?",
+    Notes = "Council Notes"
+  )
+)
+
+ds_ft(template, template_spec)
+
+ds_download_data_btn(
+  template,
+  filename_base = base::paste0(file_stem, "_staffing_request_submission_checklist"),
+  label = "Download Submission Checklist (CSV)"
+)
+```
+
+---
+
+## Audit: FY 2025-26 Proposed Staffing Requests
+
+The following table evaluates each proposed new position in the FY 2025-26
+Schertz budget against the six-element standard above. Ratings:
+
+- **E** — Evidence: quantitative data provided
+- **A** — Assertion: narrative claim only, no supporting data
+- **X** — Absent: no justification provided
+
+```{r}
+#| label: audit-table
+
+audit <- data.frame(
+  Position = c(
+    "6 Firefighters (Fire Station 4)",
+    "Assistant City Secretary",
+    "Athletics Coordinator",
+    "Recreation Specialist",
+    "Senior Center Supervisor",
+    "W&S Crew Leader",
+    "W&S Worker II",
+    "W&S Worker I (×3)",
+    "W&S Worker I (floater)",
+    "4 EMTs (EMS Fund)",
+    "Drainage Crew Leader",
+    "Drainage Worker II",
+    "Drainage Worker I (×3)",
+    "Floodplain Manager"
+  ),
+  Fund = c(
+    "General",
+    "General",
+    "General",
+    "General",
+    "General",
+    "W&S",
+    "W&S",
+    "W&S",
+    "W&S",
+    "EMS",
+    "Drainage",
+    "Drainage",
+    "Drainage",
+    "Drainage"
+  ),
+  Workload_Trend = c("A","X","X","X","X","A","A","A","A","A","A","A","A","A"),
+  Unit_Productivity = c("X","X","X","X","X","X","X","X","X","X","X","X","X","X"),
+  SvcLevel_Standard = c("X","X","X","X","X","X","X","X","X","X","X","X","X","A"),
+  Efficiency_Alt = c("X","X","X","X","X","X","X","X","X","X","X","X","X","X"),
+  Cost_of_Inaction = c("X","X","X","X","X","X","X","X","X","X","X","X","X","A"),
+  Full_Cost_Shown = c("X","X","X","X","X","X","X","X","X","X","X","X","X","X"),
+  Primary_Driver = c(
+    "Facility opening — operational trigger",
+    "Narrative only",
+    "Operations transfer (Soccer Complex)",
+    "Operations transfer (Soccer Complex)",
+    "Operations transfer (Senior Center)",
+    "Growth asserted",
+    "Growth asserted",
+    "Growth asserted",
+    "Turnover coverage asserted",
+    "Response time / peak hours asserted",
+    "Maintenance need asserted",
+    "Maintenance need asserted",
+    "Maintenance need asserted",
+    "Regulatory mandate cited (unnamed)"
+  ),
+  stringsAsFactors = FALSE
+)
+
+audit_spec <- list(
+  title = "FY 2025-26 New Position Requests — Evidence Audit",
+  labels = list(
+    Position = "Position",
+    Fund = "Fund",
+    Workload_Trend = "Workload Trend",
+    Unit_Productivity = "Unit Prod.",
+    SvcLevel_Standard = "Svc Level Std.",
+    Efficiency_Alt = "Efficiency Alt.",
+    Cost_of_Inaction = "Cost of Inaction",
+    Full_Cost_Shown = "Full Cost Shown",
+    Primary_Driver = "Primary Driver"
+  )
+)
+
+ds_ft(audit, audit_spec)
+
+ds_download_data_btn(
+  audit,
+  filename_base = base::paste0(file_stem, "_evidence_audit"),
+  label = "Download Evidence Audit (CSV)"
+)
+```
+
+**Summary:** Of 14 position requests, **zero** provided unit productivity data,
+**zero** provided an efficiency alternative analysis, and **zero** provided a
+full annualized 5-year cost projection. One position (Firefighters) had a clear
+operational trigger. Two positions had partial regulatory or operational
+triggers. Eleven were supported by assertion only.
+
+This is not an indictment of the individual requests. Some of them may well
+be justified. **The problem is that the governing body has no basis to know
+which ones are and which ones are not.** Approving all fourteen because some
+of them are probably fine is not oversight — it is deference.
+
+---
+
+## Recommended Policy Actions
+
+The following actions are recommended for adoption by the governing body as
+standing policy, not as one-time responses to the current budget.
+
+**1. Adopt a Staffing Request Evidence Standard by Resolution.**
+The six-element standard in Section 5 of this document, or an equivalent,
+should be adopted by formal resolution so that it applies to all future
+budgets regardless of who is serving on the Council. Staff should be given
+one budget cycle to develop the baseline data required by the standard.
+
+**2. Require Baseline Data for All Current Positions Before New Ones Are Added.**
+Before any net new position is approved, staff should be required to provide
+the workload trend and unit productivity data for the *existing* positions in
+that department. A department that cannot demonstrate the productivity of its
+current staff has no basis for requesting additional staff.
+
+**3. Establish Adopted Service-Level Standards for Each Function.**
+Without adopted standards, there is no objective measure of adequacy. Council
+should direct staff to propose service-level standards for each department —
+and those standards should be set by Council, not by the departments whose
+performance will be measured against them.
+
+**4. Present All Compensation Increases at Their Full Annualized Cost.**
+Any merit, step, or COLA program that takes effect mid-year must be presented
+to the governing body showing both the budget-year cost and the full-year
+run-rate cost that will appear in the following year's baseline. The budget
+document should include a schedule showing the projected year-two cost of
+every compensation decision made in year one.
+
+**5. Commission an Independent Efficiency Benchmark Every Three Years.**
+Not a peer average comparison — an identification of the most efficient
+comparable city for each major function, with an analysis of what practices
+produce that efficiency. The question is not "how do we compare to the average?"
+The question is "how do we get to where the best performers are?"
+
+---
+
+## The Compounding Stakes
+
+To make the governance stakes concrete, consider what the current trajectory
+implies. Based on the FY 2025-26 proposed budget and the prior three years of
+actuals, General Fund personnel services have grown at a compound annual rate
+that implies doubling roughly every 6 years. (See companion compensation
+analysis for the full calculation.)
+
+Property tax revenue, constrained by the voter-approval rate cap, grows at
+roughly 7% per year under favorable conditions — a doubling time of
+approximately 10 years. Population growth, which determines service demand,
+runs at approximately 2-3% per year.
+
+A compensation base that doubles every 6 years against revenue that doubles
+every 10 years produces a structural deficit within a single decade — not from
+any crisis, not from any single bad decision, but from the accumulated weight
+of requests approved without adequate evidence of need.
+
+The governing body cannot fix the past. It can change the standard applied
+to the future. That is what this framework is for.
+
+---
+
+*This document is intended as a permanent policy reference for governing
+bodies evaluating municipal staffing and compensation requests. It is not
+specific to any single budget cycle and should be revisited whenever material
+changes occur in the City's fiscal position or organizational structure.*

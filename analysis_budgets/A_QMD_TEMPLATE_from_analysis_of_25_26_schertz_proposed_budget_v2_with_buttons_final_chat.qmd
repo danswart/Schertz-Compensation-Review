@@ -22,6 +22,7 @@ format:
     code-block-bg: "#FAEBD7"
     code-block-border-left: "#31BAE9"
     embed-resources: true     # Set to 'false' for drafts. Override if you're NOT sharing output
+    echo: true
     include-in-header:
       - text: 
           <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
@@ -52,6 +53,7 @@ format:
     
     
   typst:
+    echo: false
     fig-width: 13
     fig-height: 8
     fig-dpi: 300
@@ -96,7 +98,6 @@ quarto:
 
 # for .qmd filesd
 execute:
-  echo: false
   message: false
   warning: false
   eval: true
@@ -107,7 +108,6 @@ execute:
 # for .rmd files
 knitr:
   opts_chunk:
-    echo: false
     error: false
     warning: false
     message: false
@@ -144,6 +144,10 @@ file_stem <- tools::file_path_sans_ext(file_name)
 
 # Download button helpers live here; knitr::is_html_output() guard is inside
 # the helpers so they silently no-op when rendering to typst
+
+source(here::here("R", "download_button_helpers.R"))
+source(here::here("R", "report_format_helpers.R"))
+source(here::here("R", "flextable_helpers.R"))
 source(here::here("R", "download_button_helpers.R"))
 
 # Force dplyr's select to take precedence

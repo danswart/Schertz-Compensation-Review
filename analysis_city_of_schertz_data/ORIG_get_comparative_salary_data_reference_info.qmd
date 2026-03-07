@@ -9,6 +9,7 @@ date-format: long
 # bibliography: manual-refs.bib
 format:
   html:
+    echo: true
     resources:
       - reference-backlinks.js
     include-after-body:    
@@ -53,6 +54,7 @@ format:
     
     
   typst:
+    echo: false
     fig-width: 13
     fig-height: 8
     fig-dpi: 300
@@ -97,7 +99,6 @@ quarto:
 
 # for .qmd filesd
 execute:
-  echo: false
   message: false
   warning: false
   eval: true
@@ -108,7 +109,6 @@ execute:
 # for .rmd files
 knitr:
   opts_chunk:
-    echo: false
     error: false
     warning: false
     message: false

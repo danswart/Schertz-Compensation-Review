@@ -1,0 +1,734 @@
+---
+title: "Your Taxes Went Up. Here Is How That Decision Was Made."
+subtitle: "A Plain-Language Review of the City of Schertz FY 2025-26 Budget Process for Staffing and Compensation"
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
+format:
+  html:
+    echo: true
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: true     # Set to 'false' for drafts. Override if you're NOT sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    echo: false
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
+execute:
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+
+params:
+  data_updated: !expr format(Sys.Date(), "%B %Y")
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+# Capture current filename for use in document
+file_name <- if (!base::is.null(knitr::current_input())) {
+  paste0(tools::file_path_sans_ext(knitr::current_input()), ".qmd")
+} else {
+  "interactive_session.qmd"
+}
+
+file_stem <- base::paste0(tools::file_path_sans_ext(file_name), "_chat")
+
+
+
+# install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
+
+# census_api_key("95496766c51541ee6f402c1e1a8658581285b759", install = TRUE, overwrite = TRUE)
+
+
+# # load libraries - NOT NEEDED
+
+# Download button helpers live here; knitr::is_html_output() guard is inside
+# the helpers so they silently no-op when rendering to typst
+
+source(here::here("R", "report_format_helpers.R"))
+source(here::here("R", "flextable_helpers.R"))
+source(here::here("R", "download_button_helpers.R"))
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  theme_fun = base::identity,          # <-- add this
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+# Standard table styler: blue italic title row + palegreen column header row.
+# Defined here so all QMDs that source this setup get the same presentation
+# without depending on census_helpers.R for a purely cosmetic function.
+ds_style_flextable <- function(ft, title = NULL, title_size = 16) {
+  # Fixed layout helps long text wrap instead of expanding columns
+  ft <- flextable::set_table_properties(ft, layout = "fixed")
+
+  if (!base::is.null(title)) {
+    ft <- flextable::add_header_lines(ft, values = title)
+    ft <- flextable::color(ft, i = 1, part = "header", color = "blue")
+    ft <- flextable::italic(ft, i = 1, part = "header")
+    ft <- flextable::align(ft, i = 1, part = "header", align = "left")
+    ft <- flextable::bold(ft, i = 1, part = "header")
+    ft <- flextable::fontsize(ft, i = 1, part = "header", size = title_size)
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "white")
+    ft <- flextable::bg(ft, i = 2, part = "header", bg = "palegreen")
+
+    # Optional: make wrapped titles read better
+    ft <- flextable::line_spacing(ft, i = 1, part = "header", space = 1.2)
+  } else {
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "palegreen")
+  }
+
+  ft <- flextable::autofit(ft)
+  ft
+}
+
+
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 28,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 22,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 18,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18),
+        # ggplot2::element_blank(),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+        # ggplot2::element_blank(),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 18,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+
+# claude <- ellmer::chat_anthropic(model = "claude-opus-4-6-20260205")
+  
+# Set seed for reproducibility
+base::set.seed(123)
+
+```
+
+
+\
+
+#### **Filename:**
+
+::: {.content-visible when-format="html"}
+[`r file_name`]{style="word-break: break-all; font-size: 1.00em;"}
+:::
+
+```{=typst}
+#let wrap_underscores(s) = s.replace("_", "_\u{200B}")
+#text(size: 16pt)[#raw(wrap_underscores("`r file_name`"))]
+```
+
+\
+\
+
+
+---
+
+## What the Budget Proposes
+
+The City of Schertz is proposing a property tax rate of **\$0.5064 per \$100
+of taxable value** for FY 2025-26, up from \$0.4900 last year. That is an
+increase of \$0.0164 per \$100 — or roughly **\$49 per year** for a home with
+a taxable value of \$300,000. That same home paid about \$1,470 in city
+property taxes last year. Under the proposed rate, it would pay about \$1,519.
+
+The proposed budget also increases utility fees. Water rates increase 2%.
+Sewer rates increase 3%. The average monthly bill goes up approximately \$2.46.
+The drainage fee nearly doubles — from \$5.20 to \$8.00 per month — an
+increase of \$33.60 per year per household.
+
+In total, the City is proposing to spend approximately **\$139.3 million**
+across all funds in FY 2025-26. That is \$4.1 million more than the current
+year — a 3% increase.
+
+```{r}
+#| label: impact-table
+
+home_vals <- c(200000, 300000, 400000, 500000)
+tax_increase <- 0.0164
+
+tax_impact   <- home_vals / 100 * tax_increase
+sewer_impact <- 2.46 * 12
+drainage_imp <- (8.00 - 5.20) * 12
+
+impact_tbl <- data.frame(
+  Home_Value   = fmt_dollar(home_vals),
+  Tax_Impact   = fmt_dollar(tax_impact, digits = 2),
+  Util_Impact  = fmt_dollar(sewer_impact, digits = 2),
+  Drain_Impact = fmt_dollar(drainage_imp, digits = 2),
+  Total        = fmt_dollar(tax_impact + sewer_impact + drainage_imp, digits = 2),
+  stringsAsFactors = FALSE
+)
+
+impact_spec <- list(
+  title = "Estimated Annual Impact of Proposed Rate and Fee Increases — by Home Value",
+  labels = list(
+    Home_Value = "Taxable Home Value",
+    Tax_Impact = "Property Tax Increase",
+    Util_Impact = "Water/Sewer Increase",
+    Drain_Impact = "Drainage Fee Increase",
+    Total = "Total Annual Increase"
+  )
+)
+
+ds_ft(impact_tbl, impact_spec)
+
+ds_download_data_btn(
+  impact_tbl,
+  filename_base = base::paste0(file_stem, "_impact_table"),
+  label = "Download Impact Table (CSV)"
+)
+```
+
+\
+\
+
+Where is that money going? The two largest drivers are **employee compensation**
+and **new positions**. This document examines how those decisions were made —
+and what questions the process did not answer.
+
+---
+
+## The Two Biggest Cost Drivers
+
+### Compensation Increases
+
+The budget proposes a **merit program** for non-public-safety employees
+(0–4% raise based on performance evaluation) and a **step increase** for
+public safety employees (up to 4% based on tenure). The City states that
+these increases will cost **\$784,000 citywide**.
+
+That \$784,000 figure deserves a closer look. The raises take effect
+*mid-year* — halfway through the fiscal year. So the budget only reflects
+*half* the annual cost. Starting in FY 2026-27, those same raises cost
+**\$1,568,000 per year** — before any additional raises are proposed.
+That additional \$784,000 will appear in next year's budget as part of the
+existing baseline, largely invisible as a discrete cost.
+
+When you look at total employee compensation — wages, overtime, retirement
+contributions, health insurance, workers' compensation, and all related costs —
+the numbers are larger still. Reading through every department in the budget,
+General Fund personnel costs are proposed at approximately **\$37.5 million**
+for FY 2025-26, up from \$36.9 million last year. Across all funds combined
+(including Water/Sewer, Drainage, and EMS), total personnel costs rise from
+approximately \$50.3 million to \$52.6 million.
+
+
+
+### New Positions
+
+The budget adds **26 new positions** across all funds:
+
+```{r}
+#| label: positions-table
+
+pos_tbl <- data.frame(
+  Fund = c("General Fund","General Fund","General Fund","General Fund",
+           "Water & Sewer","EMS","Drainage"),
+  Count = c(6, 1, 2, 1, 6, 4, 6),
+  Description = c(
+    "Firefighters — to staff the new Fire Station 4",
+    "Assistant City Secretary",
+    "Athletics Coordinator and Recreation Specialist (Soccer Complex takeover)",
+    "Senior Center Supervisor (Senior Center operations takeover)",
+    "New water/wastewater crew plus one floater position",
+    "EMTs to staff additional ambulances at peak hours",
+    "New drainage maintenance crew plus a Floodplain Manager"
+  ),
+  stringsAsFactors = FALSE
+)
+
+pos_spec <- list(
+  title = "Proposed New Positions — FY 2025-26",
+  labels = list(
+    Fund = "Fund",
+    Count = "Positions",
+    Description = "Description"
+  )
+)
+
+ds_ft(pos_tbl, pos_spec)
+
+ds_download_data_btn(
+  pos_tbl,
+  filename_base = base::paste0(file_stem, "_positions_table"),
+  label = "Download Positions Table (CSV)"
+)
+```
+
+\
+\
+
+Every one of these positions represents a permanent, recurring cost. Unlike a
+road repair or an equipment purchase, a position does not depreciate. It comes
+back every year — with a raise.
+
+---
+
+## How These Decisions Were Made
+
+Here is the process, as it actually works:
+
+The **City Manager's office** prepares the proposed budget and presents it to
+City Council. Council reviews it, asks questions at public hearings, and votes.
+Citizens can attend those hearings and comment.
+
+In practice, the information Council receives comes almost entirely from the
+City Manager's office. Council members are part-time elected officials; the
+City Manager and department heads are full-time professionals. The professionals
+know their departments in detail. That is appropriate — but it also means that
+the information flowing to Council is shaped by the people whose budgets are
+being reviewed.
+
+This is not unusual. It is how most city governments work. The question is
+whether the information provided is sufficient for Council to evaluate the
+requests — or whether Council is being asked to trust the professionals
+without the data needed to verify their claims.
+
+---
+
+\
+
+## What the Justifications Actually Said
+
+For each of the 26 proposed new positions, what case did the budget document
+make?
+
+For the **6 firefighters**, the justification is clear and concrete: a new
+fire station is being built and cannot operate without staff. This is a
+straightforward operational necessity.
+
+For the **Soccer Complex and Senior Center positions**, the City is taking
+over operations previously managed by other entities. The headcount follows
+the operations transfer. Whether those positions are sized correctly for the
+actual workload is not addressed.
+
+For the **Assistant City Secretary**, the budget says the position is needed
+to help "with existing operations." That is the complete justification. No
+workload data. No description of what existing operations are currently
+unmet. No alternative considered.
+
+For the **Water/Sewer crew**, the justification is growth. Fair enough —
+Schertz is a growing city. But how many service connections are currently
+maintained per crew? How does that compare to what an efficiently run
+water utility maintains? The budget does not say.
+
+For the **4 EMTs**, the budget describes the goal of reducing response times
+and staffing peak call hours. Have response times actually increased? By how
+much? What is the call volume trend? What do the best-performing EMS
+operations of comparable size look like? None of this appears.
+
+For the **Drainage crew**, the need is described as maintaining existing
+channels and planning for expansions. How many channel-miles are currently
+maintained per crew? What is the backlog of deferred maintenance? The budget
+does not say.
+
+For the **Floodplain Manager**, a regulatory mandate is cited. That is a
+legitimate driver — but the specific mandate and its requirements are not named.
+
+**The pattern is consistent:** the City tells you *what* it wants to hire.
+It does not show you *why that number* is the right answer, or whether the
+existing workforce is being used as efficiently as possible before more is
+added.
+
+---
+
+\
+
+## What Frugal Governance Looks Like
+
+Frugality in government is not the same as cutting services. It means getting
+the maximum value from every dollar before asking taxpayers for more. A
+frugal governing body asks different questions than one that simply reviews
+what staff proposes.
+
+Here is the difference in practice.
+
+**What a deferential Council asks:**
+*"Does this request seem reasonable given the department's description of its needs?"*
+
+**What a frugal Council asks:**
+*"Show us the trend in calls per unit, work orders per employee, and response
+times over the last three years. Show us how the most efficient comparable
+city handles this function. Explain what you tried before concluding that
+adding headcount was the answer."*
+
+The first approach depends on trust. The second approach verifies. Both
+trust and verification have their place — but for permanent spending
+commitments that compound over time, verification is the governing body's
+obligation to the people who pay the bills.
+
+There is a principle that applies directly here: **governing bodies should
+look to outside organizations not for examples of how to spend as much as
+others, but for examples of how to deliver the same — or better — service
+for less.** The benchmark is efficiency, not average practice. If another
+Texas city of similar size maintains its water infrastructure with fewer
+crew members per service connection, the question is not whether Schertz
+is close to the average. The question is how to get to where that efficient
+city is.
+
+---
+
+## The Compounding Reality
+
+Every compensation increase and every new position adds to a base that grows
+from year to year. Consider what that means over time.
+
+General Fund personnel costs have grown at a compound annual rate of
+approximately **12%** over the three years for which data is available in
+this budget — from roughly \$26.6 million in FY 2022-23 to a proposed
+\$37.5 million in FY 2025-26. At that rate, personnel costs would double
+in approximately **6 years**.
+
+```{r}
+#| label: doubling-table
+
+base_gf  <- 37500000
+base_all <- 52600000
+cagr     <- 0.12
+years    <- c(0, 3, 6, 9, 12)
+
+proj_tbl <- data.frame(
+  Years_From_Now = paste0("FY ", 2026 + years),
+  GF_Personnel   = fmt_dollar(base_gf  * (1 + cagr)^years),
+  All_Personnel  = fmt_dollar(base_all * (1 + cagr)^years),
+  stringsAsFactors = FALSE
+)
+
+proj_spec <- list(
+  title = "Illustrative Doubling Projections at Current Growth Rate",
+  labels = list(
+    Years_From_Now = "Year",
+    GF_Personnel = "General Fund Personnel Costs",
+    All_Personnel = "All Funds Personnel Costs"
+  )
+)
+
+ds_ft(proj_tbl, proj_spec)
+
+ds_download_data_btn(
+  proj_tbl,
+  filename_base = base::paste0(file_stem, "_doubling_projection_table"),
+  label = "Download Doubling Projection Table (CSV)"
+)
+```
+
+\
+\
+
+Property tax revenue, constrained by state law and the voter-approval rate
+cap, grows at roughly 7% per year under good conditions — a doubling time
+of about 10 years. Personnel costs growing at 12% per year outpace revenue
+growing at 7% per year by a compounding margin. The gap between what the
+City costs and what taxpayers can fund through current revenue sources does
+not stay flat — it widens, year after year, until something breaks.
+
+That something is usually: a larger tax increase than anyone expected, a
+sudden reduction in services, or a draw-down of reserves. None of these
+outcomes announce themselves in advance. They accumulate quietly, then arrive
+all at once.
+
+---
+
+## The Constituency Dynamic
+
+When a City Manager's office proposes adding 26 positions, it is worth
+understanding what those positions mean organizationally — beyond their
+direct cost.
+
+Each new employee becomes part of the organization. The organization has
+an interest in retaining and supporting its employees. That interest
+generates future budget pressure — for training, for equipment, for
+compensation increases, for additional support positions. Each new position
+is not just a line item; it is the beginning of an organizational commitment.
+
+This is not a criticism of the employees. It is a description of how
+organizations behave. A growing workforce generates internal political
+support for further growth. Department heads who have grown their teams
+advocate for their teams. The City Manager who approved the growth defends
+it. Over time, the employees of a city government become its most
+reliable constituency — present at every budget meeting, professionally
+invested in the outcome, and far more organized than the general public.
+
+The remedy is not hostility toward city employees. The remedy is a
+governing body that maintains independent standards for what evidence
+it requires — and holds those standards consistently, regardless of
+how requests are framed.
+
+---
+
+
+## What Citizens Can Ask
+
+Public comment at City Council meetings is most effective when it is
+specific. The following questions are grounded in the budget document and
+ask for information the City should be able to provide.
+
+**On staffing:**
+
+1. *"For each of the 26 new positions proposed, what is the three-year trend
+   in the primary workload indicator for that department — calls, service
+   connections, work orders, or equivalent — and what is the current output
+   per existing employee?"*
+
+2. *"What alternatives to adding headcount were evaluated before each new
+   position was proposed, and what was the result of that evaluation?"*
+
+3. *"What are the City's adopted service-level standards for Police, Fire,
+   EMS, Water/Sewer, and Drainage — and how does current performance compare
+   to those standards?"*
+
+**On compensation:**
+
+4. *"The proposed merit/step program costs \$784,000 in FY 2025-26 because
+   it takes effect mid-year. What is the full annualized cost beginning in
+   FY 2026-27, and is that amount shown in the five-year financial forecast?"*
+
+5. *"General Fund personnel costs have grown at approximately 12% per year
+   for three years. What is the long-run property tax revenue growth rate,
+   and what is the plan for closing the gap between compensation growth and
+   revenue growth?"*
+
+**On frugality:**
+
+6. *"Which Texas city of comparable size delivers comparable services at the
+   lowest cost per unit of output — and what practices make that possible?"*
+
+7. *"Before adding positions in any department, what is the productivity
+   trend for existing employees in that department over the last three years?"*
+
+These are not hostile questions. They are the questions a governing body
+should ask before voting — and that citizens are entitled to ask when
+their governing body does not.
+
+---
+
+\
+
+## Three Recommendations
+
+**1. Require data before approving staffing requests.**
+Every proposed position should come with three years of workload trend data,
+current unit productivity figures, a description of alternatives considered,
+and the full annualized cost — not just the budget-year cost. Requests that
+lack this information should be deferred, not approved.
+
+**2. Set service-level standards before the next budget cycle.**
+Without adopted standards, there is no objective way to evaluate whether
+current service is adequate or whether more resources are genuinely needed.
+The City should establish measurable standards for each major function, set
+by Council — not by the departments being measured.
+
+**3. Demand the full-year cost, every time.**
+When the City presents a compensation increase as taking effect mid-year,
+the full annualized run-rate — what it costs starting the following year —
+must be shown alongside the budget-year figure. Budget documents that
+present only the discounted cost are not giving Council or the public an
+accurate picture of the commitment being made.
+
+---
+
+\
+
+*This document is based on a reading of the City of Schertz FY 2025-26
+Proposed Budget. All figures come directly from that document. The analysis
+is intended to inform public understanding of the budget process and to
+identify questions that merit public attention.*

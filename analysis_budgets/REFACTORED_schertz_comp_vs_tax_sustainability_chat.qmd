@@ -1,0 +1,578 @@
+---
+title: "Schertz FY 2025–26: Compensation Growth vs. Tax Rate (Sustainability Review)"
+subtitle: ""
+authors:
+    - Dan Swart, CPA (ret.)
+date: today
+date-format: long
+# bibliography: manual-refs.bib
+format:
+  html:
+    echo: true
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: true     # Set to 'false' for drafts. Override if you're NOT sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    echo: false
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
+execute:
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+
+params:
+  data_updated: !expr format(Sys.Date(), "%B %Y")
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+# Capture current filename for use in document
+file_name <- if (!base::is.null(knitr::current_input())) {
+  paste0(tools::file_path_sans_ext(knitr::current_input()), ".qmd")
+} else {
+  "interactive_session.qmd"
+}
+
+file_stem <- base::paste0(tools::file_path_sans_ext(file_name), "_chat")
+
+
+
+# install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
+
+# census_api_key("95496766c51541ee6f402c1e1a8658581285b759", install = TRUE, overwrite = TRUE)
+
+
+# # load libraries - NOT NEEDED
+
+# Download button helpers live here; knitr::is_html_output() guard is inside
+# the helpers so they silently no-op when rendering to typst
+
+source(here::here("R", "report_format_helpers.R"))
+source(here::here("R", "flextable_helpers.R"))
+source(here::here("R", "download_button_helpers.R"))
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  theme_fun = base::identity,          # <-- add this
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+# Standard table styler: blue italic title row + palegreen column header row.
+# Defined here so all QMDs that source this setup get the same presentation
+# without depending on census_helpers.R for a purely cosmetic function.
+ds_style_flextable <- function(ft, title = NULL, title_size = 16) {
+  # Fixed layout helps long text wrap instead of expanding columns
+  ft <- flextable::set_table_properties(ft, layout = "fixed")
+
+  if (!base::is.null(title)) {
+    ft <- flextable::add_header_lines(ft, values = title)
+    ft <- flextable::color(ft, i = 1, part = "header", color = "blue")
+    ft <- flextable::italic(ft, i = 1, part = "header")
+    ft <- flextable::align(ft, i = 1, part = "header", align = "left")
+    ft <- flextable::bold(ft, i = 1, part = "header")
+    ft <- flextable::fontsize(ft, i = 1, part = "header", size = title_size)
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "white")
+    ft <- flextable::bg(ft, i = 2, part = "header", bg = "palegreen")
+
+    # Optional: make wrapped titles read better
+    ft <- flextable::line_spacing(ft, i = 1, part = "header", space = 1.2)
+  } else {
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "palegreen")
+  }
+
+  ft <- flextable::autofit(ft)
+  ft
+}
+
+
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 28,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 22,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 18,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18),
+        # ggplot2::element_blank(),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+        # ggplot2::element_blank(),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 18,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+
+# claude <- ellmer::chat_anthropic(model = "claude-opus-4-6-20260205")
+  
+# Set seed for reproducibility
+base::set.seed(123)
+
+```
+
+
+\
+
+#### **Filename:**
+
+::: {.content-visible when-format="html"}
+[`r file_name`]{style="word-break: break-all; font-size: 1.00em;"}
+:::
+
+```{=typst}
+#let wrap_underscores(s) = s.replace("_", "_\u{200B}")
+#text(size: 16pt)[#raw(wrap_underscores("`r file_name`"))]
+```
+
+\
+
+
+## Purpose and scope
+
+This memo reviews one issue only: **whether recurring compensation growth is being supported by a stable revenue base, or whether it increases pressure for future property tax rate increases**.
+
+It is written as a policy critique focused on long-term sustainability and tax impact.
+
+## What the budget says (direct quotes)
+
+The budget states the merit/step program begins midyear:
+
+> “These changes are planned to take effect midyear and cost $784,000.” (Budget Highlights, p. 7)
+
+The budget shows the adopted/proposed tax rates:
+
+- FY 2024–25 rate: **$0.4900**  
+
+- No-New-Revenue rate: **$0.5064**  
+
+- Budget proposed rate: **$0.5064** (Tax Rates table, p. 11)  
+
+
+The budget also reports weakness in the existing tax base:
+
+> “Without new value from annexations and development, the value of the existing properties decreased by $83,012,028.” (Property tax discussion, p. 11)
+
+## Full-year correction for the merit/step program
+
+Because the merit/step program starts midyear, the $784,000 amount is a **half-year** cost. For sustainability and “time-to-double” analysis, the recurring **full-year** amount should be used:
+
+- Half-year shown in the budget: **$784,000**
+- Full-year recurring amount: **$784,000 × 2 = $1,568,000**
+
+This matters because recurring pay commitments do not end after one year. They become a permanent part of the payroll base.
+
+## Key sustainability concern: short-term financing vs. long-term commitments
+
+A fundamental financial principle is to match **short-term financing** with **short-term costs**, and **long-term revenue sources** with **long-term commitments**.
+
+When a city supports a **long-term, recurring** payroll commitment using revenue gains that are not reliable (for example, gains that depend on a changing tax base or one-time conditions), the result is predictable: **future tax rate increases become not optional, but inevitable** unless services are reduced or hiring is frozen.
+
+---
+
+## Inputs and assumptions (transparent and editable)
+
+```{r}
+#| label: inputs-assumptions-table
+
+assumptions <- data.frame(
+  Item = c(
+    "Merit/Step cost shown in budget (half-year)",
+    "Full-year recurring Merit/Step cost",
+    "FY 2024-25 tax rate",
+    "FY 2025-26 No-New-Revenue / Proposed rate",
+    "FY 2025-26 total taxable value"
+  ),
+  Value = c(
+    "$784,000 (midyear start)",
+    "$1,568,000 (784,000 × 2)",
+    "$0.4900 per $100",
+    "$0.5064 per $100",
+    "$5,734,815,455"
+  ),
+  Source = c(
+    "Budget Highlights (p. 7)",
+    "Calculated from budget statement",
+    "Tax Rates table (p. 11)",
+    "Tax Rates table (p. 11)",
+    "Property tax discussion (p. 11)"
+  ),
+  stringsAsFactors = FALSE
+)
+
+assumptions_spec <- list(
+  title = "Inputs and Assumptions",
+  labels = list(Item = "Item", Value = "Value", Source = "Source")
+)
+
+ds_ft(assumptions, assumptions_spec)
+
+ds_download_data_btn(
+  assumptions,
+  filename_base = base::paste0(file_stem, "_inputs_assumptions"),
+  label = "Download Inputs Table (CSV)"
+)
+```
+
+---
+
+## Time-to-double and structural pressure
+
+This chart shows the relationship between ongoing compensation growth (as a percent per year) and how quickly costs can double. It is a simple planning tool: higher ongoing growth rates lead to much faster doubling-time.
+
+```{r}
+#| label: time-to-double-plot
+
+growth_rates <- data.frame(
+  annual_growth_rate = seq(0.02, 0.08, by = 0.01)
+) |>
+  dplyr::mutate(
+    annual_growth_pct = annual_growth_rate * 100,
+    doubling_time_years = log(2) / log(1 + annual_growth_rate)
+  )
+
+plot_time_to_double <- ggplot2::ggplot(growth_rates, ggplot2::aes(x = doubling_time_years, y = annual_growth_pct)) +
+  ggplot2::geom_line(linewidth = 1) +
+  ggplot2::labs(
+    title = "Time to Double vs. Ongoing Compensation Growth",
+    x = "Approximate years to double (% per year)",
+    y = "Ongoing compensation growth (% per year)"
+  ) +
+  ggplot2::theme_minimal()
+
+plot_time_to_double
+
+ds_download_plot_btn(
+  plot_time_to_double,
+  filename_base = base::paste0(file_stem, "_time_to_double"),
+  label = "Download Time-to-Double Plot (PNG)"
+)
+```
+
+### Plain-language takeaway
+
+As total compensation keeps rising every year, it eventually doubles, usually much sooner than you think.  
+
+When payroll doubles, the city needs much more revenue just to keep service levels the same.
+
+---
+
+## 5-year projection model: payroll pressure vs. projected tax collected
+
+### What this model does
+
+This model compares:
+
+1. **Payroll pressure** = starting payroll base + recurring annual increase (full-year $1.568M)  
+2. **Projected tax collected** (simplified) = taxable value × assumed growth × tax rate
+
+This is not a full revenue forecast. It is a focused stress test to keep the conversation on compensation growth vs. the property tax base.
+
+### Growth rates used (shown in scenario names)
+
+- **Optimistic:** 4.0% annual taxable value growth  
+- **Baseline:** 2.0% annual taxable value growth  
+- **Stress:** -0.5% annual taxable value decline  
+
+### Model code (editable)
+
+
+
+```{r}
+#| label: five-year-model
+
+# Inputs (edit if you want)
+tax_rate_per_100 <- 0.5064
+taxable_value_start <- 5734815455
+
+# Merit/Step full-year recurring cost (from midyear $784k statement)
+merit_step_full_year <- 784000 * 2
+
+# Illustrative payroll base (replace with a confirmed payroll base if desired)
+payroll_base_start <- 48623715
+
+years <- 0:5
+
+scenarios <- data.frame(
+  scenario = c("Optimistic (4% Growth)",
+               "Baseline (2% Growth)",
+               "Stress (-0.5% Growth)"),
+  taxable_value_growth = c(0.04, 0.02, -0.005)
+)
+
+proj <- tidyr::expand_grid(
+  scenarios,
+  year = years
+) |>
+  dplyr::mutate(
+    taxable_value = taxable_value_start * (1 + taxable_value_growth) ^ year,
+    projected_tax_collected = (taxable_value / 100) * tax_rate_per_100,
+    payroll_pressure = payroll_base_start + (merit_step_full_year * year),
+    gap = projected_tax_collected - payroll_pressure
+  )
+```
+
+### Projection table (includes Gap)
+
+Gap is defined as:
+
+- **gap = projected_tax_collected − payroll_pressure**
+
+So:
+- **Positive gap** = more tax capacity than payroll pressure (less stress)
+- **Negative gap** = payroll pressure is larger (more stress)
+
+```{r}
+#| label: projection-table-with-gap
+
+proj_table <- proj |>
+  dplyr::mutate(
+    projected_tax_collected = round(projected_tax_collected, 0),
+    payroll_pressure = round(payroll_pressure, 0),
+    gap = round(gap, 0)
+  ) |>
+  dplyr::select(
+    scenario,
+    year,
+    projected_tax_collected,
+    payroll_pressure,
+    gap
+  )
+
+proj_table_display <- proj_table |>
+  dplyr::mutate(
+    projected_tax_collected = scales::dollar(projected_tax_collected, accuracy = 1),
+    payroll_pressure = scales::dollar(payroll_pressure, accuracy = 1),
+    gap = scales::dollar(gap, accuracy = 1)
+  )
+
+proj_table_spec <- list(
+  title = "5-Year Projection Table with Gap",
+  labels = list(
+    scenario = "Scenario",
+    year = "Year",
+    projected_tax_collected = "Projected Tax Collected",
+    payroll_pressure = "Payroll Pressure",
+    gap = "Gap"
+  )
+)
+
+ds_ft(proj_table_display, proj_table_spec)
+
+ds_download_data_btn(
+  proj_table,
+  filename_base = base::paste0(file_stem, "_projection_table_with_gap"),
+  label = "Download Projection Table (CSV)"
+)
+
+```
+
+
+---
+
+
+## Bottom line (focused only on compensation vs tax rate)
+
+- The merit/step program cost shown in the budget is **midyear** ($784,000), which becomes **$1.568M per year** when annualized. (p. 7)  
+
+- The property tax rate is proposed at the **No-New-Revenue** rate ($0.5064), and the budget reports the **existing** tax base declined without new growth. (p. 11)  
+
+- That combination creates a sustainability risk: **recurring payroll growth** can keep stacking up even when the tax base is not reliably growing.  
+
+
+If the city continues to add recurring compensation costs without matching them to long-term, stable funding, **large tax rate increases are not optional, but inevitable**.
+
+The unpleasant option:  staffing or services must be reduced.
+
