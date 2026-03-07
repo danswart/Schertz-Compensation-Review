@@ -1,0 +1,467 @@
+---
+title: "Critical Appraisal: PSPC FY 2024 Classification and Compensation Study"
+subtitle: "City of Schertz, Texas — December 2023"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
+format:
+  html:
+    echo: true
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: true     # Set to 'false' for drafts. Override if you're NOT sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    echo: false
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
+execute:
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+
+params:
+  data_updated: !expr format(Sys.Date(), "%B %Y")
+author: "Dan"
+
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+# Capture current filename for use in document
+file_name <- if (!base::is.null(knitr::current_input())) {
+  paste0(tools::file_path_sans_ext(knitr::current_input()), ".qmd")
+} else {
+  "interactive_session.qmd"
+}
+
+file_stem <- base::paste0(tools::file_path_sans_ext(file_name), "_chat")
+
+
+
+# install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
+
+# census_api_key("95496766c51541ee6f402c1e1a8658581285b759", install = TRUE, overwrite = TRUE)
+
+
+# # load libraries - NOT NEEDED
+
+# Download button helpers live here; knitr::is_html_output() guard is inside
+# the helpers so they silently no-op when rendering to typst
+
+source(here::here("R", "report_format_helpers.R"))
+source(here::here("R", "flextable_helpers.R"))
+source(here::here("R", "download_button_helpers.R"))
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  theme_fun = base::identity,          # <-- add this
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+# Standard table styler: blue italic title row + palegreen column header row.
+# Defined here so all QMDs that source this setup get the same presentation
+# without depending on census_helpers.R for a purely cosmetic function.
+ds_style_flextable <- function(ft, title = NULL, title_size = 16) {
+  # Fixed layout helps long text wrap instead of expanding columns
+  ft <- flextable::set_table_properties(ft, layout = "fixed")
+
+  if (!base::is.null(title)) {
+    ft <- flextable::add_header_lines(ft, values = title)
+    ft <- flextable::color(ft, i = 1, part = "header", color = "blue")
+    ft <- flextable::italic(ft, i = 1, part = "header")
+    ft <- flextable::align(ft, i = 1, part = "header", align = "left")
+    ft <- flextable::bold(ft, i = 1, part = "header")
+    ft <- flextable::fontsize(ft, i = 1, part = "header", size = title_size)
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "white")
+    ft <- flextable::bg(ft, i = 2, part = "header", bg = "palegreen")
+
+    # Optional: make wrapped titles read better
+    ft <- flextable::line_spacing(ft, i = 1, part = "header", space = 1.2)
+  } else {
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "palegreen")
+  }
+
+  ft <- flextable::autofit(ft)
+  ft
+}
+
+
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 28,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 22,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 18,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18),
+        # ggplot2::element_blank(),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+        # ggplot2::element_blank(),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 18,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+
+# claude <- ellmer::chat_anthropic(model = "claude-opus-4-6-20260205")
+  
+# Set seed for reproducibility
+base::set.seed(123)
+
+```
+
+
+\
+
+#### **Filename:**
+
+::: {.content-visible when-format="html"}
+[`r file_name`]{style="word-break: break-all; font-size: 1.00em;"}
+:::
+
+```{=typst}
+#let wrap_underscores(s) = s.replace("_", "_\u{200B}")
+#text(size: 16pt)[#raw(wrap_underscores("`r file_name`"))]
+```
+
+\
+
+
+## Executive Summary
+
+The PSPC study concludes that Schertz is significantly underpaying its workforce---77% of civilian positions benchmarking 5% or more below market, with an average variance of -13.25%. It recommends moving to "market average" at an estimated cost of \$2.3 million for the remainder of FY 2024 (\$942K civilian, \$1.364M public safety).
+
+**The study's core finding---that Schertz compensation lagged peers---is likely directionally correct.** However, the magnitude of the gap, the precision of the estimates, and the appropriateness of the recommended remedy are all significantly undermined by methodological problems that the study either fails to acknowledge or actively obscures. The report is a 7-page document making a \$2.3 million recommendation with no sensitivity analysis, no confidence intervals, no discussion of limitations, and no disclosure of how individual comparator data points were weighted or combined. For a document that effectively set the City's compensation trajectory for years to come, this is remarkably thin.
+
+The most serious issues are:
+
+1. **The comparator group is gerrymandered by city size**, mixing Schertz (pop. \~43,000) with Austin (pop. \~980,000) and San Antonio (pop. \~1.5 million), which systematically inflates the "market" Schertz is measured against.
+2. **The methodology section is opaque to the point of being unauditable.** We cannot determine which cities were matched to which positions, how averages were computed, or whether outliers were trimmed.
+3. **"Professional judgment" is used as a catch-all** to override data-driven placements without any documented criteria, effectively making portions of the recommendation unfalsifiable.
+4. **The benefits analysis is superficial and one-directional**, acknowledging that Schertz is competitive or ahead on benefits but never quantifying that advantage or offsetting it against the salary gap.
+5. **The study contains zero analysis of retention, turnover, vacancy rates, or exit interview data**---the very metrics that would validate whether the salary gap is actually causing operational problems.
+
+## Comparator City Selection --- The Biggest Lever in the Study
+
+### The Problem
+
+Schertz had a 2023 population of approximately 43,000 and a municipal budget appropriate to a mid-size Texas suburb. The "Core Comparators" selected by PSPC include:
+
+| City | Approx. Population (2023) | Ratio to Schertz |
+|------|--------------------------|-------------------|
+| Austin | \~980,000 | 23x |
+| San Antonio | \~1,527,000 | 36x |
+| Round Rock | \~130,000 | 3x |
+| Georgetown | \~96,000 | 2.2x |
+| San Marcos | \~72,000 | 1.7x |
+| Kyle | \~63,000 | 1.5x |
+| New Braunfels | \~56,000 | 1.3x |
+| Seguin | \~30,000 | 0.7x |
+| Cibolo | \~34,000 | 0.8x |
+| Buda | \~16,000 | 0.4x |
+| Live Oak | \~16,000 | 0.4x |
+| Universal City | \~21,000 | 0.5x |
+
+The "Additional Sources" add Bexar County, Travis County/Austin EMS, Williamson County, and several other county-level and utility employers---entities with fundamentally different tax bases, operational scopes, and compensation structures.
+
+### Why This Matters
+
+Austin and San Antonio are not "comparable" to Schertz in any meaningful operational sense. A Director of Finance in San Antonio manages a \$3+ billion budget with hundreds of staff; in Schertz, the scope is orders of magnitude smaller. A Police Chief in San Antonio oversees 2,000+ sworn officers; in Schertz, a fraction of that. Including these cities in the average---without explicit weighting disclosure---systematically pulls the "market midpoint" upward.
+
+The study never explains the selection criteria. Were these chosen by PSPC? By Schertz HR? By city management? By council direction? This matters because the entity that selects the comparators effectively pre-determines the outcome. If I want a study that says "you're underpaying," I include Austin and San Antonio. If I want one that says "you're roughly at market," I limit it to Cibolo, Universal City, Live Oak, Seguin, and New Braunfels---cities that actually compete with Schertz for the same labor pool at comparable operational scale.
+
+### The Missing Sensitivity Analysis
+
+A competent study would show: "Here is the 50th percentile using all comparators. Here it is using only cities within 50% of Schertz's population. Here it is using only cities within the immediate labor market." The absence of this analysis means the City Council adopted a \$2.3M commitment without knowing how much of the gap was driven by two cities (Austin and San Antonio) that are fundamentally unlike Schertz.
+
+## Methodological Opacity
+
+### What the Study Claims
+
+The study uses midpoint-to-midpoint comparisons, which it describes as "the most objective, occupation-specific and consistent component of salary structures." It also incorporates private sector data from ERI's Salary Assessor.
+
+### What the Study Doesn't Tell Us
+
+- **How were the midpoints averaged?** Simple arithmetic mean? Weighted by comparator city size? Weighted equally? Median of comparators? This is never disclosed. If Austin and San Antonio receive equal weight to Cibolo and Live Oak, the average is dominated by large-city compensation levels.
+- **Which comparators matched to which positions?** Not every city has every position. If "Building Inspector" (the largest variance at -23.84%) was only matched against Austin, San Antonio, and Round Rock, the gap would be enormous---and misleading. If it was matched against Cibolo and Universal City, the gap might be much smaller. We have no way to know.
+- **Were outliers trimmed?** Standard practice in compensation surveys is to remove the highest and lowest data points before averaging. No such methodology is described.
+- **What is the ERI data doing?** Private sector data is described as included "wherever job matches exist," but we cannot tell which positions incorporated private sector benchmarks or how they were blended with public sector data. ERI data for the Austin-San Antonio corridor would reflect private sector competition that smaller municipal employers do not face for most positions.
+- **What was the match quality?** "Building Inspector" in Georgetown might be a very different role from "Building Inspector" in San Antonio. The study acknowledges this risk obliquely by noting "there is no automatic logical job content relationship among survey data collected from various employers"---and then waves it away with "professional judgment."
+
+## "Professional Judgment" as a Black Box
+
+The study states: "We utilized our professional judgment to prevent illogical relationships that could result from survey data directly linked into salary grades" and "Non-benchmark job classes were linked to benchmark job classes by professional judgment."
+
+This is a significant disclosure buried in bland language. It means:
+
+1. Some positions were not directly benchmarked at all---they were slotted by PSPC's subjective assessment of where they "should" fall relative to benchmarked positions.
+2. Even for benchmarked positions, PSPC reserved the right to override the data if they judged the result "illogical."
+
+There is nothing inherently wrong with professional judgment in compensation work---you need it. But the study provides zero documentation of where judgment was applied, what the data said before adjustment, and what criteria guided the overrides. This makes portions of the recommendation unverifiable.
+
+## The Benefits Offset That Isn't
+
+The study's own data shows Schertz is competitive or ahead on benefits:
+
+| Benefit | Schertz | Market Average | Assessment |
+|---------|---------|----------------|------------|
+| Employee health insurance (employer pays) | 100% | 98% | At market |
+| Family health insurance (employer pays) | 77% | 68% | Significantly ahead |
+| Retirement match | 2:1 TMRS | 2:1 TMRS | At market |
+| PTO at Year 1 | 12 days | 12 days | At market |
+| PTO at Year 10 | 20 days | 18 days | Above market |
+| Certification pay (Police/Fire) | \$33--\$65/mo | \$50--\$150/mo | Behind market |
+
+The family health insurance gap alone is substantial. If the average family plan costs \$20,000--\$25,000 annually (typical for Texas municipal plans), the difference between 77% and 68% employer contribution is \$1,800--\$2,250 per employee per year in additional compensation value that Schertz provides. Across, say, 200 employees with family coverage, that's \$360,000--\$450,000 in unrecognized compensation advantage.
+
+The study labels this "Slightly Ahead" and moves on. A total compensation comparison would reduce the salary gap for every position. PSPC chose to compare salaries in isolation from benefits, which maximizes the apparent gap.
+
+The one area where Schertz trails---certification pay for police and fire (\$33--\$65/month vs. \$50--\$150/month)---is noted but not costed. This is a targeted problem that could be addressed for far less than a system-wide salary restructure.
+
+## Zero Operational Validation
+
+The most glaring omission in the entire study is any analysis of whether the salary gap is actually causing problems. A compensation study that recommends \$2.3 million in adjustments should at minimum address:
+
+- **Turnover rates by department and position level** --- Is attrition concentrated in the positions with the largest market gaps?
+- **Vacancy rates and time-to-fill** --- Are positions going unfilled? Which ones?
+- **Exit interview data** --- Do departing employees cite compensation as a primary reason?
+- **Offer acceptance rates** --- Is Schertz losing candidates to specific competitors?
+- **Tenure distribution** --- Is turnover happening at the 1--2 year mark (suggesting hiring/culture problems) or at the 5+ year mark (suggesting compensation compression)?
+
+Without this data, the study is essentially saying: "The number on your spreadsheet is smaller than the number on their spreadsheet, so you should make your number bigger." That may be true and appropriate, but it's a \$2.3M leap of faith.
+
+## Implementation Framework Creates Ongoing Fiscal Exposure
+
+The "time in job" placement methodology (Section 4A) is reasonable as a one-time implementation tool. But the ongoing maintenance recommendations create an escalation mechanism:
+
+- "Periodic adjustment to pay tables (1.5%--3% increments) as market inflates"
+- "Individual pay grade placement adjustments per market survey (every 2--4 years)"
+
+If the same comparator group is used in future surveys---and especially if Austin and San Antonio continue to grow and face tighter labor markets---Schertz will be permanently chasing compensation levels set by cities with 23x to 36x its population. The 50th percentile of an upward-biased comparator group is a moving target that always moves up.
+
+The study does not model the 5-year or 10-year fiscal impact of maintaining this policy. It does not ask whether Schertz's revenue trajectory can sustain it. It does not discuss what happens if Schertz cannot fund the periodic adjustments---do you fall behind again and need another \$2.3M correction in 4 years?
+
+## What's Conspicuously Absent
+
+Beyond the operational data noted above, the study lacks:
+
+- **Any discussion of total compensation** (salary + benefits + retirement + PTO, monetized)
+- **Any cost-of-living adjustment between comparator cities** --- Austin's cost of living is materially higher than Schertz's; a dollar of salary in Schertz buys more
+- **Any acknowledgment that Schertz's lower cost of living is itself a recruitment advantage**
+- **Any analysis of internal equity concerns** created by the proposed adjustments (existing employees who are suddenly below the "time in job" target vs. new hires brought in at higher rates)
+- **Any discussion of compression effects** --- does moving entry-level and mid-career positions to market create compression against senior positions?
+- **Any alternatives analysis** --- what would targeting the 40th percentile cost? The 45th? What if you targeted 50th percentile but only for positions with documented recruitment/retention difficulties?
+
+## What the Study Gets Right
+
+In fairness:
+
+1. **The midpoint methodology is standard practice** in municipal compensation consulting. Comparing midpoints rather than actuals reduces noise from individual salary histories.
+2. **The directional finding is probably correct.** Schertz had likely not adjusted its pay plan aggressively during the post-COVID labor market tightening, and some correction was warranted.
+3. **The pay grade structure is well-designed.** The \~5% step progression between grades and the open-grade framework with time-in-job guidelines is a sound administrative structure.
+4. **The public safety findings are consistent with regional trends.** Police and fire compensation in the San Antonio corridor was under significant pressure in 2023, and the gaps identified align with what other studies found.
+
+## Bottom Line Assessment
+
+This is a competent but shallow study that does what compensation consultants are hired to do: provide data-backed justification for pay increases. It is not designed to answer the harder question of whether those increases are the right use of \$2.3 million in public funds relative to other priorities, or whether the comparison framework is calibrated to Schertz's actual competitive position.
+
+The City Council should have demanded---and PSPC should have provided---a sensitivity analysis showing how the results change with different comparator groups, a total compensation comparison, and operational data connecting the salary gap to actual recruitment and retention outcomes. Without these, the study is persuasive rather than diagnostic.
+
+For ongoing fiscal oversight, the key questions to pursue are: (a) what has actual turnover looked like since implementation, (b) has the comparator group been revisited, and (c) what is the projected annual cost of maintaining the 50th percentile target with this comparator group over the next 5 years.
+
+---
+
+*This appraisal is based solely on the 8-page PSPC report provided. A fuller assessment would require access to the underlying survey data, the appendix of pay grade placements, and the City's actual turnover and vacancy data.*

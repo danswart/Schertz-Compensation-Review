@@ -8,6 +8,7 @@ date-format: long
 # bibliography: manual-refs.bib
 format:
   html:
+    echo: true
     resources:
       - reference-backlinks.js
     include-after-body:    
@@ -52,6 +53,7 @@ format:
     
     
   typst:
+    echo: false
     fig-width: 13
     fig-height: 8
     fig-dpi: 300
@@ -96,7 +98,6 @@ quarto:
 
 # for .qmd filesd
 execute:
-  echo: true
   message: false
   warning: false
   eval: true
@@ -107,22 +108,29 @@ execute:
 # for .rmd files
 knitr:
   opts_chunk:
-    echo: true
     error: false
     warning: false
     message: false
     cache: false
 
-prefer-html: true
 
 params:
   data_updated: !expr format(Sys.Date(), "%B %Y")
 ---
 
-
 ```{r}
 #| label: setup
 #| include: false
+
+# Capture current filename for use in document
+file_name <- if (!base::is.null(knitr::current_input())) {
+  paste0(tools::file_path_sans_ext(knitr::current_input()), ".qmd")
+} else {
+  "interactive_session.qmd"
+}
+
+file_stem <- base::paste0(tools::file_path_sans_ext(file_name), "_chat")
+
 
 
 # install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
@@ -134,6 +142,9 @@ params:
 
 # Download button helpers live here; knitr::is_html_output() guard is inside
 # the helpers so they silently no-op when rendering to typst
+
+source(here::here("R", "report_format_helpers.R"))
+source(here::here("R", "flextable_helpers.R"))
 source(here::here("R", "download_button_helpers.R"))
 
 # Force dplyr's select to take precedence
@@ -166,6 +177,7 @@ flextable::set_flextable_defaults(
   decimal.mark = ".",
   big.mark = " ",
   na_str = "<na>",
+  theme_fun = base::identity,          # <-- add this
   post_process_html = identity,
   post_process_docx = identity
 )
@@ -173,34 +185,30 @@ flextable::set_flextable_defaults(
 # Standard table styler: blue italic title row + palegreen column header row.
 # Defined here so all QMDs that source this setup get the same presentation
 # without depending on census_helpers.R for a purely cosmetic function.
-ds_style_flextable <- function(ft, title = NULL) {
+ds_style_flextable <- function(ft, title = NULL, title_size = 16) {
+  # Fixed layout helps long text wrap instead of expanding columns
+  ft <- flextable::set_table_properties(ft, layout = "fixed")
+
   if (!base::is.null(title)) {
     ft <- flextable::add_header_lines(ft, values = title)
     ft <- flextable::color(ft, i = 1, part = "header", color = "blue")
     ft <- flextable::italic(ft, i = 1, part = "header")
     ft <- flextable::align(ft, i = 1, part = "header", align = "left")
-    ft <- flextable::fontsize(ft, i = 1, part = "header", size = 12)
+    ft <- flextable::bold(ft, i = 1, part = "header")
+    ft <- flextable::fontsize(ft, i = 1, part = "header", size = title_size)
     ft <- flextable::bg(ft, i = 1, part = "header", bg = "white")
     ft <- flextable::bg(ft, i = 2, part = "header", bg = "palegreen")
+
+    # Optional: make wrapped titles read better
+    ft <- flextable::line_spacing(ft, i = 1, part = "header", space = 1.2)
   } else {
     ft <- flextable::bg(ft, i = 1, part = "header", bg = "palegreen")
   }
+
   ft <- flextable::autofit(ft)
   ft
 }
 
-
-# Flextable built-in themes:
-  # flextable::theme_alafoli()	|>  # BLAH
-  # flextable::theme_apa()  # THIS IS NICE
-  # flextable::theme_booktabs() |>  # NICE, MORE COMPACT
-  # flextable::theme_box() |>   # OK, INCLUDES CELL BORDERS
-  # flextable::theme_tron() |>  # 'DARK MODE' BLUE TEXT
-  # flextable::theme_tron_legacy() |>   # 'DARK MODE' YELLOW TEXT
-  # flextable::theme_vader() |>    # 'DARK MODE' WHITE TEXT
-  # flextable::theme_vanilla() |>   # NOT SPECIAL
-  # flextable::theme_zebra()	|>
-  #
 
 
 # Set global theme for consistent plots
@@ -287,17 +295,26 @@ ggplot2::theme_set(
 )
 
 
-claude <- ellmer::chat_anthropic(model = "claude-opus-4-6-20260205")
+# claude <- ellmer::chat_anthropic(model = "claude-opus-4-6-20260205")
   
 # Set seed for reproducibility
 base::set.seed(123)
 
 ```
 
+
 \
 
-#### **Filename:** 
-2023_PSPC_Rough_Sensitivity_Analysis_ver2.qmd
+#### **Filename:**
+
+::: {.content-visible when-format="html"}
+[`r file_name`]{style="word-break: break-all; font-size: 1.00em;"}
+:::
+
+```{=typst}
+#let wrap_underscores(s) = s.replace("_", "_\u{200B}")
+#text(size: 16pt)[#raw(wrap_underscores("`r file_name`"))]
+```
 
 \
 
@@ -358,7 +375,18 @@ ft_research <- flextable::flextable(research) |>
   flextable::width(j = 3, width = 1.2)
 
 ft_research
+
+ds_download_data_btn(
+  research,
+  filename_base = base::paste0(file_stem, "_published_research_city_size_wage_premiums"),
+  label = "Published Research Table (CSV)"
+)
 ```
+
+::: {.content-visible when-format="html"}
+:::
+
+\
 
 **Key takeaway:** The research consistently finds that large cities (populations over 500K) pay a wage premium of roughly **5% to 20%** over smaller areas, depending on methodology and controls. For *municipal government* positions specifically, the premium is likely at the **lower end** of this range because public sector pay is less responsive to local labor market conditions than private sector pay (hopefully, constrained by budgets, pay scales, and political processes).  
 
@@ -424,7 +452,18 @@ ft_comp <- ft_comp |>
   )
 
 ft_comp
+
+ds_download_data_btn(
+  comparators,
+  filename_base = base::paste0(file_stem, "_comparator_city_populations"),
+  label = "Download Comparator Table (CSV)"
+)
 ```
+
+::: {.content-visible when-format="html"}
+:::
+
+\
 
 ```{r}
 #| label: fig-population-comparison
@@ -443,7 +482,7 @@ plot_data <- comparators |>
     City = forcats::fct_reorder(City, Population)
   )
 
-ggplot2::ggplot(
+p_pop_comparison <- ggplot2::ggplot(
   plot_data,
   ggplot2::aes(x = City, y = Population / 1000, fill = Excluded)
 ) +
@@ -484,7 +523,21 @@ ggplot2::ggplot(
     plot.title = ggplot2::element_text(face = "bold"),
     panel.grid.major.y = ggplot2::element_blank()
   )
+print(p_pop_comparison)
+
+ds_download_plot_btn(
+  p_pop_comparison,
+  filename_base = base::paste0(file_stem, "_population_comparison_chart"),
+  label = "Download Population Comparison Plot (PNG)"
+)
 ```
+
+\
+
+::: {.content-visible when-format="html"}
+:::
+
+\
 
 **Note on "Additional Sources":** The PSPC study also included county governments (Bexar County, Williamson County, etc.), utility districts, and ESDs. These entities have fundamentally different tax bases and compensation structures from municipal governments. 
 
@@ -551,7 +604,16 @@ ft_assumptions <- flextable::flextable(assumptions) |>
   flextable::width(j = 3, width = 2.7)
 
 ft_assumptions
+
+ds_download_data_btn(
+  assumptions,
+  filename_base = base::paste0(file_stem, "_sensitivity_assumptions"),
+  label = "Download Assumptions Table (CSV)"
+)
 ```
+
+::: {.content-visible when-format="html"}
+:::
 
 
 
@@ -722,7 +784,16 @@ ft_sample <- flextable::flextable(display_sample) |>
   flextable::align(j = 2:10, align = "right", part = "body")
 
 ft_sample
+
+ds_download_data_btn(
+  sample_data,
+  filename_base = base::paste0(file_stem, "_sample_positions_adjusted_gaps"),
+  label = "Download Sample Positions Table (CSV)"
+)
 ```
+
+::: {.content-visible when-format="html"}
+:::
 
 
 ### Distribution Shift: How the Gap Changes  
@@ -757,7 +828,7 @@ gap_data <- positions |>
     ))
   )
 
-ggplot2::ggplot(gap_data, ggplot2::aes(x = Gap_Pct, fill = Scenario)) +
+p_dist_shift <- ggplot2::ggplot(gap_data, ggplot2::aes(x = Gap_Pct, fill = Scenario)) +
   ggplot2::geom_density(alpha = 0.35, linewidth = 0.6) +
   ggplot2::geom_vline(xintercept = -5, linetype = "dashed", color = "gray40") +
   ggplot2::geom_vline(xintercept = 5, linetype = "dashed", color = "gray40") +
@@ -790,8 +861,23 @@ ggplot2::ggplot(gap_data, ggplot2::aes(x = Gap_Pct, fill = Scenario)) +
     legend.position = "bottom",
     plot.title = ggplot2::element_text(face = "bold")
   )
+print(p_dist_shift)
+
+ds_download_plot_btn(
+  p_dist_shift,
+  filename_base = base::paste0(file_stem, "_distribution_shift_plot"),
+  label = "Download Distribution Shift Plot (PNG)"
+)
 ```
 
+
+\
+
+::: {.content-visible when-format="html"}
+:::
+
+
+\
 
 ### Summary Statistics: The Headline Numbers
 
@@ -840,8 +926,19 @@ ft_summary <- flextable::flextable(summary_stats) |>
   flextable::bg(i = 1, part = "body", bg = "#FFE0E0")
 
 ft_summary
+
+ds_download_data_btn(
+  summary_stats,
+  filename_base = base::paste0(file_stem, "_summary_stats_by_scenario"),
+  label = "Download Summary Stats Table (CSV)"
+)
 ```
 
+::: {.content-visible when-format="html"}
+:::
+
+
+\
 
 ### Estimated Cost Implications  
 
@@ -965,8 +1062,19 @@ ft_cost <- flextable::flextable(cost_estimates) |>
   flextable::bg(i = 1, part = "body", bg = "#FFE0E0")
 
 ft_cost
+
+ds_download_data_btn(
+  cost_estimates,
+  filename_base = base::paste0(file_stem, "_cost_estimates_by_scenario"),
+  label = "Download Cost Estimates Table (CSV)"
+)
 ```
 
+::: {.content-visible when-format="html"}
+:::
+
+
+\
 
 ### The Reclassification Effect
 
@@ -1008,7 +1116,7 @@ reclass <- dplyr::bind_rows(
     Category = factor(Category, levels = c("Above", "Comparable", "Below"))
   )
 
-ggplot2::ggplot(
+p_reclass <- ggplot2::ggplot(
   reclass,
   ggplot2::aes(x = Scenario, y = Count, fill = Category)
 ) +
@@ -1044,8 +1152,25 @@ ggplot2::ggplot(
     legend.position = "bottom",
     plot.title = ggplot2::element_text(face = "bold")
   )
+print(p_reclass)
+
+ds_download_plot_btn(
+  p_reclass,
+  filename_base = base::paste0(file_stem, "_reclassification_plot"),
+  label = "Download Reclassification Plot (PNG)"
+)
 ```
 
+
+\
+\
+
+
+::: {.content-visible when-format="html"}
+:::
+
+
+\
 
 ## Interpretation and Caveats  
 
@@ -1131,7 +1256,16 @@ ft_full <- flextable::flextable(full_display) |>
   flextable::align(j = 2:7, align = "right", part = "body")
 
 ft_full
+
+ds_download_data_btn(
+  positions,
+  filename_base = base::paste0(file_stem, "_full_appendix_positions"),
+  label = "Download Full Appendix Table (CSV)"
+)
 ```
+
+::: {.content-visible when-format="html"}
+:::
 
 ---
 
