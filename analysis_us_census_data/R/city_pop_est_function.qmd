@@ -1,0 +1,446 @@
+---
+title: "Fetch City Population Extimate"
+format: html
+---
+
+| Desired plot                        | Call                                   | Column to map to y |
+| ----------------------------------- | -------------------------------------- | ------------------ |
+| population over time                | `get_city_pep_2010_2024()`             | `value`            |
+| population over time (cleaner name) | `get_city_pep_2010_2024_with_change()` | `pop`              |
+| annual numeric change               | `get_city_pep_2010_2024_with_change()` | `change`           |
+| annual percent change               | `get_city_pep_2010_2024_with_change()` | `pct_change`       |
+
+
+
+Put the function in a plain R file, then use it from your .qmd. That keeps it reusable for other projects/cities and fits nicely with your eventual “dsfetch” vision.
+
+1️⃣ Where to put it
+
+In your project, I’d do something like:
+
+R/get_city_pep.R ← function lives here
+
+analysis/whatever.qmd ← you call the function here
+
+Then in your .qmd:
+
+
+```r
+
+source("R/get_city_pep.R")
+
+```
+
+
+Now every Quarto document in the project can use the same function.
+
+Later, if you wrap this into an R package, you basically just move this function into `R/` in the package and add roxygen.
+
+
+
+## 2️⃣ A reusable function: 2010–2024 city population series
+
+Here’s a function that:
+
+- Works for **any place** (not just Schertz)
+- Pulls **2010–2019** via `time_series = TRUE`
+- Pulls **2020–2024** via the post-2020 flat files
+- Lets you choose `start_year` and `end_year` (within 2010–2024)
+
+Paste this into `R/get_city_pep.R`:
+
+
+
+Now every Quarto document in the project can use the same function.
+
+Later, if you wrap this into an R package, you basically just move this function into `R/` in the package and add roxygen.
+
+
+
+## 2️⃣ A reusable function: 2010–2024 city population series
+
+Here’s a function that:
+
+- Works for **any place** (not just Schertz)
+- Pulls **2010–2019** via `time_series = TRUE`
+- Pulls **2020–2024** via the post-2020 flat files
+- Lets you choose `start_year` and `end_year` (within 2010–2024)
+
+Paste this into `R/get_city_pep.R`:
+
+```r
+#' Get a city-level population series (PEP) for 2010–2024
+#'
+#' @param place_name   City name, e.g. "Schertz"
+#' @param state        State postal abbreviation, e.g. "TX"
+#' @param start_year   First year (default 2010)
+#' @param end_year     Last year (default 2024)
+#' @param vintage_post2020 PEP vintage for post-2020 estimates (default 2024)
+#'
+#' @return A tibble with NAME, year, variable ("POP"), and value (population)
+#'
+get_city_pep_2010_2024 <- function(
+  place_name,
+  state             = "TX",
+  start_year        = 2010,
+  end_year          = 2024,
+  vintage_post2020  = 2024
+) {
+  # guardrails
+  if (!requireNamespace("tidycensus", quietly = TRUE)) {
+    stop("Package 'tidycensus' is required. Please install it first.")
+  }
+  if (start_year < 2010) {
+    warning("start_year < 2010; truncating to 2010.")
+    start_year <- 2010
+  }
+  if (end_year > 2024) {
+    warning("end_year > 2024; truncating to 2024.")
+    end_year <- 2024
+  }
+  if (start_year > end_year) {
+    stop("start_year must be <= end_year.")
+  }
+
+  # derive full state name for the NAME field ("Schertz city, Texas")
+  full_state <- state.name[match(toupper(state), state.abb)]
+  if (is.na(full_state)) {
+    stop("Could not match state abbreviation '", state, "' to a full state name.")
+  }
+
+  target_name <- sprintf("%s city, %s", place_name, full_state)
+
+  # ---------- 2010–2019 via time_series ----------
+  df_2010_2019 <- NULL
+  if (start_year <= 2019) {
+    # Use time_series = TRUE on the 2010-based 2019 vintage
+    ts_raw <- tidycensus::get_estimates(
+      geography   = "place",
+      state       = state,
+      product     = "population",
+      year        = 2019,
+      time_series = TRUE
+    )
+
+    df_2010_2019 <- ts_raw |>
+      dplyr::filter(
+        .data$NAME == target_name,
+        .data$variable == "POP",
+        .data$DATE >= 3, .data$DATE <= 12  # annual July 1 estimates
+      ) |>
+      dplyr::mutate(
+        year = .data$DATE + 2007  # DATE 3 -> 2010, ..., 12 -> 2019
+      ) |>
+      dplyr::select(.data$NAME, .data$year, .data$variable, .data$value) |>
+      dplyr::filter(.data$year >= start_year,
+                    .data$year <= min(end_year, 2019)) |>
+      dplyr::arrange(.data$year)
+  }
+
+  # ---------- 2020–2024 via flat files ----------
+  df_2020_2024 <- NULL
+  if (end_year >= 2020) {
+    years_post2020 <- seq.int(max(start_year, 2020), end_year)
+
+    df_2020_2024 <- purrr::map_dfr(
+      years_post2020,
+      \(yr) {
+        tidycensus::get_estimates(
+          geography = "place",
+          state     = state,
+          place     = place_name,
+          variables = "POPESTIMATE",
+          vintage   = vintage_post2020,
+          year      = yr
+        ) |>
+          dplyr::filter(.data$NAME == target_name) |>
+          dplyr::mutate(
+            year     = yr,
+            variable = "POP"  # harmonize with pre-2020
+          ) |>
+          dplyr::select(.data$NAME, .data$year, .data$variable, .data$value)
+      }
+    ) |>
+      dplyr::arrange(.data$year)
+  }
+
+  # ---------- combine ----------
+  out <- dplyr::bind_rows(df_2010_2019, df_2020_2024) |>
+    dplyr::arrange(.data$year)
+
+  out
+}
+
+```
+
+
+If you run into NSE notes on .data, just add library(rlang) or library(dplyr) at the top of the script; in a package you’d import rlang::.data.
+
+
+3️⃣ Using it in a Quarto document
+
+At the top of your .qmd:
+
+
+
+---{r}
+library(tidycensus)
+library(dplyr)
+library(purrr)
+library(ggplot2)
+
+source("R/get_city_pep.R")
+
+---
+
+
+Now get the series and plot it:
+
+
+```r
+
+schertz_pop <- get_city_pep_2010_2024("Schertz", "TX")
+
+schertz_pop
+
+```
+
+
+```r
+
+ggplot(schertz_pop, aes(x = year, y = value)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Population of Schertz, TX (2010–2024)",
+    x = "Year",
+    y = "Population (POP / POPESTIMATE)"
+  )
+
+```
+
+--------------------------------------
+
+Two functions in the same R file:
+
+get_city_pep_2010_2024() – pulls the population series
+
+get_city_pep_2010_2024_with_change() – calls #1 and adds pop, change, and pct_change
+
+1️⃣ Updated R file (R/get_city_pep.R)
+
+You can replace the existing file with this, or just append the second function if you’ve already got the first one in place.
+
+
+```r
+#' Get a city-level population series (PEP) for 2010–2024
+#'
+#' @param place_name   City name, e.g. "Schertz"
+#' @param state        State postal abbreviation, e.g. "TX"
+#' @param start_year   First year (default 2010)
+#' @param end_year     Last year (default 2024)
+#' @param vintage_post2020 PEP vintage for post-2020 estimates (default 2024)
+#'
+#' @return A tibble with NAME, year, variable ("POP"), and value (population)
+#'
+get_city_pep_2010_2024 <- function(
+  place_name,
+  state             = "TX",
+  start_year        = 2010,
+  end_year          = 2024,
+  vintage_post2020  = 2024
+) {
+  if (!requireNamespace("tidycensus", quietly = TRUE)) {
+    stop("Package 'tidycensus' is required. Please install it first.")
+  }
+  if (start_year < 2010) {
+    warning("start_year < 2010; truncating to 2010.")
+    start_year <- 2010
+  }
+  if (end_year > 2024) {
+    warning("end_year > 2024; truncating to 2024.")
+    end_year <- 2024
+  }
+  if (start_year > end_year) {
+    stop("start_year must be <= end_year.")
+  }
+
+  # full state name for the NAME field ("Schertz city, Texas")
+  full_state <- state.name[match(toupper(state), state.abb)]
+  if (is.na(full_state)) {
+    stop("Could not match state abbreviation '", state, "' to a full state name.")
+  }
+
+  target_name <- sprintf("%s city, %s", place_name, full_state)
+
+  # ----- 2010–2019 via time_series -----
+  df_2010_2019 <- NULL
+  if (start_year <= 2019) {
+    ts_raw <- tidycensus::get_estimates(
+      geography   = "place",
+      state       = state,
+      product     = "population",
+      year        = 2019,
+      time_series = TRUE
+    )
+
+    df_2010_2019 <- ts_raw |>
+      dplyr::filter(
+        .data$NAME == target_name,
+        .data$variable == "POP",
+        .data$DATE >= 3, .data$DATE <= 12
+      ) |>
+      dplyr::mutate(
+        year = .data$DATE + 2007   # DATE 3 -> 2010, ..., 12 -> 2019
+      ) |>
+      dplyr::select(.data$NAME, .data$year, .data$variable, .data$value) |>
+      dplyr::filter(
+        .data$year >= start_year,
+        .data$year <= min(end_year, 2019)
+      ) |>
+      dplyr::arrange(.data$year)
+  }
+
+  # ----- 2020–2024 via flat files -----
+  df_2020_2024 <- NULL
+  if (end_year >= 2020) {
+    years_post2020 <- seq.int(max(start_year, 2020), end_year)
+
+    df_2020_2024 <- purrr::map_dfr(
+      years_post2020,
+      \(yr) {
+        tidycensus::get_estimates(
+          geography = "place",
+          state     = state,
+          place     = place_name,
+          variables = "POPESTIMATE",
+          vintage   = vintage_post2020,
+          year      = yr
+        ) |>
+          dplyr::filter(.data$NAME == target_name) |>
+          dplyr::mutate(
+            year     = yr,
+            variable = "POP"   # harmonize name
+          ) |>
+          dplyr::select(.data$NAME, .data$year, .data$variable, .data$value)
+      }
+    ) |>
+      dplyr::arrange(.data$year)
+  }
+
+  dplyr::bind_rows(df_2010_2019, df_2020_2024) |>
+    dplyr::arrange(.data$year)
+}
+
+```
+
+---------------------------
+
+```r
+#' Get city population series with change and percent change (2010–2024)
+#'
+#' @inheritParams get_city_pep_2010_2024
+#'
+#' @return A tibble with NAME, year, POP (value), change, and pct_change.
+#'
+get_city_pep_2010_2024_with_change <- function(
+  place_name,
+  state             = "TX",
+  start_year        = 2010,
+  end_year          = 2024,
+  vintage_post2020  = 2024
+) {
+  df <- get_city_pep_2010_2024(
+    place_name        = place_name,
+    state             = state,
+    start_year        = start_year,
+    end_year          = end_year,
+    vintage_post2020  = vintage_post2020
+  )
+
+  df |>
+    dplyr::arrange(.data$year) |>
+    dplyr::mutate(
+      pop        = .data$value,
+      pop_lag    = dplyr::lag(.data$pop),
+      change     = .data$pop - .data$pop_lag,
+      pct_change = dplyr::if_else(
+        is.na(.data$pop_lag) | .data$pop_lag == 0,
+        NA_real_,
+        100 * .data$change / .data$pop_lag
+      )
+    )
+}
+
+```
+
+
+2️⃣ Using the helper in your qmd
+
+In your .qmd setup chunk:
+
+
+```r
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+
+source("R/get_city_pep.R")
+
+```
+
+
+Then:
+
+
+Then:
+
+```r
+
+schertz_pop <- get_city_pep_2010_2024_with_change("Schertz", "TX")
+
+schertz_pop
+
+```
+
+
+And a quick plot of levels:
+
+```r
+ggplot(schertz_pop, aes(x = year, y = pop)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Population of Schertz, TX (2010–2024)",
+    x = "Year",
+    y = "Population (PEP)"
+  )
+
+```
+
+
+Or plot **percent change**:
+
+```r
+
+ggplot(schertz_pop, aes(x = year, y = pct_change)) +
+  geom_col() +
+  labs(
+    title = "Year-over-year percent change, Schertz, TX population",
+    x = "Year",
+    y = "Percent change (%)"
+  )
+
+```
+
+
+
+
+
+
+
+
+
+
+
+

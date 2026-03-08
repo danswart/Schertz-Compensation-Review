@@ -1,0 +1,77 @@
+---
+title: "Test New Functions"
+format: html
+---
+
+```{r}
+#| label: load-libraries-and-source
+
+library(tidycensus)
+library(dplyr)
+library(ggplot2)
+library(purrr)
+
+# All R files at once
+purrr::walk(list.files("R", full.names = TRUE, pattern = "\\.R$"), source)
+
+# # One at a time
+# source("R/get_city_pep.R")
+# source("R/plot_city_pop.R")
+
+```
+
+##✔️ get_city_pep.R is a file
+
+It’s just a container / script
+
+It does not define a function named get_city_pep()
+
+##✔️ Inside that 'library' file are two separate functions
+
+get_city_pep_2010_2024()
+
+get_city_pep_2010_2024_with_change()
+
+
+## A Table
+
+| Function name                          | Returns                                         | Use case                                   |
+| -------------------------------------- | ----------------------------------------------- | ------------------------------------------ |
+| `get_city_pep_2010_2024()`             | raw population values                           | simplest population series                 |
+| `get_city_pep_2010_2024_with_change()` | population **plus** lag, change, percent change | plotting comparisons & rate-of-change work |
+
+
+| object returned | what it represents                   |
+| --------------- | ------------------------------------ |
+| tibble          | year-by-year population for a city   |
+| tibble          | same, with change & pct change added |
+
+
+## Fill in the city and state arguments
+
+```{r}
+df <- get_city_pep_2010_2024_with_change("Schertz","TX")
+
+```
+
+
+
+| object returned | what it represents       |
+| --------------- | ------------------------ |
+| ggplot object   | population over time     |
+| ggplot object   | percent change over time |
+
+
+
+
+## Plot the results of get_city_pep_2010_2024_with_change()
+
+Typical usage:
+
+
+```{r}
+plot_city_pop("Schertz","TX", type="pct_change")
+
+```
+
+

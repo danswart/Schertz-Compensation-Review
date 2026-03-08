@@ -108,7 +108,6 @@ execute:
 # for .rmd files
 knitr:
   opts_chunk:
-    echo: true
     error: false
     warning: false
     message: false

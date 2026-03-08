@@ -1,0 +1,372 @@
+---
+title: "FBI Violent and Property Crime Series for Schertz, TX"
+subtitle: "2011-08 through 2026-01"
+date: today
+format:
+  html:
+    echo: true
+    toc: true
+    toc-depth: 2
+    code-fold: true
+  typst:
+    echo: false
+    toc: true
+execute:
+  warning: false
+  message: false
+  error: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+fmt_num <- function(x, digits = 0) {
+  formatC(x, format = "f", digits = digits, big.mark = ",")
+}
+
+fmt_pct <- function(x, digits = 1) {
+  paste0(formatC(x, format = "f", digits = digits), "%")
+}
+
+ds_style_flextable <- function(ft, title = NULL) {
+  if (!base::is.null(title)) {
+    ft <- flextable::add_header_lines(ft, values = title)
+    ft <- flextable::color(ft, i = 1, part = "header", color = "blue")
+    ft <- flextable::italic(ft, i = 1, part = "header")
+    ft <- flextable::align(ft, i = 1, part = "header", align = "left")
+    ft <- flextable::bold(ft, i = 1, part = "header")
+    ft <- flextable::fontsize(ft, i = 1, part = "header", size = 16)
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "white")
+    ft <- flextable::bg(ft, i = 2, part = "header", bg = "palegreen")
+  } else {
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "palegreen")
+  }
+  flextable::autofit(ft)
+}
+```
+
+## What this file can and cannot answer
+
+The Excel export confirms that the uploaded file contains **one combined monthly crime series**, not separate violent and property series.
+
+The metadata row shows the query included both:
+
+- `offense : violent-crime`
+- `offense : property-crime`
+
+So this workbook supports a defensible analysis of the **combined monthly crime load** only.
+
+It does **not** support separate longitudinal analyses of violent crime and property crime, because those two components are not split into separate rows or columns in the file.
+
+### Practical implication
+
+I can answer:
+
+- Is the **combined** crime load now materially higher than in the past?
+
+I cannot answer from this file alone:
+
+- Is **violent crime** now materially higher than in the past?
+- Is **property crime** now materially higher than in the past?
+
+Those two questions require separate FBI exports, one for violent crime and one for property crime, or a workbook with those series split.
+
+## Import the Excel series
+
+```{r}
+#| label: import-excel-series
+
+raw <- readxl::read_excel(
+  "schertz_violent_and_nonviolent_crime_2010-01-01_2026-01-01.xlsx"
+)
+
+crime_ts <- raw |>
+  dplyr::transmute(
+    date = as.Date(Date),
+    crime_count = as.numeric(query1),
+    ucl_excel = as.numeric(UCL),
+    avg_excel = as.numeric(Average),
+    lcl_excel = as.numeric(LCL)
+  ) |>
+  dplyr::filter(!is.na(date), !is.na(crime_count)) |>
+  dplyr::arrange(date) |>
+  dplyr::mutate(
+    year = as.integer(format(date, "%Y")),
+    month = as.integer(format(date, "%m"))
+  )
+
+metadata_df <- data.frame(
+  Item = c(
+    "Series type in workbook",
+    "Date range in workbook",
+    "First month",
+    "Last month",
+    "Rows in series"
+  ),
+  Value = c(
+    "Single combined monthly series",
+    paste0(min(crime_ts$date), " to ", max(crime_ts$date)),
+    as.character(min(crime_ts$date)),
+    as.character(max(crime_ts$date)),
+    nrow(crime_ts)
+  ),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(metadata_df) |>
+  flextable::set_header_labels(Item = "Metadata Item", Value = "Value") |>
+  ds_style_flextable(title = "What the Excel Workbook Actually Contains")
+```
+
+## Main finding
+
+The combined monthly crime-load series does **not** show that Schertz PD is now under significantly increased crime load compared with the past.
+
+The broader pattern is:
+
+- the long-run trend is **down**
+- recent years are **well below** the 2010s peak
+- the Individuals/XmR chart shows **no sustained current high-load pattern**
+
+There is one notable recent high-side point, but not a run of unusually high recent values.
+
+```{r}
+#| label: annual-summary-calc
+
+crime_ts_full <- crime_ts |>
+  dplyr::filter(year <= 2025)
+
+annual_totals <- crime_ts_full |>
+  dplyr::group_by(year) |>
+  dplyr::summarise(
+    annual_total = base::sum(crime_count, na.rm = TRUE),
+    avg_monthly = base::mean(crime_count, na.rm = TRUE),
+    median_monthly = stats::median(crime_count, na.rm = TRUE),
+    max_month = base::max(crime_count, na.rm = TRUE),
+    min_month = base::min(crime_count, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  dplyr::mutate(
+    yoy_change_pct = (annual_total / dplyr::lag(annual_total) - 1) * 100
+  )
+
+pre_2020_mean  <- base::mean(crime_ts_full$crime_count[crime_ts_full$year <= 2019])
+post_2020_mean <- base::mean(crime_ts_full$crime_count[crime_ts_full$year >= 2020])
+recent_2024_25 <- base::mean(crime_ts_full$crime_count[crime_ts_full$year >= 2024])
+
+peak_row <- annual_totals |>
+  dplyr::slice_max(order_by = annual_total, n = 1)
+```
+
+```{r}
+#| label: summary-table
+
+summary_df <- data.frame(
+  Metric = c(
+    "Average monthly count, 2011-2019",
+    "Average monthly count, 2020-2025",
+    "Average monthly count, 2024-2025",
+    "Peak annual total",
+    "2024 annual total",
+    "2025 annual total"
+  ),
+  Value = c(
+    fmt_num(pre_2020_mean, 1),
+    fmt_num(post_2020_mean, 1),
+    fmt_num(recent_2024_25, 1),
+    paste0(fmt_num(peak_row$annual_total, 0), " in ", peak_row$year),
+    fmt_num(annual_totals$annual_total[annual_totals$year == 2024], 0),
+    fmt_num(annual_totals$annual_total[annual_totals$year == 2025], 0)
+  ),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(summary_df) |>
+  flextable::set_header_labels(Metric = "Metric", Value = "Value") |>
+  ds_style_flextable(title = "Combined Crime Load Summary")
+```
+
+## Combined annual trend
+
+```{r}
+#| label: annual-plot
+#| fig-width: 11
+#| fig-height: 6
+
+ggplot2::ggplot(
+  annual_totals,
+  ggplot2::aes(x = year, y = annual_total)
+) +
+  ggplot2::geom_line(linewidth = 1) +
+  ggplot2::geom_point(size = 2.5) +
+  ggplot2::geom_smooth(method = "lm", se = FALSE, linetype = "dashed") +
+  ggplot2::scale_x_continuous(breaks = annual_totals$year) +
+  ggplot2::labs(
+    title = "Combined Crime Load Has Trended Down, Not Up",
+    subtitle = "Peak annual total is in the mid-2010s; recent years are much lower",
+    x = "Year",
+    y = "Annual combined count"
+  ) +
+  ggplot2::theme_minimal(base_size = 14) +
+  ggplot2::theme(
+    axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)
+  )
+```
+
+```{r}
+#| label: annual-table
+
+annual_display <- annual_totals |>
+  dplyr::mutate(
+    annual_total = fmt_num(annual_total, 0),
+    avg_monthly = fmt_num(avg_monthly, 1),
+    median_monthly = fmt_num(median_monthly, 1),
+    max_month = fmt_num(max_month, 0),
+    min_month = fmt_num(min_month, 0),
+    yoy_change_pct = dplyr::if_else(
+      base::is.na(yoy_change_pct),
+      "",
+      fmt_pct(yoy_change_pct, 1)
+    )
+  )
+
+flextable::flextable(annual_display) |>
+  flextable::set_header_labels(
+    year = "Year",
+    annual_total = "Annual Total",
+    avg_monthly = "Avg Monthly",
+    median_monthly = "Median Monthly",
+    max_month = "Max Month",
+    min_month = "Min Month",
+    yoy_change_pct = "YoY % Change"
+  ) |>
+  ds_style_flextable(title = "Annual Combined Crime Load by Year")
+```
+
+## Individuals/XmR interpretation for the combined series
+
+```{r}
+#| label: xmr-calc
+
+x <- crime_ts_full$crime_count
+mr <- base::abs(x - dplyr::lag(x))
+xbar <- base::mean(x, na.rm = TRUE)
+mrbar <- base::mean(mr, na.rm = TRUE)
+ucl <- xbar + 2.66 * mrbar
+lcl <- base::max(0, xbar - 2.66 * mrbar)
+
+crime_ts_xmr <- crime_ts_full |>
+  dplyr::mutate(
+    center_line = xbar,
+    ucl = ucl,
+    lcl = lcl,
+    out_of_control = crime_count > ucl | crime_count < lcl
+  )
+
+ooc_points <- crime_ts_xmr |>
+  dplyr::filter(out_of_control) |>
+  dplyr::transmute(
+    Month = format(date, "%Y-%m"),
+    Count = crime_count,
+    Direction = dplyr::if_else(crime_count > ucl, "Above UCL", "Below LCL")
+  )
+```
+
+```{r}
+#| label: xmr-plot
+#| fig-width: 11
+#| fig-height: 6
+
+ggplot2::ggplot(crime_ts_xmr, ggplot2::aes(x = date, y = crime_count)) +
+  ggplot2::geom_line(linewidth = 0.6) +
+  ggplot2::geom_point(
+    ggplot2::aes(shape = out_of_control),
+    size = 2
+  ) +
+  ggplot2::geom_line(ggplot2::aes(y = center_line), linetype = "dashed") +
+  ggplot2::geom_line(ggplot2::aes(y = ucl), linetype = "dotted") +
+  ggplot2::geom_line(ggplot2::aes(y = lcl), linetype = "dotted") +
+  ggplot2::scale_shape_manual(values = c(`FALSE` = 16, `TRUE` = 17), guide = "none") +
+  ggplot2::labs(
+    title = "Individuals/XmR View of Combined Monthly Crime Load",
+    subtitle = paste0(
+      "Center line = ", fmt_num(xbar, 1),
+      " | UCL = ", fmt_num(ucl, 1),
+      " | LCL = ", fmt_num(lcl, 1)
+    ),
+    x = "Month",
+    y = "Monthly combined count"
+  ) +
+  ggplot2::theme_minimal(base_size = 14)
+```
+
+```{r}
+#| label: xmr-summary-table
+
+xmr_summary <- data.frame(
+  Measure = c(
+    "Center line (mean monthly count)",
+    "Upper control limit",
+    "Lower control limit",
+    "Out-of-control points",
+    "Interpretation"
+  ),
+  Value = c(
+    fmt_num(xbar, 1),
+    fmt_num(ucl, 1),
+    fmt_num(lcl, 1),
+    fmt_num(base::nrow(ooc_points), 0),
+    "Recent period does not show a sustained unusually high pattern"
+  ),
+  stringsAsFactors = FALSE
+)
+
+flextable::flextable(xmr_summary) |>
+  flextable::set_header_labels(Measure = "Measure", Value = "Value") |>
+  ds_style_flextable(title = "XmR Summary for the Combined Series")
+```
+
+```{r}
+#| label: ooc-table
+
+flextable::flextable(ooc_points) |>
+  ds_style_flextable(title = "Out-of-Control Months in the Combined Series")
+```
+
+## Direct answer to your research question
+
+### Combined crime trend
+
+Based on the Excel-confirmed combined series, the answer is **no**: the Schertz Police Department does **not** appear to be under significantly increased crime load now than in the past.
+
+The strongest signals are:
+
+1. The long-run history points **downward**, not upward.
+2. Recent years are **well below** the earlier peak period.
+3. The XmR chart does **not** show a sustained recent high-load pattern.
+
+### Violent crime trend
+
+This workbook does **not** contain a separate violent-crime time series, so that question cannot be answered from this file alone.
+
+### Property crime trend
+
+This workbook does **not** contain a separate property-crime time series, so that question cannot be answered from this file alone.
+
+## What to export next if you want the full answer
+
+To answer your full question cleanly, export three separate FBI series:
+
+1. **Violent crime only**
+2. **Property crime only**
+3. **Combined violent + property crime**
+
+With those three files, I can produce a complete side-by-side QMD covering:
+
+- violent crime trend
+- property crime trend
+- combined trend
+- separate annual summaries
+- separate Individuals/XmR charts
+- a final policy conclusion on whether present staffing claims are supported by the long-run data
