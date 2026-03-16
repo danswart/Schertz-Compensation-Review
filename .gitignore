@@ -3,7 +3,7 @@
 #####  NO INLINE COMMENTS!  #####
 
 # Bookdown files-if book rendered in cloud uncomment these
-/*.pdf
+*.pdf
 _site
 temp.Rmd
 *_files
@@ -148,4 +148,4 @@ annual_budgets/
 .Rproj.user
 .RData
 data-clean/
-pdf/
+pdf/*.pdf
