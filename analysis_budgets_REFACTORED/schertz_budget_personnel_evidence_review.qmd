@@ -1,0 +1,310 @@
+---
+title: "City of Schertz FY 2025-26 Proposed Budget"
+subtitle: "Evidence a Council Member Should Require Before Approving Personnel Cost Increases and Added Staff"
+author: "Prepared with ChatGPT for review"
+format:
+  html:
+    toc: true
+    number-sections: true
+    code-fold: false
+    df-print: paged
+  pdf:
+    toc: true
+    number-sections: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+# Executive judgment
+
+My honest judgment is that the proposed budget **does not present enough hard evidence, in the budget document itself, to justify a "yes" vote on personnel-cost growth and added staffing on evidence-based grounds alone**.
+
+The document clearly states the *reasons* staff give for higher personnel spending. It says compensation is intended to reduce turnover and attract talent, and that added staffing is intended to maintain service levels, reduce burnout, lower EMS response times, improve drainage maintenance, staff Fire Station 4, and support transferred operations such as the Senior Center and soccer complex (Proposed Budget, pp. 6-9, 14-17, 20-24).
+
+But those are still mostly **claims of purpose**, not **proof of need**.
+
+What is missing is the kind of evidence a governing body would normally want before permanently increasing recurring costs:
+
+- vacancy rates by department,
+- turnover and retention trends,
+- time-to-fill positions,
+- number of failed recruitments,
+- first-offer acceptance rates,
+- overtime and backfill costs,
+- workload per employee,
+- service-level shortfalls attributable to understaffing,
+- market-pay comparisons for the specific positions requesting increases,
+- and a multi-year demonstration that these added costs are fiscally sustainable.
+
+In my view, a prudent council member should treat this budget as **directionally argued but not evidentially proven** on personnel matters.
+
+# What the budget *does* say
+
+The budget identifies five broad priorities, including staff compensation "to reduce turnover and attract the best talent" and increased staffing "to provide the expected levels of service to residents and businesses while preventing burnout and turnover of existing employees" (Proposed Budget, pp. 6-7).
+
+It also states that citywide compensation actions include:
+
+- a merit program for non-uniformed personnel,
+- a step program for uniformed public safety,
+- non-uniformed employees eligible for 0-4% based on performance,
+- public safety employees potentially receiving 4% based on tenure,
+- and a stated citywide cost of **$784,000** for these midyear changes (Proposed Budget, p. 7).
+
+The budget further states that the City added **26 positions** for FY 2025-26:
+
+- 10 in the General Fund,
+- 6 in Water & Sewer,
+- 4 in EMS,
+- and 6 in Drainage (Proposed Budget, p. 8).
+
+Examples of the stated rationale include:
+
+- **Fire:** 6 firefighters to prepare staffing for Fire Station 4 (Proposed Budget, pp. 8, 21, 63).
+- **City Secretary:** an Assistant City Secretary to assist existing operations (Proposed Budget, pp. 8, 21, 47-48).
+- **Parks/Recreation:** a Senior Center Supervisor, Athletics Coordinator, and Recreation Specialist tied to operational transfers to the City (Proposed Budget, pp. 8, 14, 21).
+- **Water & Sewer:** an additional crew plus a floater Worker I to assist short-staffed crews (Proposed Budget, pp. 8, 15, 23).
+- **EMS:** 4 EMTs to operate Medic 8 and Medic 9 during peak hours and lower response times (Proposed Budget, pp. 8, 15-16, 24).
+- **Drainage:** a new crew plus a Floodplain Manager to improve maintenance, reporting, and long-range drainage planning (Proposed Budget, pp. 8-9, 16, 24).
+
+Those statements explain *intent*. They do **not** demonstrate that the requested compensation and staffing levels are the most necessary, best targeted, or most cost-effective solutions.
+
+# Why the evidence is not yet sufficient
+
+## 1. The budget uses narrative more than diagnostic proof
+
+The budget repeatedly uses phrases such as reducing turnover, attracting talent, preventing burnout, ensuring public safety, and maintaining service levels (Proposed Budget, pp. 6-9). Those may all be legitimate goals. But goals are not evidence.
+
+A council member should ask: *What measurable problem exists right now, how severe is it, what trend shows it is worsening, and how exactly does this spending solve it?*
+
+That chain of proof is largely absent.
+
+## 2. The budget shows activity measures, but not the staffing gap analysis behind the asks
+
+Some departments include activity measures. For example:
+
+- Fire shows incidents, staffing, inspections, training hours, and average drive time (Proposed Budget, p. 63).
+- City Secretary shows open records, agenda-processing timeliness, and related workflow measures (Proposed Budget, pp. 47-48).
+- EMS states response-time, survivability, and training goals (Proposed Budget, p. 167).
+- Economic Development shows activity measures such as visits, prospects, and recruitment events (Proposed Budget, p. 177).
+
+That is useful, but it still does not answer the central budget question: **What staffing deficiency exists, how large is it, and what evidence proves these exact additions are the right remedy?**
+
+For example, the Fire section shows total staffing rising and incident counts rising, but it does not present a deployment model, unit-hour-utilization analysis, overtime burden, vacancy pattern, or station-opening staffing timetable that would let council verify the need independently.
+
+## 3. Compensation changes are described, but market justification is not shown
+
+The budget says compensation changes are intended to reduce turnover and attract talent and that merit/step adjustments will cost $784,000 citywide (Proposed Budget, p. 7). It does **not** appear to provide, in the budget text itself:
+
+- a salary survey,
+- comparator-city pay ranking,
+- compression analysis,
+- evidence of declined offers,
+- evidence that current pay is materially below market for the affected classes,
+- or evidence that across-the-board mechanisms are better than targeted fixes.
+
+Without that, council cannot tell whether compensation pressure is:
+
+1. citywide,
+2. concentrated in a few hard-to-fill job classes,
+3. driven by internal compression,
+4. caused by working conditions rather than pay,
+5. or partly offset by benefits.
+
+## 4. Added staff create recurring obligations, yet sustainability evidence is thin
+
+The budget notes that some funds are already structurally strained or dependent on fee increases, delayed capital replacement, or negotiated outside support:
+
+- General Fund reserves are expected to decline by $1.26 million to $13.94 million (26.8% of operating expenditures) (Proposed Budget, p. 14).
+- Water & Sewer is budgeted under revenues by about $1.30 million (Proposed Budget, p. 15).
+- Drainage is budgeted under revenues by about $502,548 and relies on a fee increase from $5.20 to $8.00 per home (Proposed Budget, p. 16).
+- EMS had operated at a deficit for the prior two years and relies on contract increases and fee increases to improve its position (Proposed Budget, pp. 15-16).
+
+That makes it even more important to demand proof before adding permanent personnel costs. When recurring expenditures are added in funds already under pressure, the evidentiary bar should go **up**, not down.
+
+# My honest opinion if I were sitting on council
+
+If I had only this budget document in front of me, I would **not be comfortable voting yes yet** on the personnel-cost package as presented.
+
+That does **not** mean every requested raise or every added position is unjustified. Some may be well justified. Fire Station 4 staffing may be necessary. EMS peak-hour coverage may be necessary. Drainage staffing may be overdue. The City Secretary office may genuinely need help. But the budget document, by itself, does not give council the level of proof needed to distinguish:
+
+- what is essential,
+- what is desirable,
+- what is temporary,
+- what is permanent,
+- what is market-driven,
+- and what is merely asserted.
+
+My vote would be:
+
+> **Not yes yet. Bring back the evidence.**
+
+That is not anti-staff. It is pro-governance.
+
+# Evidence I would insist on before voting yes
+
+## A. Core compensation evidence
+
+These are the minimum compensation exhibits I would require.
+
+| Required exhibit | Why it matters | Minimum cut of the data |
+|---|---|---|
+| Vacancy rate by job class and department | Shows where labor-market stress is real | 3-year trend; budgeted vs filled FTE |
+| Turnover rate by job class and department | Distinguishes anecdote from measurable retention problems | Voluntary vs involuntary; regretted turnover flagged |
+| Average time-to-fill | Shows whether hiring difficulty is real and worsening | Median and average days to fill by position |
+| Offer acceptance rate | Reveals whether pay is noncompetitive | Offers made, offers accepted, reasons declined |
+| Recruiting funnel metrics | Shows whether the problem is pay, applicant volume, or process | Applicants, qualified applicants, interviews, offers, hires |
+| Exit interview summary | Distinguishes pay problems from management, scheduling, culture, and workload problems | Top coded reasons for leaving by department |
+| Market compensation study | Tests the claim that pay is noncompetitive | Comparator cities, percentile ranking, base pay and total comp |
+| Internal compression analysis | Identifies whether raises should be targeted rather than broad | New-hire vs incumbent pay spread by class |
+| Overtime/backfill usage | Shows whether vacancies are already costing the city money | 3-year trend by department and function |
+| Benefit-cost comparison | Prevents misleading conclusions based on wages alone | Employer health, retirement, leave, specialty pay |
+
+## B. Core staffing-addition evidence
+
+For every new position, staff should provide a one-page business case using the same template.
+
+| Required exhibit | Why it matters | Minimum cut of the data |
+|---|---|---|
+| Position-specific problem statement | Prevents vague justifications | What measurable service failure exists now? |
+| Baseline workload evidence | Shows current strain per employee/unit | Calls, inspections, work orders, cases, lane-miles, permits, etc. per FTE |
+| Trend line | Distinguishes one busy year from structural demand | At least 3 years, preferably 5 |
+| Service-level standard | Connects staffing to an adopted performance target | Response time, processing time, inspection cycle, backlog target |
+| Gap to standard | Quantifies the problem | Current result vs target |
+| Non-staff alternatives considered | Avoids defaulting to payroll growth | Process redesign, contracting, technology, cross-training, scheduling |
+| Cost of not adding the position | Shows risk and tradeoffs | Delays, overtime, compliance exposure, safety risk |
+| Full annualized cost | Prevents understating the commitment | Salary, benefits, equipment, vehicle, training, workspace |
+| Start-up timeline | Prevents approving positions that cannot be filled soon | Recruitment assumptions, academy/training lag |
+| Sunset/review point | Creates accountability | Reassess after 6 or 12 months |
+
+# Department-specific evidence I would require
+
+## Fire Rescue
+
+The budget gives a plausible reason for 6 firefighters: staffing Fire Station 4 and Truck 4, while incidents have risen and staffing has increased over time (Proposed Budget, p. 63). But before approving, I would require:
+
+1. a deployment plan showing opening date, shift model, minimum manning, and whether 6 firefighters are the exact number required;
+2. overtime hours and mandatory-holdover data for the last 24-36 months;
+3. vacancy rate, academy pipeline, and time-to-fill firefighter positions;
+4. call volume by station/zone and unit-hour utilization;
+5. response-time distribution, not only an average;
+6. proof that the staffing request is not just a placeholder for a facility that is not yet ready;
+7. annualized ongoing cost of Station 4 staffing after year one.
+
+## EMS
+
+The budget says 4 EMTs will operate Medic 8 and Medic 9 during peak hours and lower response times, and that EMS has faced recent deficits (Proposed Budget, pp. 15-16, 24, 167). Before voting yes, I would require:
+
+1. call volume by hour of day and day of week;
+2. response times by fractile, not just average;
+3. unit-hour utilization by ambulance;
+4. mutual-aid dependence and out-of-service time;
+5. overtime hours, vacancy rates, turnover, and sick-leave usage;
+6. transport volume trend and payer-mix trend;
+7. evidence that adding EMTs is more cost-effective than schedule redesign, deployment changes, or demand management.
+
+## Water & Sewer
+
+The budget adds a crew and a floater position to assist short-staffed crews (Proposed Budget, pp. 8, 15, 23). Before approval, I would require:
+
+1. number of work orders and preventive-maintenance tasks per crew;
+2. backlog trend;
+3. emergency callouts, line breaks, and response times;
+4. vacancy and absenteeism rates;
+5. overtime and contractor spending;
+6. asset-maintenance compliance rates;
+7. whether the new crew avoids more expensive deferred maintenance or contractor dependence.
+
+## Drainage
+
+The budget proposes a fee increase and a new crew plus Floodplain Manager, citing maintenance needs, compliance duties, and flood-risk reduction (Proposed Budget, pp. 8-9, 16, 24). Before approval, I would require:
+
+1. miles of channels, culverts, and drainage assets currently maintained;
+2. current cleaning cycle versus target cleaning cycle;
+3. backlog of drainage work orders and deferred maintenance;
+4. flood complaints, repetitive loss locations, and near-miss events;
+5. state and federal compliance deadlines and deficiencies;
+6. contractor costs versus in-house costs;
+7. measurable risk reduction expected from the added positions.
+
+## City Secretary / administrative additions
+
+The City Secretary office provides one of the better examples of output measures in the budget, including open-records volume and timeliness measures (Proposed Budget, pp. 47-48). Still, before approving added staff I would want:
+
+1. transaction volume trend over at least 3 years;
+2. workload per employee;
+3. peak-cycle bottlenecks;
+4. overtime or off-hours burden;
+5. error/rework rate;
+6. whether workflow automation was evaluated first.
+
+## Parks / transferred operations
+
+Because some positions relate to taking over the Senior Center and soccer complex, I would require a transition budget showing:
+
+1. which revenues offset which costs;
+2. attendance/usage trends;
+3. staffing model before and after transfer;
+4. whether the work is seasonal or permanent;
+5. cost recovery targets;
+6. performance measures for service quality and utilization.
+
+# Questions I would ask in public before any vote
+
+## Compensation questions
+
+1. Which exact job classes are experiencing the highest vacancy and turnover rates?
+2. For which positions are we losing candidates because of pay, and how do we know?
+3. How many first offers were declined in the last 12 months, by department?
+4. Which positions are below market, by how much, and compared with whom?
+5. How much of the compensation problem is broad-based versus concentrated in a handful of classes?
+6. What evidence shows merit/step changes will solve the stated problem better than targeted market adjustments?
+7. What is the full cost of compensation increases including retirement, payroll taxes, and any related benefit load?
+
+## Staffing questions
+
+1. What measurable service failure exists today that each new position fixes?
+2. What objective workload ratio shows current staffing is inadequate?
+3. What options other than adding permanent staff were evaluated?
+4. What would happen if we delayed each position 6 months?
+5. Which positions are urgent for safety or compliance reasons, and which are discretionary?
+6. What is the annualized recurring cost after the first year?
+7. How will council know in 12 months whether the new staff actually produced the promised result?
+
+## Fiscal-governance questions
+
+1. Which funds can sustainably support these recurring personnel costs without repeated fee or tax increases?
+2. Why should council approve permanent staff additions in funds already showing structural pressure or recent deficits?
+3. What capital items are being delayed to make room for recurring personnel growth, and what future risk does that create?
+4. If revenue underperforms, what gets cut first?
+5. What is the off-ramp if the added positions do not produce the promised improvements?
+
+# Decision rule I would use
+
+I would not use a vague standard such as "staff says this is needed." I would use a simple governing rule:
+
+> **No permanent personnel expansion without documented evidence of measurable need, documented alternatives considered, documented market comparison where pay is the stated issue, and documented fiscal sustainability.**
+
+To vote yes, I would want each requested personnel action to pass four tests:
+
+1. **Need test:** Is there a verified, measurable problem?
+2. **Causation test:** Is compensation or staffing actually the cause of that problem?
+3. **Alternatives test:** Were non-payroll alternatives considered and rejected for documented reasons?
+4. **Sustainability test:** Can the city afford this on a recurring basis without shifting hidden costs into future budgets?
+
+If a request fails any of those four tests, it should be revised, narrowed, delayed, or denied.
+
+# Bottom line for board presentation
+
+The strongest fair-minded conclusion is this:
+
+The proposed budget contains several plausible explanations for higher personnel spending, but **plausibility is not proof**. The document provides intentions, priorities, and selected activity measures, yet it does not provide the core labor-market, workload, performance-gap, and fiscal-sustainability evidence that a careful governing body should require before approving permanent increases in compensation and staffing.
+
+A responsible council member could therefore say:
+
+> "I am open to approving targeted compensation and staffing changes, but I am not willing to approve recurring personnel growth on narrative alone. Bring me the vacancy data, turnover data, offer-decline data, workload ratios, overtime burden, service-level gap analysis, market-pay comparisons, and full long-term cost before I vote yes."
+
+# Source note
+
+This review is based on the City of Schertz FY 2025-26 Proposed Budget, especially the executive summary, citywide budget highlights, General Fund, Fire, City Secretary, Water & Sewer, Drainage, EMS, and related fund summary pages (Proposed Budget, pp. 5-17, 20-24, 27-28, 47-48, 63, 167, 176-177).

@@ -1,0 +1,631 @@
+---
+title: "City of Schertz FY 2025-26 Proposed Budget"
+subtitle: "Analysis: Precision, Frugality, and Proof Before Permanent Personnel Cost Growth"
+description: ""
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
+format:
+  html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: true     # Set to 'false' for drafts. Override if you're NOT sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
+execute:
+  echo: true
+  message: false
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+params:
+  data_updated: !expr format(Sys.Date(), "%B %Y")
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+# Capture current filename for use in document
+file_name <- if (!base::is.null(knitr::current_input())) {
+  paste0(tools::file_path_sans_ext(knitr::current_input()), ".qmd")
+} else {
+  "interactive_session.qmd"
+}
+
+file_stem <- tools::file_path_sans_ext(file_name)
+
+
+
+# install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
+
+# census_api_key("95496766c51541ee6f402c1e1a8658581285b759", install = TRUE, overwrite = TRUE)
+
+
+# # load libraries - NOT NEEDED
+
+# Download button helpers live here; knitr::is_html_output() guard is inside
+# the helpers so they silently no-op when rendering to typst
+source(here::here("R", "download_button_helpers.R"))
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+options(scipen = 999)
+options(qic.clshade = T) # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.linecol = 'black') # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.signalcol = "firebrick") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(qic.targetcol = "purple") # NO LONGER NEEDED; CHARTS ALL PREPARED WITH GGPLOT2 ONLY
+options(DT.options = list(dom = 'pBlfrti')) # Add buttons, filtering, and top (t) pagination controls
+options(shiny.maxRequestSize = 50 * 1024^2) # Set upload maximum to 50 MB
+options(tigris_use_cache = TRUE)
+options(device = "RStudioGD") 
+
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  theme_fun = base::identity,          # <-- add this
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+# Standard table styler: blue italic title row + palegreen column header row.
+# Defined here so all QMDs that source this setup get the same presentation
+# without depending on census_helpers.R for a purely cosmetic function.
+ds_style_flextable <- function(ft, title = NULL) {
+  if (!base::is.null(title)) {
+    ft <- flextable::add_header_lines(ft, values = title)
+    ft <- flextable::color(ft, i = 1, part = "header", color = "blue")
+    ft <- flextable::italic(ft, i = 1, part = "header")
+    ft <- flextable::align(ft, i = 1, part = "header", align = "left")
+    ft <- flextable::fontsize(ft, i = 1, part = "header", size = 12)
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "white")
+    ft <- flextable::bg(ft, i = 2, part = "header", bg = "palegreen")
+  } else {
+    ft <- flextable::bg(ft, i = 1, part = "header", bg = "palegreen")
+  }
+  ft <- flextable::autofit(ft)
+  ft
+}
+
+
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 28,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 22,
+        fill = "yellow",
+        lineheight = 0.9,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(0.0, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 18,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18),
+        # ggplot2::element_blank(),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 18,
+        angle = 45,
+        hjust = 1
+      ),
+        # ggplot2::element_blank(),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 12),
+        # ggplot2::element_blank(),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = 18,
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+
+# claude <- ellmer::chat_anthropic(model = "claude-opus-4-6-20260205")
+  
+# Set seed for reproducibility
+base::set.seed(123)
+
+```
+
+
+\
+
+#### **Filename:**
+
+::: {.content-visible when-format="html"}
+[`r file_name`]{style="word-break: break-all; font-size: 1.00em;"}
+:::
+
+```{=typst}
+#let wrap_underscores(s) = s.replace("_", "_\u{200B}")
+#text(size: 16pt)[#raw(wrap_underscores("`r file_name`"))]
+```
+
+\
+\
+
+
+
+## Research Questions
+
+
+The main question is not whether higher pay can attract more applicants or reduce turnover. It probably can. The real question is whether the proposed budget provides enough **local proof** to justify a long-term taxpayer commitment to higher compensation and more staff.
+
+My answer is **Not Yet**.
+
+The proposed budget gives reasons, priorities, and assurances, but it does **not** provide the level of internal operating evidence that Council should require before approving additional permanent personnel-cost growth. 
+
+The document says staff compensation is intended to "reduce turnover and attract the best talent", and that "staffing increases are intended to improve service levels and prevent burnout". 
+
+But the proposed budget does not show any local data that would provide evidence that broad compensation growth or the addition of positions is needed at this time.^[City of Schertz, *FY 2025-26 Proposed Budget*, pp. 6-9.]
+
+
+## Bottom-line opinion
+
+If I were on Council, I would **not** vote yes on the personnel-cost portions of this budget until the City first produced much stronger evidence that a need exists and that the city can afford such a plan.
+
+My honest opinion is this:
+
+1. **Compensation problems should be handled with precision, not a shotgun approach.**  
+   A city may have a few difficult-to-fill positions. That does **not** justify broad increases by classification or citywide assumptions.
+
+2. **A vacancy is not proof that compensation is too low.**  
+   A position may be vacant because of scheduling, supervision, hiring delays, weak recruiting, poor onboarding, bad job design, low morale, or because the position is no longer truly necessary.
+
+3. **Better hiring statistics are not the same as better government.**  
+   More applicants, lower vacancy rates, and higher retention can occur even when organizational quality, accountability, and productivity do not improve.
+
+4. **Compensation is a recurring operating commitment.**  
+   Once approved, pay raises create pressure not just this year, but in later years through base pay, compression pressure, benefits, and future expectations.
+
+5. **The first test is not “would higher pay help?” but “if we can afford it.”**  
+   In local government, frugality is not optional. Taxpayers carry the burden of recurring mistakes.
+
+## What the budget actually shows
+
+The budget does contain several concrete personnel-related proposals:
+
+- the Citywide Merit/Step changes are planned to take effect midyear and are stated to cost **$784,000**;^[City of Schertz, *FY 2025-26 Proposed Budget*, p. 7.]
+- the City proposes **26 added positions** across the General Fund, Water & Sewer, EMS, and Drainage;^[City of Schertz, *FY 2025-26 Proposed Budget*, p. 8.]
+- the General Fund is proposed at the **no-new-revenue tax rate of $0.5064**, which is above the prior year’s $0.4900, and the document states that this M\&O rate will help meet staff compensation adjustments and key staffing needs;^[City of Schertz, *FY 2025-26 Proposed Budget*, pp. 5, 11.]
+- the General Fund shows an operating shortfall of **$1,255,805** and reserves of **26.8% of operating expenditures**, even while the City requirement is said to be no more than 26%;^[City of Schertz, *FY 2025-26 Proposed Budget*, p. 14.]
+- Water \& Sewer is shown with an operating shortfall of **$1,303,675**; EMS with a positive margin only after fee and contract increases; and Drainage with an operating shortfall of **$502,548** even after a major drainage fee increase.^[City of Schertz, *FY 2025-26 Proposed Budget*, pp. 15-16.]
+
+Those facts make the need for discipline stronger, not weaker.
+
+## What the budget does **not** show
+
+The budget makes repeated claims about reducing turnover, attracting talent, preventing burnout, improving service, lowering response times, and increasing maintenance capacity.^[City of Schertz, *FY 2025-26 Proposed Budget*, pp. 6-9, 15-16.]
+
+But it does **not** show the underlying operating proof a prudent Council member should insist on, such as:
+
+- vacancy rates by position and department over several years,
+- time-to-fill by position,
+- number of hiring rounds per position,
+- number of qualified applicants per posting,
+- first-offer acceptance and rejection rates,
+- documented exit reasons,
+- turnover by tenure band,
+- overtime hours and overtime costs by position,
+- workload per employee,
+- backlog trends,
+- service-level failures linked to understaffing,
+- evidence that any specific vacancy is caused by compensation rather than another cause,
+- evidence that the position should continue to exist at all,
+- and evidence that smaller targeted changes were considered before broader pay actions.
+
+That is the central weakness in the proposal.
+
+## The governing principle: precision first
+
+Compensation should be addressed with **laser-like accuracy**.
+
+If there are only a few positions that are repeatedly unfilled, then Council should focus on those exact positions. The City should not use a broad classification-wide increase, or a citywide theory of competitiveness, to justify a permanent increase in payroll.
+
+A sound decision sequence would look like this:
+
+### Step 1: Prove the position is necessary
+
+Before raising pay, Council should ask:
+
+- Is the position essential?
+- Is the work still needed in its current form?
+- Can the work be redesigned, combined, contracted, automated, or discontinued?
+- Is the vacancy revealing a true staffing need, or an outdated organizational habit?
+
+A vacant position should never be treated automatically as a position that must be filled.
+
+### Step 2: Prove the problem is specific
+
+If the position is necessary, then the City should prove:
+
+- this exact position is hard to fill,
+- the difficulty is persistent,
+- the applicant pool is too small or too weak,
+- and compensation is the likely cause.
+
+Without this proof, pay action is guesswork.
+
+### Step 3: Use the smallest effective remedy
+
+If compensation really is the problem, the City should use a **targeted nudge**, not a broad increase.
+
+The City should raise pay only enough to produce an adequate flow of qualified candidates. If one small increase is not enough, the City can test again. That is far more prudent than overcorrecting with large or widespread adjustments.
+
+### Step 4: Re-check affordability
+
+Even if a position is necessary and even if compensation is part of the problem, Council must still ask:
+
+**Can the City afford the permanent increase out of current and expected operating revenue without weakening its long-term financial position?**
+
+That question should be asked last, and it should be asked seriously.
+
+## Why outside comparisons should not control the decision
+
+I do not believe outside comparative-pay studies should drive this decision.
+
+Such studies often encourage a “meet the market” mindset that treats payroll as a race rather than a duty of stewardship. That approach can quickly become a fancy version of keeping up with the Joneses.
+
+For a city government, the relevant question is not whether another city pays more. The relevant question is whether **Schertz** has local evidence that a specific position cannot be filled or retained at current pay for reasons that are mainly compensation-related.
+
+Everything necessary to make the first judgment should begin with Schertz’s own data:
+
+- its own vacancies,
+- its own acceptance rates,
+- its own turnover,
+- its own overtime,
+- its own service failures,
+- its own supervision problems,
+- its own recruitment delays,
+- and its own budget capacity.
+
+Outside information, if used at all, should be secondary and only after local proof is established.
+
+## What Council should not accept as proof
+
+Council should not accept the following as sufficient proof:
+
+- statements that the City must “meet the market,”
+- statements that the City must “attract and retain the best,”
+- broad claims about burnout without department-level measures,
+- broad claims about growth without position-specific workload data,
+- broad classification adjustments when only a few jobs are hard to fill,
+- and vacancy counts with no evidence of the cause of the vacancy.
+
+These are talking points, not decision-grade evidence.
+
+## Does higher pay prove better government?
+
+No. At best, higher pay may improve certain labor-market statistics, such as:
+
+- number of applicants,
+- acceptance rates,
+- and retention.
+
+But those are not the same as:
+
+- better judgment,
+- stronger work ethic,
+- better supervision,
+- greater accountability,
+- better service quality,
+- or better long-term value for taxpayers.
+
+In fact, a government can improve hiring and retention numbers while making itself more expensive, less flexible, and harder to manage.
+
+That is why the City should never be allowed to move from **“higher pay may help fill jobs”** to **“therefore higher pay will improve government.”**
+
+That second claim is much stronger, and the budget does not prove it.
+
+## The taxpayer standard
+
+The taxpayer standard should be simple:
+
+A recurring compensation increase should be approved only when all four of these are proven:
+
+1. there is a **specific local problem**,
+2. the **position is necessary** and should continue to exist,
+3. the **smallest effective remedy** has been identified,
+4. and the City can **afford the long-term cost**.
+
+That is the standard I would apply before voting yes.
+
+## Metrics and evidence I would require before approving compensation changes
+
+### A. Position necessity metrics
+
+For every requested new position or hard-to-fill position:
+
+- position title,
+- department,
+- core duties,
+- whether duties are legally required,
+- whether duties can be reassigned,
+- whether the work can be reduced, automated, delayed, contracted, or eliminated,
+- and what happens if the position remains vacant for 6 to 12 months.
+
+### B. Vacancy diagnostics
+
+For each questioned position over at least 3 years:
+
+- number of authorized positions,
+- number filled,
+- number vacant,
+- average days vacant,
+- number of postings,
+- applicant count,
+- qualified applicant count,
+- interview count,
+- offers made,
+- offers accepted,
+- offers declined,
+- and stated reasons for declining.
+
+### C. Retention diagnostics
+
+By exact position, not by broad group:
+
+- voluntary turnover rate,
+- involuntary turnover rate,
+- turnover in first year,
+- turnover after 1 to 3 years,
+- exit interview reasons,
+- transfers within the City,
+- and documented departures to another jurisdiction.
+
+### D. Workload and service metrics
+
+Only internal operating measures should be used at first.
+
+Examples:
+
+- Fire/EMS: incidents per employee, response times by unit and hour, overtime per shift, missed coverage instances, training completion, callback frequency.
+- Water/Wastewater: work orders per crew, backlog age, emergency callouts, repeat failures, preventive maintenance completion, crew downtime caused by vacancies.
+- Drainage: linear feet cleaned per crew, backlog of channel maintenance, inspection completion, flood complaint response times, regulatory deadlines met or missed.
+- Clerk/administrative roles: meeting packet cycle times, records backlog, posting deadlines met or missed, customer service response times.
+- Parks/Recreation/Senior Center: usage levels, staffing ratios, program cancellations, overtime, complaint volume, and maintenance backlog.
+
+### E. Compensation-cause evidence
+
+For any claim that pay is the problem, I would require:
+
+- written evidence from declined offers,
+- exit data naming pay as a main reason,
+- repeat failed recruitments,
+- and evidence that non-pay fixes were tried and did not solve the problem.
+
+### F. Affordability metrics
+
+For each requested pay action or position add:
+
+- annual direct salary cost,
+- annual benefits cost,
+- recurring total cost,
+- five-year projected cost,
+- source of funding,
+- effect on reserves,
+- effect on utility or drainage fees,
+- effect on property tax dependence,
+- and the action that would be required if revenues underperform.
+
+## Questions I would ask before any yes vote
+
+1. Which exact positions are hard to fill, and for how long?
+2. How many qualified applicants did each of those positions attract?
+3. How many first offers were declined, and why?
+4. How many employees left for another jurisdiction, and which positions did they hold?
+5. What proof do we have that pay, rather than management, scheduling, working conditions, or job design, is the main cause?
+6. Which requested positions have been tested for elimination, redesign, contracting, or delayed filling?
+7. Why is a broad compensation action justified if the problem is limited to a small set of positions?
+8. What is the smallest targeted pay adjustment that has been tested or modeled?
+9. What improvement in service or operations should taxpayers expect, and how will it be measured?
+10. If revenue weakens, what will be cut later to sustain these recurring commitments?
+
+## Practical recommendation to Council
+
+I would recommend the following approach:
+
+### Approve only what is proven
+
+- Approve positions that are legally required or operationally proven.
+- Approve targeted pay changes only where the City can show a documented, position-specific, internal problem.
+
+### Defer what is not proven
+
+- Defer broad compensation actions that rely mainly on narrative.
+- Defer positions that have not been tested for redesign, delay, or discontinuation.
+
+### Require a follow-up personnel evidence report
+
+Direct staff to return with a position-by-position report that includes:
+
+- vacancy history,
+- applicant quality,
+- offer acceptance data,
+- turnover cause data,
+- workload evidence,
+- service-level effects,
+- alternatives considered,
+- and a five-year affordability view.
+
+## Final conclusion
+
+The proposed budget contains real fiscal and operational decisions, but the personnel case is not developed to the standard that should satisfy a careful Council member.
+
+The City has shown what it wants to do. It has **not** shown enough evidence to prove that broad compensation movement or every requested staffing addition is the most prudent remedy.
+
+My honest conclusion is this:
+
+> Compensation should be handled with precision, frugality, and proof.  
+> A few positions may need attention. Some may need redesign. Some may need elimination.  
+> But taxpayers should not be asked to finance permanent payroll growth based on slogans or generalities.  
+> Before any yes vote, the City should prove that the problem is real, the position is necessary, the remedy is targeted, and the City can afford it.
+
+## Source note
+
+This memo is based on the City of Schertz FY 2025-26 Proposed Budget, especially the Message and Highlights, Executive Summary, General Fund summary, and the Water \& Sewer, EMS, and Drainage summaries.^[City of Schertz, *FY 2025-26 Proposed Budget*, pp. 5-16, 20-28.]

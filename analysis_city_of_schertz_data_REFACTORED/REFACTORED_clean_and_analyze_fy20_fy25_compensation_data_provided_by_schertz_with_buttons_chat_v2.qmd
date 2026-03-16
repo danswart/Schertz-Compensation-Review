@@ -2179,29 +2179,68 @@ if (!base::is.null(p_city_mgr)) {
 # =============================================================================
 # APPENDIX I: TOTAL COMPENSATION GROWTH BY FISCAL YEAR - ALL DEPTS
 # =============================================================================
-p_total_comp_by_year <- ggplot2::ggplot(validation, 
-                ggplot2::aes(x = fiscal_year, y = source_total, group = 1)) +
+
+p_total_comp_by_year <- ggplot2::ggplot(
+  validation,
+  ggplot2::aes(x = fiscal_year, y = source_total, group = 1)
+) +
   ggplot2::geom_line(linewidth = 1.5, color = "steelblue") +
   ggplot2::geom_point(size = 4, color = "steelblue") +
-  ggplot2::geom_text(
-    ggplot2::aes(label = scales::dollar(source_total, scale = 1e-6, suffix = "M")),
-    vjust = -2
-  ) +
-  ggplot2::theme(
-    axis.text.y  = ggplot2::element_blank(),
-    axis.ticks.y = ggplot2::element_blank(),
-    panel.grid.major.y = ggplot2::element_blank()
+  ggrepel::geom_text_repel(
+    ggplot2::aes(
+      label = scales::dollar(source_total, scale = 1e-6, suffix = "M")
+    ),
+    size = 8,
+    direction = "y",
+    nudge_y = max(validation$source_total, na.rm = TRUE) * 0.03,
+    segment.color = "grey60",
+    box.padding = 0.35,
+    point.padding = 0.30,
+    max.overlaps = Inf,
+    show.legend = FALSE
   ) +
   ggplot2::scale_y_continuous(
-    expand = ggplot2::expansion(mult = c(0.05, 0.15))
+    expand = ggplot2::expansion(mult = c(0.05, 0.25))
   ) +
+  ggplot2::coord_cartesian(clip = "off") +
   ggplot2::labs(
     title = "Total Employee Compensation by Fiscal Year - All Depts",
     subtitle = "City of Schertz",
     x = "Fiscal Year",
     y = "Total Compensation"
+  ) +
+  ggplot2::theme(
+    panel.grid.major.y = ggplot2::element_blank(),
+    plot.margin = ggplot2::margin(30, 20, 20, 20, "pt")
   )
+
 p_total_comp_by_year
+
+
+
+# p_total_comp_by_year <- ggplot2::ggplot(validation, 
+#                 ggplot2::aes(x = fiscal_year, y = source_total, group = 1)) +
+#   ggplot2::geom_line(linewidth = 1.5, color = "steelblue") +
+#   ggplot2::geom_point(size = 4, color = "steelblue") +
+#   ggplot2::geom_text(
+#     ggplot2::aes(label = scales::dollar(source_total, scale = 1e-6, suffix = "M")),
+#     vjust = -2
+#   ) +
+#   ggplot2::theme(
+#     axis.text.y  = ggplot2::element_blank(),
+#     axis.ticks.y = ggplot2::element_blank(),
+#     panel.grid.major.y = ggplot2::element_blank()
+#   ) +
+#   ggplot2::scale_y_continuous(
+#     expand = ggplot2::expansion(mult = c(0.05, 0.15))
+#   ) +
+#   ggplot2::labs(
+#     title = "Total Employee Compensation by Fiscal Year - All Depts",
+#     subtitle = "City of Schertz",
+#     x = "Fiscal Year",
+#     y = "Total Compensation"
+#   )
+# p_total_comp_by_year
 ```
 
 ::: {.content-visible when-format="html"}

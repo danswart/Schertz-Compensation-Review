@@ -1,0 +1,72 @@
+---
+title: "3-Minute Public Comment on the Schertz FY 2025-26 Proposed Budget"
+subtitle: "Revised version using an internal-data standard"
+author: "OpenAI"
+format:
+  html:
+    toc: false
+  pdf:
+    toc: false
+execute:
+  echo: false
+  warning: false
+  message: false
+editor: visual
+---
+
+## Three-minute speech
+
+Mayor and Council,
+
+My name is \[Your Name\], and I am asking you to slow down before approving the personnel-cost increases in this proposed budget.
+
+I am not here to argue against city employees. I am not here to argue against public safety. And I am not here to argue against fair pay.
+
+I am here to ask for **proof**.
+
+This budget says higher compensation will reduce turnover and attract talent. It says more staff will prevent burnout, improve service, lower response times, and maintain critical systems.[^1] Those are important claims.
+
+[^1]: City of Schertz, *FY 2025-26 Proposed Budget*, pp. 6-9, 15-16.
+
+But where is the hard evidence from **inside Schertz**?
+
+Where is the list of positions that have been vacant too long? Where is the data showing how many first job offers are turned down? Where is the evidence showing how many employees actually left for another city? Where is the proof that pay, and not scheduling, supervision, workload, or management problems, is the real reason?
+
+This budget includes citywide merit and step increases that are planned to cost **\$784,000**.[^2] It also adds **26 positions** across several funds.[^3] At the same time, the General Fund is planned to spend more than it takes in, and other funds are also under pressure.[^4]
+
+[^2]: City of Schertz, *FY 2025-26 Proposed Budget*, p. 7.
+
+[^3]: City of Schertz, *FY 2025-26 Proposed Budget*, p. 8.
+
+[^4]: City of Schertz, *FY 2025-26 Proposed Budget*, pp. 14-16, 28.
+
+That means the burden of proof should be high.
+
+The city should not ask taxpayers to approve recurring payroll growth based mainly on narrative. It should show the facts.
+
+If the city has a real problem, then prove it with local data.
+
+Show us:
+
+-   vacancy rates by job title
+-   days to fill open positions
+-   first offers declined
+-   exit reasons by department
+-   overtime caused by short staffing
+-   backlog trends
+-   response-time trends
+-   workload per employee
+
+If the problem is real, the numbers will show it. If the numbers do not show it, then Council should not approve the increase.
+
+And one more point. I do **not** believe outside pay studies should drive this decision. A city should first look inside its own walls. Everything you need to know starts with your own records: who is leaving, who cannot be hired, what work is not getting done, and why.
+
+This is not anti-employee. This is pro-evidence. This is pro-taxpayer. And this is pro-good government.
+
+Please do not vote yes until staff brings back a simple public evidence packet built from Schertz's own data.
+
+Thank you.
+
+## Optional closing line if time remains
+
+Please require proof before permanently increasing payroll.

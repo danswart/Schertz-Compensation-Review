@@ -1,0 +1,79 @@
+---
+title: "Three-Minute Public Comment on the City of Schertz FY 2025-26 Proposed Budget"
+author: "Prepared for public remarks"
+format:
+  html:
+    toc: false
+    number-sections: false
+    code-fold: false
+    theme: cosmo
+  pdf:
+    toc: false
+    number-sections: false
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+## Three-Minute Speech
+
+Good evening, Mayor and Council.
+
+My name is [YOUR NAME], and I am asking you to slow down before approving this budget.
+
+I am not here to argue that city employees do not matter. They do. Good employees matter. Public safety matters. Reliable city services matter.
+
+But a responsible budget should rest on evidence, not just on narrative.
+
+This proposed budget asks the public to accept higher ongoing personnel costs and added staffing. The budget says it funds staff compensation to reduce turnover and attract talent. It also says it adds staffing to improve service levels and prevent burnout. Those may be real goals. But the document does not show the hard evidence needed to prove that these are the right solutions.^[City of Schertz, *FY 2025-26 Proposed Budget*, pp. 6-9.]
+
+The budget includes a citywide merit and step adjustment expected to cost **$784,000**.^[City of Schertz, *FY 2025-26 Proposed Budget*, p. 7.] It also adds **26 positions**: 10 in the General Fund, 6 in Water and Sewer, 4 in EMS, and 6 in Drainage.^[City of Schertz, *FY 2025-26 Proposed Budget*, p. 8.] At the same time, the budget says property taxes raised will increase by **$1,287,413**, and the proposed tax rate rises from **$0.4900** to **$0.5064** per $100 of value.^[City of Schertz, *FY 2025-26 Proposed Budget*, p. 5; p. 11.]
+
+If you are asking taxpayers to fund recurring costs, then taxpayers deserve more than broad claims.
+
+Before voting yes, I would want to see at least this evidence:
+
+How many positions are vacant right now, by department?
+
+How long does it take to fill them?
+
+How many first-choice applicants decline offers, and why?
+
+How does Schertz pay compare with nearby cities for the same jobs?
+
+Where is the overtime data showing current staffing is not enough?
+
+Where are the workload measures showing that added staff are needed?
+
+For EMS, where are the response time trends by hour of day before asking for four more EMTs?
+
+For Drainage, where is the maintenance backlog, the channel inventory, and the work-order data before creating a new crew and raising the fee from **$5.20** to **$8.00** per home?^[City of Schertz, *FY 2025-26 Proposed Budget*, pp. 15-16.]
+
+My point is simple: if the need is real, show it.
+
+Good government does not ask the public to trust a slogan. Good government shows its work.
+
+Please require hard evidence, department by department, before approving permanent increases in compensation and staffing.
+
+Thank you.
+
+## Optional Speaker Notes
+
+This speech is written at about a 10th-grade reading level and is designed to fit within roughly three minutes at a normal public-comment pace.
+
+### Key facts used in the speech
+
+- The budget identifies staff compensation and increased staffing levels as budget priorities.^[City of Schertz, *FY 2025-26 Proposed Budget*, pp. 6-7.]
+- The citywide merit/step changes are stated to cost $784,000.^[City of Schertz, *FY 2025-26 Proposed Budget*, p. 7.]
+- The budget adds 26 positions citywide.^[City of Schertz, *FY 2025-26 Proposed Budget*, p. 8.]
+- Property taxes are stated to rise by $1,287,413, and the proposed total tax rate is shown as $0.5064 per $100 of value.^[City of Schertz, *FY 2025-26 Proposed Budget*, pp. 5, 11.]
+- The Drainage fee is proposed to rise from $5.20 to $8.00 per home.^[City of Schertz, *FY 2025-26 Proposed Budget*, p. 16.]
+
+### Suggested delivery
+
+Pause after the sentence, "a responsible budget should rest on evidence, not just on narrative."
+
+Speak more slowly when reading the list of missing evidence.
+
+End firmly on the line, "Good government shows its work."

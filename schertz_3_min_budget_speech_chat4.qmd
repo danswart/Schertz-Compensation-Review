@@ -1,0 +1,72 @@
+---
+title: "3-Minute Public Comment on the Schertz FY 2025-26 Proposed Budget"
+subtitle: "Revised version using a targeted, internal-first standard"
+author: "OpenAI"
+format:
+  html:
+    toc: false
+  pdf:
+    toc: false
+execute:
+  echo: false
+  warning: false
+  message: false
+editor: visual
+---
+
+## Three-minute speech
+
+Mayor and Council,
+
+No one has ever said to me "Less information is better."
+
+In Texas and most states, a city council's legal fiduciary duty runs to the **public** — meaning the taxpayers and residents as a whole. Council members are elected representatives of the citizenry, not the employees. The city manager and HR function have employment duties to staff, but the council's constitutional role is stewardship of public resources on behalf of the people who fund them.
+
+My name is \[Your Name\], and I am asking you not to approve these personnel-cost increases until the City shows the public real evidence from inside Schertz.
+
+I am not against city employees. I am not against fair pay. And I am not against fixing a real staffing problem.
+
+I am against using a **shotgun approach** when compensation decisions should be made with **laser-like accuracy**.
+
+In a payroll budget this large, there may be a few positions that are truly hard to fill. That can happen. But that does **not** justify broad increases just because someone says we need to "meet the market" or "attract and retain the best people."
+
+Those are slogans. They are not proof.
+
+This budget says higher compensation will reduce turnover and attract talent, and it says more staff will improve service and reduce burnout.[^1] It also includes citywide merit and step increases expected to cost **\$784,000**, and it adds **26 positions**.[^2]
+
+[^1]: City of Schertz, *FY 2025-26 Proposed Budget*, pp. 6-9, 15-16.
+
+[^2]: City of Schertz, *FY 2025-26 Proposed Budget*, pp. 7-9.
+
+But where is the hard evidence?
+
+Where is the list of exact positions that cannot be filled? Where is the data showing how long they have been vacant? Where is the data showing how many first job offers were turned down? Where is the proof that pay was the reason? Where is the evidence showing how many employees actually left for another city for better pay?
+
+And before we even talk about raising pay, where is the evidence that the position should still exist at all? Could the work be redesigned? Could low-value work be eliminated? Could the job be changed instead of automatically funded forever?
+
+That is what careful government should ask.
+
+If there really are a few hard-to-fill positions, then address those few positions directly. Do not use a broad class-wide increase. Do not use a shotgun. Use a rifle. Make a small targeted adjustment. Then measure whether it worked. If needed, make another small adjustment later.
+
+Because compensation is not a one-time purchase. It is an ongoing commitment that taxpayers must fund out of current operating revenue year after year.
+
+And one more point. There is some research showing higher pay can help attract applicants in some settings.[^3] But there is **not** strong proof that broad pay increases automatically bring in "the best people" or guarantee better government. That slogan should not carry this vote.
+
+[^3]: Ernesto Dal Bó, Frederico Finan, and Martín Rossi, "The Role of Financial Incentives in the Call to Public Service," *Quarterly Journal of Economics* 128, no. 3 (2013): 1169-1218.
+
+Please require a simple public evidence packet before you vote yes:
+
+-   vacancy data by title,
+-   offer rejections,
+-   exit reasons,
+-   overtime caused by short staffing,
+-   service backlogs,
+-   and proof that any pay problem is real and limited to specific positions.
+
+Please insist on precision, proof, and frugality before permanently increasing payroll.
+
+Thank you.
+
+## Optional closing line if time remains
+
+Target the real problem, prove it with local data, and do not approve a shotgun solution for what may be only a few positions.

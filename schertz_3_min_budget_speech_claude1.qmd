@@ -1,0 +1,122 @@
+---
+title: "Public Comment — City of Schertz FY 2025-26 Proposed Budget"
+subtitle: "3-Minute Statement for City Council Meeting"
+author: "Dan Swart, CPA (ret.)"
+date: today
+date-format: long
+format:
+  html:
+    embed-resources: true
+    fontsize: 18pt
+    linestretch: 1.4
+    toc: false
+    page-layout: article
+    css:
+      - swart.css
+    include-in-header:
+      - text: |
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+  typst:
+    fontsize: 14pt
+    mainfont: "Cabin"
+    margin:
+      x: 1in
+      y: 1in
+
+execute:
+  echo: false
+  message: false
+  warning: false
+
+prefer-html: true
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+file_name <- if (!base::is.null(knitr::current_input())) {
+  paste0(tools::file_path_sans_ext(knitr::current_input()), ".qmd")
+} else {
+  "schertz_budget_public_comment_speech.qmd"
+}
+
+file_stem <- tools::file_path_sans_ext(file_name)
+```
+
+::: {.content-visible when-format="html"}
+**Filename:** [`r file_name`]{style="word-break: break-all; font-size: 0.85em;"}
+:::
+
+---
+
+> **Speaking time:** approximately 2 minutes 50 seconds at a measured pace.
+> Trim the compensation doubling paragraph if additional margin is needed.
+
+---
+
+## Speech Text
+
+My name is Dan Swart and I live at 1509 Gwendolyn Way, Schertz, 78154.  
+
+Mayor and Council Members:
+
+No one has ever said to me "Less information is better."  
+
+In Texas and most states, a city council's legal fiduciary duty runs to the public — meaning the taxpayers and residents as a whole. Council members are elected representatives of the citizenry, not the employees. 
+
+The city manager and HR function have the duty of providing adequate staffing to carry out the city's basic functions, but the council's constitutional role is stewardship of public resources on behalf of the people who fund them.
+
+I want to address two related issues today:  &nbsp;the ***SUBSTANCE*** of this proposed budget, and the ***PROCESS*** by which it is being considered.
+
+**First, On Substance.**
+
+This budget proposes 26 new positions and a merit and step program that costs
+\$784,000 — but that figure is only half the story. That is a six-month cost.
+The identical compensation structure costs \$1.57 million in FY 2027 before
+anyone gets a single additional dollar. That is a structural commitment, not a
+one-time event.
+
+Total personnel costs across all funds are growing at an annualized rate of
+approximately 14 percent per year. At that rate, compensation doubles in roughly
+five years (from $49M to $98M). 
+
+Property tax revenue grows at roughly seven percent — it doubles in ten years. The gap between those two curves is not sustainable, and it compounds every year you wait to address it.
+
+If you believe these doubling times are no big deal, consider that the total compensation paid in FY2020 DOUBLED in just 3 years and TRIPLED in only 5 years! 
+
+I want to be clear — I am not arguing that city employees are undeserving. I am arguing that the question the council must answer before approving any compensation increase is not 
+
+*"do our employees deserve this?"* — 
+
+it is *"can we afford this right now?"* 
+
+Those are different questions, and only one of them protects the taxpayer.
+
+A homeowner with a \$300,000 taxable value will pay approximately \$49 EXTRA this year, just for the General Fund personnel increase alone. That may sound modest. But at a 14 percent growth rate, it does not stay modest.
+
+Council has a duty to be ***FRUGAL*** in all matters, including compensation.
+
+\
+
+**Now — On Process.**
+
+None of these questions can be meaningfully answered in the time this council has allocated to budget review. There are simply not enough workshops for council members to ask questions, request supporting data, and evaluate the answers before a vote is called.
+
+A budget of this complexity — fifty-three million dollars across five funds,
+twenty-six new positions, a structural compensation commitment extending indefinitely into the future — deserves a formalized review process with defined milestones, mandatory workshops, and written questions submitted to staff with written
+answers on the record.
+
+Without that process, every concern I am raising tonight — affordability, growth rates, staffing justifications — remains unanswered not because the answers don't exist, but because there is no formal mechanism to require them.
+
+I respectfully ask this council to adopt a structured budget review calendar that includes at least one workshop per month before this proposed budget is voted on — and tonight, to ask one question before this vote:
+
+> ***Can we afford these proposals right now?***
+
+Thank you.
+
+---
+
+*Analysis prepared by Dan Swart, CPA (ret.) |
+Sources: City of Schertz FY 2025-26 Proposed Budget |
+All figures read directly from budget document.*
