@@ -1,84 +1,57 @@
-# Current as of: 2025-12-31
+# Current as of: 2026-03-15
 
 #####  NO INLINE COMMENTS!  #####
 
-# Bookdown files-if book rendered in cloud uncomment these
-*.pdf
-_site
-temp.Rmd
-*_files
-figures
-_main.*
-crc
 
-# History files
+# R / RStudio
 .Rhistory
 .Rapp.history
-
-# Session Data files
+.RData
 .RDataTmp
-
-# User-specific files
 .Ruserdata
-*.tobedeleted
-
-# Example code in package build process
+.Rproj.user/
+*.Rproj.user
 *-Ex.R
 
-# Output files from R CMD build
-/*.tar.gz
-
-# Output files from R CMD check
-/*.Rcheck/
-
-# RStudio files
-.Rproj.user/
-
-# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
+# Local settings / secrets
+.Renviron
+.Rprofile
 .httr-oauth
+.env
+.secrets/
 
-
-# Ignore R/knitr/Quarto cache directories
+# Quarto / R Markdown / knitr
+.quarto/
+_freeze/
+*_files/
 *_cache/
-*_cache/**
 cache_data/
-cache_data/**
-*.Rhistory
-*.RData
-*.Rproj.user
-
-
-# Specific cache patterns
 **/*_cache/
 **/cache_data/
-
-# Temporary files created by R markdown
 *.utf8.md
 *.knit.md
+temp.Rmd
 
-# R Environment Variables
-.Renviron
+# Rendered outputs
+*.html
+*.pdf
+Rplots.pdf
 
-# pkgdown sites
-docs/
-/doc/
+# Keep selected HTML files when needed
+!header.html
+!giscus.html
+!vignettes/*.html
 
-# translation temp files
-po/*~
+# Sites / docs
+_site/
+site_libs/
 
-# RStudio Connect folder
-rsconnect/
-.Rdata
-
-# Built vignettes
-inst/doc
-
-# Package metadata
-Meta/
+# Package build / check
+/*.tar.gz
+/*.Rcheck/
 /Meta/
-
-# R profile (local settings)
-.Rprofile
+Meta/
+inst/doc/
 
 # Package management
 renv/
@@ -87,65 +60,48 @@ packrat/
 # Logs
 *.log
 
+# Temporary / scratch / deletion markers
+*.tobedeleted
+crc
 
-# Large temporary data files
-temp-*.rds
-temp-*.RDS
+# OS files
+.DS_Store
+Thumbs.db
 
-# Raw data (if large)
+# Common large local data folders
 data-raw/
 raw-data/
 data_raw/
 raw_data/
-*.csv
+data-clean/
+annual_budgets/
 
-# Auto-generated plots
-Rplots.pdf
-
-# Secrets/credentials
-.secrets/
-.env
-
-# macOS
-.DS_Store
-
-
-# Windows
-Thumbs.db
-
-# Quarto
-.quarto
-/.quarto/
-_freeze/
-
-
-
-# Rendered output (be selective)
-
-*.html
-!header.html
-!vignettes/*.html
-!giscus.html
-
-
-
-
-
-# ------------------------
-# Large data files (naming convention: large_*)
-# These are typically big temporary or downloaded datasets that should not be versioned
+# Large local files by naming convention
 large_*.rds
 large_*.RDS
 large_*.csv
 large_*.xlsx
+temp-*.rds
+temp-*.RDS
 
+# Optional: ignore CSV files if they are only local working files
+# Uncomment this only when CSVs should NOT be tracked
+# *.csv
 
+# Optional: ignore Excel files if they are only local working files
+# Uncomment this only when Excel files should NOT be tracked
+# *.xlsx
 
+# Optional project folders
+figures/
+pdf/
+docs/
 
-
-
-annual_budgets/
-.Rproj.user
-.RData
-data-clean/
-pdf/*.pdf
+# Optional keep rules
+# Use these only in repos where you WANT GitHub to keep certain outputs
+# !docs/
+# !docs/index.html
+# !docs/*.html
+# !figures/
+# !figures/*.png
+# !figures/*.svg

@@ -20,7 +20,7 @@ execute:
 # Executive judgment
 
 My honest judgment is that the proposed budget **does not present enough hard evidence, in the budget document itself, to justify a "yes" vote on personnel-cost growth and added staffing on evidence-based grounds alone**.
-
+ 
 The document clearly states the *reasons* staff give for higher personnel spending. It says compensation is intended to reduce turnover and attract talent, and that added staffing is intended to maintain service levels, reduce burnout, lower EMS response times, improve drainage maintenance, staff Fire Station 4, and support transferred operations such as the Senior Center and soccer complex (Proposed Budget, pp. 6-9, 14-17, 20-24).
 
 But those are still mostly **claims of purpose**, not **proof of need**.
@@ -249,6 +249,7 @@ Because some positions relate to taking over the Senior Center and soccer comple
 4. whether the work is seasonal or permanent;
 5. cost recovery targets;
 6. performance measures for service quality and utilization.
+
 
 # Questions I would ask in public before any vote
 

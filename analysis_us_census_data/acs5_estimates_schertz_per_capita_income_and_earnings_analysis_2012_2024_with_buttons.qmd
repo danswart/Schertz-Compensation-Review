@@ -176,19 +176,6 @@ flextable::set_flextable_defaults(
 
 
 
-# Flextable built-in themes:
-  # flextable::theme_alafoli()	|>  # BLAH
-  # flextable::theme_apa()  # THIS IS NICE
-  # flextable::theme_booktabs() |>  # NICE, MORE COMPACT
-  # flextable::theme_box() |>   # OK, INCLUDES CELL BORDERS
-  # flextable::theme_tron() |>  # 'DARK MODE' BLUE TEXT
-  # flextable::theme_tron_legacy() |>   # 'DARK MODE' YELLOW TEXT
-  # flextable::theme_vader() |>    # 'DARK MODE' WHITE TEXT
-  # flextable::theme_vanilla() |>   # NOT SPECIAL
-  # flextable::theme_zebra()	|>
-  #
-
-
 # Set global theme for consistent plots
 ggplot2::theme_set(
   ggplot2::theme_minimal(base_size = 20) +

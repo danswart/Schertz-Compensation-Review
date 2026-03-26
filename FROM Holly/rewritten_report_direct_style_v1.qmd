@@ -1,0 +1,280 @@
+---
+title: "Rewritten Report - Direct Style Draft"
+subtitle: "Based on Holly Final Report dated March 13, 2026"
+format:
+  docx:
+    toc: false
+  html:
+    toc: true
+editor: visual
+---
+
+# Executive Summary
+
+The City's General Fund is no longer living within its means.
+
+Over the last several years, spending - especially employee compensation - has risen MUCH faster than revenue. The result is painful: the City is running operating deficits, drawing down reserves to keep ordinary operations going, and narrowing its room to respond to future problems.
+
+At the same time, the revenue picture is getting weaker, not stronger. Property tax growth is slowing as property value growth cools. The governor and legislature are constantly trying to restrict local revenue sources.
+
+New construction has helped expand the tax base, but obviously, not enough. Even after the recent property tax rate increases, current revenue is not enough to comfortably support the City's current level of spending.
+
+If the City stays on this path, more and more General Fund dollars will be swallowed by payroll, benefits, and overtime. That leaves less money for roads, parks, facilities, maintenance, and other services residents can actually see.
+
+## Key Findings
+
+This report examines the General Fund through four pillars: financial sustainability, revenue capacity, expenditure structure, and personnel costs. The picture across all four is consistent.
+
+### Pillar 1: Financial Sustainability
+
+The City is operating in deficit. This is not right!
+
+The General Fund has posted operating deficits totaling about \$5.1 million over the last three years, including about \$1.3 million in FY 2023-2024, \$2.1 million in FY 2024-2025, and a projected \$1.7 million in FY 2025-2026.
+
+The City is using reserves to pay for recurring operations.
+
+The General Fund balance has fallen from 41.4% of expenditures in FY 2020-2021 to 28.0% in FY 2025-2026. Reserves are being used as a backstop for everyday spending rather than being preserved for emergencies, downturns, or one-time needs.
+
+The City has less capacity for infrastructure and new service demands.
+
+That has happened even after repeated property tax rate increases and continued help from new home construction. The City is collecting more revenue than it did several years ago, but spending has risen a lot faster.
+
+### Pillar 2: Revenue Capacity
+
+Total Revenue dollars are larger now, but the surge is over.
+
+General Fund revenue rose from about \$37.6 million to \$52.9 million between FY 2020-2021 and FY 2025-2026. But the growth rate has dropped hard, from 11.8% in FY 2022-2023 to a projected 0.5% in FY 2025-2026.
+
+Much of the recent revenue growth came from a sudden and unexpected windfall in property values.
+
+Home valuation growth peaked at 18% in FY 2022-2023, then fell to 13% in FY 2023-2024, 3.76% in FY 2024-2025, and a projected 1.59% in FY 2025-2026. That earlier burst should not be treated as the new normal.
+
+The City depends heavily on revenue sources that can weaken quickly.
+
+Property tax and sales tax produce about 70% of General Fund revenue. That means the City is highly exposed to changes in property values, construction activity, and consumer spending. Sales tax is already at the State maximum level.
+
+### Pillar 3: Expenditure Structure
+
+General Fund spending has climbed to a new level.
+
+Total expenditures rose about \$16.3 million, or 43%, from FY 2020-2021 to FY 2025-2026. This is not a small adjustment. It is a major upward reset in the City's ongoing cost structure.
+
+The biggest jumps came fast.
+
+General Fund expenditures rose about \$7.4 million in FY 2023-2024 and another \$4.5 million in FY 2024-2025. Those increases were driven almost entirely by higher employee compensation.
+
+Most of the City's revenue is now tied up in personnel costs.
+
+Employee compensation has consumed more than 70% of General Fund revenue in recent years. That is a direct threat to budget balance because it leaves too little room for infrastructure, maintenance, and other core obligations.
+
+### Pillar 4: Personnel Costs
+
+Council's approval of higher compensation accross the board is the main force driving spending growth.
+
+General Fund personnel spending rose about \$9.4 million, or 33%, from FY 2020-2021 to FY 2025-2026. That accounts for about 58% of total General Fund expenditure growth.
+
+The biggest threat to the budget is not headcount growth. It is higher pay per employee.
+
+The City has reported an average workforce of roughly 430 employees over this period. Staffing has stayed steady, but payroll has climbed sharply. Compensation levels, not broad workforce expansion, are doing most of the work.
+
+Compensation growth is concentrated and permanent once approved.
+
+Total employee compensation rose about \$39.2 million, or 35%, from FY 2020-2021 to FY 2024-2025. Benefits and overtime add heavily to that total. Once salary schedules, benefit obligations, and pay practices move upward, those costs ***do not disappear on their own***.
+
+Many more employees are crossing into six-figure compensation.
+
+The number of employees earning more than \$100,000 rose from 108 to 173 over five years - a 60% increase. These higher salaries push up retirement contributions, benefit costs, and future pay expectations. They are a huge inflationary force.
+
+## Recommendations for Council
+
+### 1. Require a genuinely balanced operating budget
+
+The City should adopt a clear rule: recurring expenditures must be paid for with recurring revenue. Reserves should not be used to quietly cover ongoing operating costs.
+
+#### Key actions
+
+-   Adopt a balanced-budget policy for the General Fund.
+
+-   Restrict reserve use to one-time needs, emergencies, or true short-term transitions.
+
+-   Require multi-year financial projections before budget adoption.
+
+-   Constantly seek to reduce costs, not 'contain' costs.
+
+### 2. Fix the budget approval process
+
+A major part of the problem is built right into the current process of budget approval - guaranteeing even more trouble in the future.
+
+Council needs time to examine and question any rising costs they deem important. The viewpoint of the taxpayer is not visible in the current process.
+
+Convincing evidence must be presented that pursuades Council of both the existance of a problem, and the likely effects on performance of any proposed 'solutions'.
+
+#### Key actions
+
+-   Create a Council Budget Review Committee that will inject the taxpayers' voice into the process early and often.
+-   Review the evidence for proposed staffing changes, compensation adjustments, and major recurring costs before budget adoption.
+-   Require 6 to 8 workshops before budget adoption.
+-   Require routine multi-year reports that show the long-term history and the likely effect of today's decisions.
+
+### 3. Put hard limits on personnel cost growth
+
+Personnel costs are the City's largest financial obligation and the fastest-rising part of the budget. Council should stop approving compensation changes without a clear written justification, a measurable need, and a demonstrated funding source.
+
+#### Key actions
+
+-   Freeze new hiring and broad compensation increases until the budget is back in balance.
+-   Adopt a comprehensive compensation policy based on affordability, not comparative studies. COLAs, merit, step increases, overtime, and benefit changes must always be tempered with the admonition "If we can afford it".
+-   Require demonstrable evidence for compensation decisions, including vacancy rates, recruiting difficulty, first-offer rejection rates, turnover, overtime pressure, and department-specific staffing gaps. Slogans and narrative explanations are NOT evidence.
+-   Build and maintain an ***effective*** workforce, not a rich one.
+
+### 4. Protect money for visible public services
+
+Residents expect the General Fund to support roads, parks, facilities, maintenance, and day-to-day community services. Council should make that priority explicit and protect it.
+
+#### Key actions
+
+-   Set a target share of General Fund spending for infrastructure, roads, maintenance, parks, and facilities.
+-   Limit personnel cost growth to the bare minimum needed to be effective. Otherwise, it will crowd out basic service delivery.
+-   Require quarterly reporting that shows how spending is divided among personnel, infrastructure, and operations.
+
+## Conclusion
+
+The City's General Fund is under serious and immediate threat. Revenue growth is slowing rapidly. Spending has grown much faster than revenue. Personnel costs are taking up too much of the revenue base. If the City does not change course, it will have no flexibility in the budget for infrastructure, services, and to absorb future shocks.
+
+This is not a bookkeeping problem. It is a policy problem. And part of it is built into a budget process that can approve lasting costs faster than it tests whether the City can truly afford them.
+
+# General Fund
+
+# Pillar 1: Financial Sustainability
+
+General Fund expenditures have outpaced General Fund revenue. The result is recurring deficits, falling reserves, and less room to respond to new demands.
+
+## 1. Revenues are no longer covering expenditures
+
+General Fund revenue increased from about \$37.6 million to \$52.9 million between FY 2020-2021 and FY 2025-2026. But expenditures grew faster, rising from about \$38.2 million to \$54.5 million. The City is now spending above its recurring revenue base.
+
+That matters because a budget can look manageable for a short time while still moving in the wrong direction. Once recurring spending rises above recurring revenue, the gap has to be filled somehow. In this case, reserves have been helping cover that gap.
+
+## 2. The City is repeatedly running operating deficits
+
+The recent pattern is not a one-year anomaly. The General Fund has posted three straight operating deficits totaling about \$5.1 million.
+
+That streak matters more than any single year. A repeated deficit means the City has crossed from temporary strain into a pattern of imbalance.
+
+## 3. Reserves are being used to support operations
+
+The General Fund balance has dropped from 41.4% of expenditures in FY 2020-2021 to 28.0% in FY 2025-2026.
+
+Reserves are supposed to protect the City against emergencies, downturns, and one-time disruptions. They are not supposed to function as a silent funding source for routine operating costs. When reserves are used that way, the budget may look stable on paper while the City is losing financial strength in practice.
+
+## 4. The City has less financial capacity than it did a few years ago
+
+The City has increased the property tax rate and benefited from new construction, yet it is still under pressure. That is a warning sign. It means the problem is not simply weak revenue collection. The larger problem is that spending has moved to a level that current revenue can no longer comfortably support.
+
+## Pillar 1: Conclusion
+
+The City is no longer operating with a healthy margin of safety. Revenues are not keeping pace with expenditures. Deficits have become recurring. Reserves are being used to hold the budget together. That is not a stable footing for future infrastructure needs, service demands, or economic downturns.
+
+# Pillar 2: Revenue Capacity
+
+The City has benefited from revenue growth, but the easy growth phase is fading. Future budget decisions should be made on the assumption that revenue growth will be slower and harder to come by.
+
+## 1. Revenue growth has slowed dramatically
+
+General Fund revenue grew from about \$37.6 million to \$52.9 million over the period reviewed. That headline number looks strong until the yearly pace is examined. The growth rate fell from 11.8% in FY 2022-2023 to a projected 0.5% in FY 2025-2026.
+
+That is a major shift. It means the budget cannot rely on yesterday's growth rates to pay for tomorrow's recurring obligations.
+
+## 2. A Property-Value Spurt gave the City a temporary windfall
+
+Property valuation growth was unusually strong for a very short period, peaking at 18% in FY 2022-2023. It then dropped sharply over the next three fiscal years.
+
+That earlier surge should have been treated as a temporary advantage, not as proof that the City can continue to expand spending at the same pace. A spending pattern built on an unusual revenue event is a blunder.
+
+## 3. The revenue base is heavily concentrated
+
+Property tax and sales tax produce about 70% of General Fund revenue.
+
+That concentration makes the City vulnerable. When so much of the budget depends on property values and consumer spending, revenue growth can weaken quickly during a cooler housing market, a softer economy, or a downturn in local spending. Sales tax rates are already at the state mandated maximum.
+
+## Pillar 2: Conclusion
+
+The period of rapid revenue growth was an unexpected and unusual condition that was temporary. The City cannot budget as though that event will repeat itself. Slower revenue growth means less room for error, less room for expansion, and less ability to absorb rising operating costs.
+
+Demonstrable facts must be highly valued over slogans and narrative explanations.
+
+# Pillar 3: Expenditures
+
+The City's spending problem is not limited to one line item. The broader problem is that the General Fund has been burdened with a much higher operating level.
+
+## 1. General Fund spending has risen sharply
+
+Total General Fund expenditures rose about \$16.3 million, or 43%, from FY 2020-2021 to FY 2025-2026.
+
+That is a large and lasting increase. A budget does not need to keep rising every year. Once spending jumps to a new level and stays there, the pressure escalates rapidly.
+
+## 2. The largest increase in spending came in a very short period
+
+Expenditures rose about \$7.4 million in FY 2023-2024 and another \$4.5 million in FY 2024-2025. Even with a slight projected dip in FY 2025-2026, total spending remains far above earlier levels.
+
+This is why the issue cannot be minimized. The City did not merely drift upward over time. It made large moves in a short span, and those moves changed the long-term budget base. They are a huge shock to the economic system of the city.
+
+## 3. Spending growth is concentrated in recurring operating costs
+
+The biggest spending increases occurred in service areas dominated by payroll and ongoing operations, including public safety, internal services, and general government.
+
+Recurring operating costs are nearly impossible to unwind. Once they rise, the City has less room to redirect money toward infrastructure, maintenance, or future priorities.
+
+## 4. Personnel costs consume too much of General Fund revenue
+
+Personnel expenses have been taking 66% to 75% of General Fund revenue during the years reviewed and have remained above 70% in recent years.
+
+That level of commitment weakens the City's budget flexibility. It is one reason infrastructure and other visible service needs get squeezed even while total revenue rises.
+
+## Pillar 3: Conclusion
+
+The General Fund is carrying a much heavier cost structure than it did a few years ago. Much of that growth is recurring and hard to reverse. The result is a budget with much less flexibility, less resilience, and less room for non-payroll priorities.
+
+# Pillar 4: Personnel Costs
+
+Personnel costs are not just another spending category. They are the center of the City's budget problem.
+
+## 1. Personnel costs are driving the budget upward
+
+General Fund personnel spending rose about \$9.4 million, or 33%, from FY 2020-2021 to FY 2025-2026 and accounts for about 58% of the total increase in General Fund spending.
+
+That is why personnel policy cannot be treated as separate from budget policy. Compensation decisions are budget decisions.
+
+## 2. The issue is rising compensation, not simply more employees
+
+The reported average workforce has stayed at about 430 employees since FY 2020-2021. Yet personnel spending has climbed sharply.
+
+That strongly suggests the main pressure is coming from higher compensation per employee, not broad workforce expansion. Salary growth, benefit growth, and overtime growth are doing the damage.
+
+## 3. Senior compensation carries broader budget consequences
+
+The City's 20 highest-paid employees received more than \$5 million in total compensation in FY 2024-2025, representing about 13% of total General Fund payroll.
+
+Compensation at the top does more than affect a small number of positions. It shapes internal pay expectations, influences benchmark comparisons, and will push compensation upward across departments.
+
+## 4. Benefits and overtime add major cost on top of salary
+
+Employer-paid benefits commonly add tens of thousands of dollars per employee, and significant overtime in some command positions pushes total compensation even higher.
+
+This is why base salary alone does not tell the full story. The real budget impact comes from measuring total compensation.
+
+## 5. Six-figure pay is spreading rapidly
+
+The number of employees earning more than \$100,000 rose from 108 to 173 over five years. All without a single piece of internal data provided that would even suggest a problem existed. Worse, not a single piece of pursuasive internal data was asked for!
+
+That is not trivial. It signals that higher compensation levels are spreading through the organization. Once that happens, the effect compounds through retirement contributions, benefits, and future pay adjustments.
+
+## Pillar 4: Conclusion
+
+Personnel costs are the largest long-term claim on the General Fund and the biggest reason the budget is in a deficit position. The City cannot regain control of the General Fund without directly controlling compensation growth, benefit growth, and the approval process that allows those costs to become permanent.
+
+# Final Closing
+
+The central message is straightforward: the City has allowed recurring spending to grow faster than recurring revenue, and personnel costs are the main reason. Revenue growth is nearing zero. Reserves are falling. The budget must be revised to eliminate deficit spending.
+
+The next step cannot be another round of vague warnings or soft language. The City needs direct policies, hard evidence, responsible budget discipline, and a budget process that forces long-term affordability to be tested before permanent costs are approved.

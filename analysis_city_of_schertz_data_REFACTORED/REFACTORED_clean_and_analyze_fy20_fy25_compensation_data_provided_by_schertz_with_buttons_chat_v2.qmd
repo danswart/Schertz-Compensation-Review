@@ -1379,7 +1379,7 @@ reg_earnings_display <- reg_earnings_summary |>
   )
 
 reg_earnings_spec <- list(
-  title = "Total Regular Earnings Summary Including Time-to-Double by Fiscal Year (Additional + Arbitration + Leave + Overtime + Total Regular)"
+  title = "City Employees Total Regular Earnings Summary Including Time-to-Double by Fiscal Year (Additional + Arbitration + Leave + Overtime + Total Regular)"
 )
 
 ds_ft(reg_earnings_display, reg_earnings_spec)
@@ -1397,6 +1397,63 @@ ds_download_data_btn(
 )
 ```
 :::
+
+## Step 11c
+
+
+```{r}
+# =============================================================================
+# REGULAR EARNINGS: TOTAL, PER CAPITA AVG, AND PER CAPITA MEDIAN
+# Formula = Additional + Arbitration + Leave + Overtime + Regular
+# =============================================================================
+
+employee_id_col <- "name"   # <-- change if your employee ID column is different
+
+reg_earnings_employee <- final_df |>
+  dplyr::filter(
+    earnings_type %in% c("Additional", "Arbitration", "Leave", "Overtime", "Regular")
+  ) |>
+  dplyr::group_by(
+    fiscal_year,
+    employee = .data[[employee_id_col]]
+  ) |>
+  dplyr::summarise(
+    reg_earnings = sum(amount, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+reg_earnings_per_capita_summary <- reg_earnings_employee |>
+  dplyr::group_by(fiscal_year) |>
+  dplyr::summarise(
+    total_reg_earnings             = sum(reg_earnings, na.rm = TRUE),
+    per_capita_avg_reg_earnings    = mean(reg_earnings, na.rm = TRUE),
+    per_capita_median_reg_earnings = stats::median(reg_earnings, na.rm = TRUE),
+    total_employees                = dplyr::n(),
+    .groups = "drop"
+  ) |>
+  dplyr::arrange(fiscal_year)
+
+reg_earnings_per_capita_display <- reg_earnings_per_capita_summary |>
+  dplyr::rename(
+    FY = fiscal_year,
+    `Total Reg Earnings` = total_reg_earnings,
+    `Per Capita Avg Reg Earnings` = per_capita_avg_reg_earnings,
+    `Per Capita Median Reg Earnings` = per_capita_median_reg_earnings,
+    `Total Employees` = total_employees
+  ) |>
+  dplyr::mutate(
+    `Total Reg Earnings` = scales::dollar(`Total Reg Earnings`, accuracy = 1),
+    `Per Capita Avg Reg Earnings` = scales::dollar(`Per Capita Avg Reg Earnings`, accuracy = 1),
+    `Per Capita Median Reg Earnings` = scales::dollar(`Per Capita Median Reg Earnings`, accuracy = 1)
+  )
+
+reg_earnings_per_capita_spec <- list(
+  title = "City Employees Regular Earnings Total, Per Capita Average, and Per Capita Median by Fiscal Year (Additional + Arbitration + Leave + Overtime + Regular)"
+)
+
+ds_ft(reg_earnings_per_capita_display, reg_earnings_per_capita_spec)
+
+```
 
 ------------------------------------------------------------------------
 
@@ -1681,7 +1738,7 @@ p_top3_bump <- ggplot2::ggplot(
   ggplot2::scale_y_reverse(breaks = 1:5) +
   ggplot2::scale_x_discrete(expand = ggplot2::expansion(add = c(0.2, 1.5))) +
   ggplot2::labs(
-    title = "Top 3 in Total Compensation by Rank Over Time",
+    title = "Top 3 City Positions Total Compensation by Rank Over Time",
     x = NULL,
     y = "Rank"
   ) +
@@ -1756,7 +1813,7 @@ p_dept_bump <- ggplot2::ggplot(
   ggplot2::scale_y_reverse(breaks = seq_len(top_n_depts)) +
   ggplot2::scale_x_discrete(expand = ggplot2::expansion(add = c(0.2, 2))) +
   ggplot2::labs(
-    title = "Department Rankings by Total Compensation",
+    title = "City Department Rankings by Total Compensation",
     x = NULL,
     y = "Rank"
   ) +
@@ -1820,7 +1877,7 @@ overtime_display <- overtime_summary |>
   )
 
 overtime_spec <- list(
-  title = "Overtime Analysis by Fiscal Year"
+  title = "City Employeee Overtime Analysis by Fiscal Year"
 )
 
 ds_ft(overtime_display, overtime_spec)
@@ -1903,7 +1960,7 @@ p_overtime_by_dept <- ggplot2::ggplot(
   ) +
   ggplot2::scale_x_discrete(expand = ggplot2::expansion(add = c(0.2, 1.5))) +
   ggplot2::labs(
-    title = "Overtime Usage by Department",
+    title = "City Employees Overtime Usage by Department",
     subtitle = "Top 3 Departments by Total Overtime Used",
     x = "Fiscal Year",
     y = "Overtime ($)"
@@ -1998,7 +2055,7 @@ p_dept_rank_bump <- ggplot2::ggplot(dept_ranks_top_10, ggplot2::aes(x = fiscal_y
   ggplot2::scale_y_reverse(breaks = 1:15) +
   ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = c(0.25, 0.05))) +
   ggplot2::labs(
-    title = "Department Total Compensation Rankings Over Time",
+    title = "City Department Total Compensation Rankings Over Time",
     subtitle = "Rank 1 = highest total compensation. Lines show how departments moved in rankings relative to each other.",
     x = "Fiscal Year",
     y = "Rank (1 = Highest)"
@@ -2036,7 +2093,7 @@ dept_ranks_wide <- dept_ranks_top_10 |>
   dplyr::arrange(FY24)
 
 dept_rank_spec <- list(
-  title = "Total Comp Rankings by Dept by Fiscal Year (1 = Highest TOTAL Compensation)"
+  title = "City Total Comp Rankings by Dept by Fiscal Year (1 = Highest TOTAL Compensation)"
 )
 
 ds_ft(dept_ranks_wide, dept_rank_spec)
@@ -2204,7 +2261,7 @@ p_total_comp_by_year <- ggplot2::ggplot(
   ) +
   ggplot2::coord_cartesian(clip = "off") +
   ggplot2::labs(
-    title = "Total Employee Compensation by Fiscal Year - All Depts",
+    title = "City Total Employee Compensation by Fiscal Year - All Depts",
     subtitle = "City of Schertz",
     x = "Fiscal Year",
     y = "Total Compensation"
@@ -2235,7 +2292,7 @@ p_total_comp_by_year
 #     expand = ggplot2::expansion(mult = c(0.05, 0.15))
 #   ) +
 #   ggplot2::labs(
-#     title = "Total Employee Compensation by Fiscal Year - All Depts",
+#     title = "Total City Employee Compensation by Fiscal Year - All Depts",
 #     subtitle = "City of Schertz",
 #     x = "Fiscal Year",
 #     y = "Total Compensation"
@@ -2292,7 +2349,7 @@ p_growth_rate <- growth_data |>
   ggplot2::geom_hline(yintercept = 0, linetype = "dashed") +
   ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.15))) +
   ggplot2::labs(
-    title = "Year-over-Year Total Compensation Growth",
+    title = "City Employee Year-over-Year Total Compensation Growth",
     subtitle = "City of Schertz",
     x = "Fiscal Year",
     y = "Growth Rate (%)"
@@ -2335,7 +2392,7 @@ growth_rate_display <- growth_data |>
   )
 
 growth_rate_spec <- list(
-  title = "Annual Compensation Growth Details"
+  title = "City Employee Annual Compensation Growth Details"
 )
 
 ds_ft(growth_rate_display, growth_rate_spec)
@@ -2422,7 +2479,7 @@ growth_rates_display <- growth_rates_all |>
   )
 
 growth_rates_spec <- list(
-  title = "Year-over-Year Comparisons of Growth Rates by Earnings Category",
+  title = "City Employee Year-over-Year Comparisons of Growth Rates by Earnings Category",
   footer_lines = "* Benefits imputed for FY20-FY22 based on FY23-FY25 ratios",
   footer_fontsize = 11,
   footer_italic = TRUE
@@ -2527,7 +2584,7 @@ p_growth_rates_comparison <- ggplot2::ggplot(
   ) +
   ggplot2::scale_x_discrete(expand = ggplot2::expansion(add = c(2.0, 0.3))) +
   ggplot2::labs(
-    title = "Year-over-Year Growth Rates: Compensation Metrics vs Inflation",
+    title = "City of Employee Year-over-Year Growth Rates: Compensation Metrics vs Inflation",
     subtitle = "City of Schertz | FY20-FY22 benefits are imputed estimates",
     x = "Fiscal Year",
     y = "Growth Rate (%)",
