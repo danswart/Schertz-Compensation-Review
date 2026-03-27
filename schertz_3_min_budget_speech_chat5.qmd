@@ -1,7 +1,7 @@
 ---
-title: "3-Minute Public Comment on the Schertz FY 2025-26 Proposed Budget"
-subtitle: "Revised version using a targeted, internal-first standard"
-author: "OpenAI"
+title: "3-Minute Public Comment on City of Schertz Budgeting Process"
+subtitle: ""
+author: "Dan Swart, CPA (ret.)"
 format:
   html:
     toc: false
@@ -14,252 +14,71 @@ execute:
 editor: visual
 ---
 
-## Three-minute speech
-
-Mayor and Council,
+Good morning Mayor and Council,
 
 My name is Dan Swart, I'm a retired CPA and I live at 1509 Gwendolyn Way, 78154
 
 I feel like the proverbial mosquito in a nudist colony, ***IT'S HARD TO KNOW WHERE TO BEGIN!!***
 
-I will speak rapidly because I have about 30 minutes of information, but only 3 minutes to say it.
+As you approach each budget cycle it is good to reflect on current budgeting practices, their effects on budget policies and on the taxpayers of Schertz.
 
-FIRST, let's begin with the recent results of the FY24-FY25 audited financial statements.
+[***WE'LL BEGIN WITH AN EXAMPLE OF A BAD PRACTICE:***]{.underline}
 
-Last board meeting Mr Westbrook asked several pointed questions, presumably to put to rest once and for all certain controversies about the General Fund operations for that year:
+USING INFORMATION FROM [**OUTSIDE**]{.underline} SCHERTZ TO ASSESS THE [***INTERNAL***]{.underline} STATE OF SCHERTZ
 
-1.  Did the city's General Fund operate at a deficit in the fiscal year? CORRECT ANSWER = NO
+-   Example: To decide matters of compensation you have consistently looked [***OUTSIDE***]{.underline} rather than [***INSIDE***]{.underline} your own city. You look to a Compensation Study or Employer Compensation Index, neither of which provide any evidence whatsoever as to what is actually happening [***INSIDE***]{.underline} the City of Schertz.
 
-2.  Did the city dip into its General Fund reserves in that fiscal year? CORRECT ANSWER = NO
+<!-- -->
 
-Uncharacteristically, Mr. Westbrook left off the most important question:
+-   This is just like your doctor giving ME blood tests to assess YOUR health. Does that make any sense at all?!
 
--   Did the city avoid operating the General Fund at a deficit, and avoid dipping into the reserves, due to conservative and careful budgeting and spending practices, OR
--   was the city just plain ***LUCKY*** to have the Sales Tax windfall in that year, coupled with a paper accounting adjustment of nearly \$2,000,000 boosting reserve levels?
+    In recent budgets, [***INTERNAL***]{.underline} evidence supporting such claims was not offered. More alarming, none was even asked for!
 
-CORRECT ANSWER = ***JUST PLAIN LUCKY; NO CONSERVATIVE, CAREFUL PLANNING BY THE COUNCIL (OR ANYONE ELSE) WAS INVOLVED.***
+-   [***EVERYTHING YOU NEED TO KNOW TO PROPERLY RUN AND IMPROVE SCHERTZ IS CONTAINED IN YOUR OWN BOOKS AND RECORDS.***]{.underline}
 
-Mr. Macaluso was the only member to then ask what the results WOULD HAVE BEEN been without the Sales Tax windfall. Even though staff answered truthfully, no one had the chutzpah to say the implication out loud:
+[***ANOTHER BAD PRACTICE:***]{.underline}
 
-***YES, it had been a matter of dumb luck that the city was NOT operating the General Fund at a deficit and eating into reserves.***
+ACCEPTING CLICHES, SLOGANS, AND 'SOUNDS GOOD' EUPHEMISMS AS 'SELF-EVIDENT'.
 
-So, I certainly would not rush to pat myself or others on the back about what fine financial care the city council is providing in the General Fund. Just admit that you were lucky; AND don't be indignant when taxpayers ask why a deficit budget was passed in the first place.
+-   Recent budgets claim higher compensation will reduce turnover and attract talent, and it says more staff will improve service and reduce burnout.[^1]
 
-One bright spot is the accuracy with which staff projected the expected deficit and its affect on the reserves. Take away those two windfall events and they hit the projections almost perfectly - KUDOS TO THEM.
+    What you 'know' depends on the evidence, not the cliches. But where is the hard evidence?
 
-----
+-   Where is the list of exact positions that cannot be filled?
 
-As you approach the budget this time, keep these budget practices in mind:
+-   Where is the data showing how long they have been vacant?
 
-***BAD PRACTICE:***
+-   Where is the data showing how many first job offers were turned down, and the evidence that pay was the reason?
 
--   SUBSTITUTING INFORMATION FROM [**OUTSIDE**]{.underline} SCHERTZ TO ASSESS THE [***INTERNAL***]{.underline} STATE OF SCHERTZ
-
-    -   Example: To decide matters of compensation you have consistently looked [***OUTSIDE***]{.underline} rather than [***INSIDE***]{.underline} your own city. For example, neither a Compensation Studies nor the Employer Compensation Index provide any evidence whatsoever as to what is actually happening at the City of Schertz.
-
-        This practice guarantees overspending and more trouble.
-
-***BAD PRACTICE:***
-
--   ACCEPTING CLICHES, SLOGANS, AND 'SOUNDS GOOD' EUPHEMISMS AS 'SELF-EVIDENT' AND USE THEM UNCHALLENGED TO SET PRIORITIES AND COMPENSATION SPENDING POLICIES. Such statements and narrative are NOT EVIDENCE of anything. In usefulness, they rank right up there with "Buy Low, Sell High"
-
--   In the latest budget, INTERNAL evidence supporting such claims was not offered. Most alarming was that none was even asked for.
-
-    -   Example: Budget documents say staff compensation is intended to "reduce turnover and attract the best talent", and that "staffing increases are intended to improve service levels and prevent burnout".
-
-        -   How did Council confirm that SCHERTZ Turnover Rates were unacceptable or deteriorating the quality of service to the public? Which particular Schertz positions have unacceptable service levels or turnover ratios?
-
-        -   Which service levels were 'improved' and by how much? How do you know?
-
-        -   Did Schertz actually have a 'burnout' problem? How did you confirm that? What internal measures of 'burnout' were or are being tracked?
-
-        -   How did Council confirm that raising compensation "attracts the best talent"? You can blow up your AI engine and you will not find a SINGLE independent study anywhere providing evidence that that is true. So, why do you accept it? Because is sounds good. No evidence at all.
-
-        -   In what ways are current employees not "the best"? What is "the best"? How do you know? Answer: you don't.
-
-        -   Are the employees 'now the best (or even better) after the massive compensation increases? How would you know?
-
-        -   How did Council confirm which staffing levels were negatively affecting public services?
-
-GOOD PRACTICE:
-
--   Demand INTERNAL evidence supporting claims for increased spending before approving budget increases.
-
-Combined, those two practices create the situation where ***you are almost completely ignorant of what is [ACTUALLY]{.underline} going on in your your own city. Thus, guaranteeing trouble and unnecessary spending.***
-
-***Example:***
-
-What do you know about SCHERTZ's own:
-
--   vacancy rates by department, by position, by year?
--   time-to-fill each category of position, by year?
--   number of failed recruitment, by position, by year?
--   first-offer acceptance rates, by position, by year?
--   overtime and backfill costs, by position, by year?
--   workload per employee, by position, by year?
--   service-level shortfalls attributable to under-staffing by position, by year?
--   vacancy data by position, by year?
--   number of first-offer rejections by position, by year?
--   exit reasons given by position, by year?
--   overtime caused by short staffing, by position, by year?
--   service backlogs, by position by year?
--   which effectiveness metrics (like 'time to respond') are you asking for and whether they are increasing, decreasing, or staying the same over time?
--   The FBI Crime Data Base shows that crime in SCHERTZ has been steadily declining for years. So what, precisely, justifies your large increases in compensation and head count? Certainly, not property and violent crime.
--   vacancy data by position, by year?
--   number of first-offer rejections by position, by year?
--   exit reasons by position, by year?
-
-You see, those are examples of REAL measures of what is REALLY happening INSIDE your own city. They are actual data (not slogans and euphemisms) that can prove whether or not SCHERTZ has a compensation 'problem' at all. Moreover, that sort of analysis points you to exactly where the problems are, and what to do about them.
-
-Apparently, all one need do to get Council to spend millions upon millions of dollars into the indefinite future is say a few slogans and buzz words:
-
-Example:
-
-1.   "The board somewhere along the line thought that the words "Prioritize our employees" meant ignoring the over-riding duty of Council to safeguard and maximize the effects of tax dollars for the taxpayer.
-
-```{r}
-
-## ============================================================
-##  Schertz Civic Analytics — Comparison Table
-##  Dan Swart | Add rows to `comparison_data` to extend
-## ============================================================
-
-# library(flextable)
-# library(ftExtra)
-# library(dplyr)
-# library(readr)
-# library(scales)
-
-# ── 1.  DATA  ─────────────────────────────────────────────────
-comparison_data <- tibble::tribble(
-  ~Description, ~Year, ~City_Data, ~Comparative_Data,
-  "City of Schertz EE REGULAR Earnings vs Citywide REGULAR Earnings", "2024", "$64,847", "$43,174"
-)
-
-# ── 1b.  CALCULATE DIFFERENCE COLUMNS  ────────────────────────
-comparison_data <- comparison_data |>
-  dplyr::mutate(
-    City_Data_num = readr::parse_number(City_Data),
-    Comparative_Data_num = readr::parse_number(Comparative_Data),
-
-    Dollar_Diff_num = City_Data_num - Comparative_Data_num,
-    Pct_Diff_num    = (City_Data_num - Comparative_Data_num) / Comparative_Data_num * 100,
-
-    Dollar_Difference = dplyr::case_when(
-      Dollar_Diff_num > 0 ~ paste0(scales::dollar(Dollar_Diff_num, accuracy = 1), " more"),
-      Dollar_Diff_num < 0 ~ paste0(scales::dollar(abs(Dollar_Diff_num), accuracy = 1), " less"),
-      TRUE ~ "Same"
-    ),
-
-    Percent_Above_Below = dplyr::case_when(
-      Pct_Diff_num > 0 ~ paste0(round(Pct_Diff_num, 1), "% above"),
-      Pct_Diff_num < 0 ~ paste0(round(abs(Pct_Diff_num), 1), "% below"),
-      TRUE ~ "Same"
-    )
-  ) |>
-  dplyr::select(
-    Description, Year, City_Data, Comparative_Data,
-    Dollar_Difference, Percent_Above_Below
-  )
-
-# ── 2.  COLUMN LABELS  ────────────────────────────────────────
-col_labels <- c(
-  Description         = "Description",
-  Year                = "Year",
-  City_Data           = "City of Schertz EE's",
-  Comparative_Data    = "Comparative Data",
-  Dollar_Difference   = "Dollar Difference",
-  Percent_Above_Below = "% Above / Below"
-)
-
-# ── 3.  BUILD FLEXTABLE  ──────────────────────────────────────
-ds_style_flextable <- function(df, col_labels, title_text = NULL) {
-
-  ft <- flextable::flextable(df) |>
-    flextable::set_header_labels(values = col_labels)
-
-  # Optional title row above column headers
-  if (!is.null(title_text)) {
-    ft <- ft |>
-      flextable::add_header_lines(values = title_text)
-  }
-
-  # ── Header row 1 (title line, if present) ──
-  if (!is.null(title_text)) {
-    ft <- ft |>
-      flextable::bold(part = "header", i = 1) |>
-      flextable::color(part = "header", i = 1, color = "#1F3864") |>
-      flextable::italic(part = "header", i = 1) |>
-      flextable::fontsize(part = "header", i = 1, size = 11) |>
-      flextable::bg(part = "header", i = 1, bg = "white") |>
-      flextable::align(part = "header", i = 1, align = "left")
-  }
-
-  # ── Header row 2 (column labels) ──
-  header_label_row <- if (!is.null(title_text)) 2L else 1L
-
-  ft <- ft |>
-    flextable::bold(part = "header", i = header_label_row) |>
-    flextable::color(part = "header", i = header_label_row, color = "#1F3864") |>
-    flextable::italic(part = "header", i = header_label_row) |>
-    flextable::fontsize(part = "header", i = header_label_row, size = 10) |>
-    flextable::bg(part = "header", i = header_label_row, bg = "palegreen") |>
-    flextable::align(part = "header", i = header_label_row, align = "center")
-
-  # ── Body ──
-  ft <- ft |>
-    ftExtra::colformat_md() |>
-    flextable::fontsize(part = "body", size = 10) |>
-    flextable::align(part = "body", j = "Year",                align = "center") |>
-    flextable::align(part = "body", j = "City_Data",           align = "right")  |>
-    flextable::align(part = "body", j = "Comparative_Data",    align = "right")  |>
-    flextable::align(part = "body", j = "Dollar_Difference",   align = "right")  |>
-    flextable::align(part = "body", j = "Percent_Above_Below", align = "right")  |>
-    flextable::align(part = "body", j = "Description",         align = "left")   |>
-    flextable::autofit()
-
-  ft
-}
-
-# ── 4.  RENDER  ───────────────────────────────────────────────
-comparison_table <- ds_style_flextable(
-  df         = comparison_data,
-  col_labels = col_labels,
-  title_text = "Schertz Fiscal Comparisons"
-)
-
-comparison_table
-
-```
-
-No one has ever said to me "Less information is better."
-
-In Texas and most states, a city council's legal fiduciary duty runs to the **public** — meaning the taxpayers and residents as a whole. Council members are elected representatives of the citizenry, not the employees. The city manager and HR function have employment duties to staff, but the council's constitutional role is stewardship of public resources on behalf of the people who fund them.
-
-I am against using a **shotgun approach** when compensation decisions should be made with **laser-like accuracy**.
-
-In a payroll budget this large, there may be a few positions that are truly difficult to fill. That can happen. But that does **not** justify compensation increases.
-
-Those are slogans. They are not proof.
-
-This budget says higher compensation will reduce turnover and attract talent, and it says more staff will improve service and reduce burnout.[^1] It also includes citywide merit and step increases expected to cost **\$784,000**, and it adds **26 positions**.[^2]
+-   Where is the evidence showing how many employees actually left for another city for better pay?
 
 [^1]: City of Schertz, *FY 2025-26 Proposed Budget*, pp. 6-9, 15-16.
 
-[^2]: City of Schertz, *FY 2025-26 Proposed Budget*, pp. 7-9.
+And before we even talk about raising pay, where is the evidence that the position should still exist at all?
 
-But where is the hard evidence?
+Could the work be redesigned?
 
-Where is the list of exact positions that cannot be filled? Where is the data showing how long they have been vacant? Where is the data showing how many first job offers were turned down? Where is the proof that pay was the reason? Where is the evidence showing how many employees actually left for another city for better pay?
+Could low-value work be eliminated?
 
-And before we even talk about raising pay, where is the evidence that the position should still exist at all? Could the work be redesigned? Could low-value work be eliminated? Could the job be changed instead of automatically funded forever?
+Could the job be changed instead of automatically funded forever?
 
-That is what careful government should ask.
+These are the types of questions careful governments ask.
 
-If there really are a few hard-to-fill positions, then address those few positions directly. Do not use a broad class-wide increase. Do not use a shotgun. Use a rifle. Make a small targeted adjustment. Then measure whether it worked. If needed, make another small adjustment later.
+You see, those are examples of REAL measures of what is ACTUALLY happening INSIDE your own city. They are actual data (not slogans and euphemisms) that can prove whether or not SCHERTZ has or ever has had a compensation 'problem' at all. That kind of data will point you to exactly where the problems are, and what to do about them.
 
-Because compensation is not a one-time purchase. It is an ongoing commitment that taxpayers must fund out of current operating revenue year after year.
+If there really are a few hard-to-fill positions, then address those few positions directly. Do not use broad city-wide increases. Do not use a shotgun. Use a rifle. Make small targeted adjustments. Then measure whether it worked. If needed, make another small adjustment later.
 
-Thank you.
+Combined, these two bad practices alone produce a situation where ***you are almost completely ignorant of what is [ACTUALLY]{.underline} going on INSIDE your own city.***
 
-## 
+[***YOU CANNOT POSSIBLY KNOW THE MARKET FORCES SCHERTZ IS EXPERIENCING WITHOUT ANALYZING INTERNAL MEASURES.***]{.underline}
+
+[***BETTER PRACTICE:***]{.underline}
+
+-   Demand INTERNAL evidence supporting claims for increased spending before approving any budget increases.
+
+A reminder is always helpful: In Texas, a city council's legal fiduciary duty runs to the **public** — meaning the taxpayers and residents as a whole. Council members are elected representatives of the citizenry, not the employees. The city manager and HR function have employment administration duties to staff, but the council's constitutional role is frugal stewardship of public resources on behalf of the people who fund them.\
+\
+
+Apparently, in the area of compensation all one needs to do to get Council to spend millions upon millions of dollars into the indefinite future is say a few slogans and buzz words. Evidence - who needs it?
+
+Thank you

@@ -70,3 +70,124 @@ Thank you.
 ## Optional closing line if time remains
 
 Target the real problem, prove it with local data, and do not approve a shotgun solution for what may be only a few positions.
+
+
+
+
+```{r}
+
+## ============================================================
+##  Schertz Civic Analytics — Comparison Table
+##  Dan Swart | Add rows to `comparison_data` to extend
+## ============================================================
+
+# library(flextable)
+# library(ftExtra)
+# library(dplyr)
+# library(readr)
+# library(scales)
+
+# ── 1.  DATA  ─────────────────────────────────────────────────
+comparison_data <- tibble::tribble(
+  ~Description, ~Year, ~City_Data, ~Comparative_Data,
+  "City of Schertz EE per Capita REGULAR Earnings vs Citywide per Capita REGULAR Earnings", "2024", "$64,847", "$43,174"
+)
+
+# ── 1b.  CALCULATE DIFFERENCE COLUMNS  ────────────────────────
+comparison_data <- comparison_data |>
+  dplyr::mutate(
+    City_Data_num = readr::parse_number(City_Data),
+    Comparative_Data_num = readr::parse_number(Comparative_Data),
+
+    Dollar_Diff_num = City_Data_num - Comparative_Data_num,
+    Pct_Diff_num    = (City_Data_num - Comparative_Data_num) / Comparative_Data_num * 100,
+
+    Dollar_Difference = dplyr::case_when(
+      Dollar_Diff_num > 0 ~ paste0(scales::dollar(Dollar_Diff_num, accuracy = 1), " more"),
+      Dollar_Diff_num < 0 ~ paste0(scales::dollar(abs(Dollar_Diff_num), accuracy = 1), " less"),
+      TRUE ~ "Same"
+    ),
+
+    Percent_Above_Below = dplyr::case_when(
+      Pct_Diff_num > 0 ~ paste0(round(Pct_Diff_num, 1), "% above"),
+      Pct_Diff_num < 0 ~ paste0(round(abs(Pct_Diff_num), 1), "% below"),
+      TRUE ~ "Same"
+    )
+  ) |>
+  dplyr::select(
+    Description, Year, City_Data, Comparative_Data,
+    Dollar_Difference, Percent_Above_Below
+  )
+
+# ── 2.  COLUMN LABELS  ────────────────────────────────────────
+col_labels <- c(
+  Description         = "Description",
+  Year                = "Year",
+  City_Data           = "City of Schertz EE's",
+  Comparative_Data    = "Comparative Data",
+  Dollar_Difference   = "Dollar Difference",
+  Percent_Above_Below = "% Above / Below"
+)
+
+# ── 3.  BUILD FLEXTABLE  ──────────────────────────────────────
+ds_style_flextable <- function(df, col_labels, title_text = NULL) {
+
+  ft <- flextable::flextable(df) |>
+    flextable::set_header_labels(values = col_labels)
+
+  # Optional title row above column headers
+  if (!is.null(title_text)) {
+    ft <- ft |>
+      flextable::add_header_lines(values = title_text)
+  }
+
+  # ── Header row 1 (title line, if present) ──
+  if (!is.null(title_text)) {
+    ft <- ft |>
+      flextable::bold(part = "header", i = 1) |>
+      flextable::color(part = "header", i = 1, color = "#1F3864") |>
+      flextable::italic(part = "header", i = 1) |>
+      flextable::fontsize(part = "header", i = 1, size = 11) |>
+      flextable::bg(part = "header", i = 1, bg = "white") |>
+      flextable::align(part = "header", i = 1, align = "left")
+  }
+
+  # ── Header row 2 (column labels) ──
+  header_label_row <- if (!is.null(title_text)) 2L else 1L
+
+  ft <- ft |>
+    flextable::bold(part = "header", i = header_label_row) |>
+    flextable::color(part = "header", i = header_label_row, color = "#1F3864") |>
+    flextable::italic(part = "header", i = header_label_row) |>
+    flextable::fontsize(part = "header", i = header_label_row, size = 10) |>
+    flextable::bg(part = "header", i = header_label_row, bg = "palegreen") |>
+    flextable::align(part = "header", i = header_label_row, align = "center")
+
+  # ── Body ──
+  ft <- ft |>
+    ftExtra::colformat_md() |>
+    flextable::fontsize(part = "body", size = 10) |>
+    flextable::align(part = "body", j = "Year",                align = "center") |>
+    flextable::align(part = "body", j = "City_Data",           align = "right")  |>
+    flextable::align(part = "body", j = "Comparative_Data",    align = "right")  |>
+    flextable::align(part = "body", j = "Dollar_Difference",   align = "right")  |>
+    flextable::align(part = "body", j = "Percent_Above_Below", align = "right")  |>
+    flextable::align(part = "body", j = "Description",         align = "left")   |>
+    flextable::autofit()
+
+  ft
+}
+
+# ── 4.  RENDER  ───────────────────────────────────────────────
+comparison_table <- ds_style_flextable(
+  df         = comparison_data,
+  col_labels = col_labels,
+  title_text = "Schertz Fiscal Comparisons"
+)
+
+comparison_table
+
+```
+
+## 
+
