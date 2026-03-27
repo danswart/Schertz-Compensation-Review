@@ -1,17 +1,122 @@
 ---
 title: "3-Minute Public Comment on City of Schertz Budgeting Process"
 subtitle: ""
-author: "Dan Swart, CPA (ret.)"
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
 format:
   html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: true     # Set to 'false' for drafts. Override if you're NOT sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    fig-width: 13
+    fig-height: 8
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
     toc: false
-  pdf:
-    toc: false
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
 execute:
-  echo: false
-  warning: false
+  echo: true
   message: false
-editor: visual
+  warning: false
+  eval: true
+  fig-width: 13
+  fig-height: 8
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+params:
+  data_updated: !expr format(Sys.Date(), "%B %Y")
+---
+
 ---
 
 Good morning Mayor and Council,
@@ -35,6 +140,8 @@ USING INFORMATION FROM [**OUTSIDE**]{.underline} SCHERTZ TO ASSESS THE [***INTER
     In recent budgets, [***INTERNAL***]{.underline} evidence supporting such claims was not offered. More alarming, none was even asked for!
 
 -   [***EVERYTHING YOU NEED TO KNOW TO PROPERLY RUN AND IMPROVE SCHERTZ IS CONTAINED IN YOUR OWN BOOKS AND RECORDS.***]{.underline}
+
+\
 
 [***ANOTHER BAD PRACTICE:***]{.underline}
 
@@ -70,7 +177,11 @@ If there really are a few hard-to-fill positions, then address those few positio
 
 Combined, these two bad practices alone produce a situation where ***you are almost completely ignorant of what is [ACTUALLY]{.underline} going on INSIDE your own city.***
 
+\
+
 [***YOU CANNOT POSSIBLY KNOW THE MARKET FORCES SCHERTZ IS EXPERIENCING WITHOUT ANALYZING INTERNAL MEASURES.***]{.underline}
+
+\
 
 [***BETTER PRACTICE:***]{.underline}
 
